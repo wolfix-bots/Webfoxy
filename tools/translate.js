@@ -1,0 +1,318 @@
+import fetch from 'node-fetch';
+
+// Language database with flags and names
+const LANGUAGES = {
+    'en': { name: 'English', flag: '🇺🇸' },
+    'id': { name: 'Indonesian', flag: '🇮🇩' },
+    'ms': { name: 'Malay', flag: '🇲🇾' },
+    'es': { name: 'Spanish', flag: '🇪🇸' },
+    'fr': { name: 'French', flag: '🇫🇷' },
+    'de': { name: 'German', flag: '🇩🇪' },
+    'it': { name: 'Italian', flag: '🇮🇹' },
+    'pt': { name: 'Portuguese', flag: '🇵🇹' },
+    'ru': { name: 'Russian', flag: '🇷🇺' },
+    'ja': { name: 'Japanese', flag: '🇯🇵' },
+    'ko': { name: 'Korean', flag: '🇰🇷' },
+    'zh': { name: 'Chinese', flag: '🇨🇳' },
+    'ar': { name: 'Arabic', flag: '🇸🇦' },
+    'hi': { name: 'Hindi', flag: '🇮🇳' },
+    'nl': { name: 'Dutch', flag: '🇳🇱' },
+    'pl': { name: 'Polish', flag: '🇵🇱' },
+    'tr': { name: 'Turkish', flag: '🇹🇷' },
+    'vi': { name: 'Vietnamese', flag: '🇻🇳' },
+    'th': { name: 'Thai', flag: '🇹🇭' },
+    'el': { name: 'Greek', flag: '🇬🇷' },
+    'sv': { name: 'Swedish', flag: '🇸🇪' },
+    'da': { name: 'Danish', flag: '🇩🇰' },
+    'fi': { name: 'Finnish', flag: '🇫🇮' },
+    'no': { name: 'Norwegian', flag: '🇳🇴' },
+    'cs': { name: 'Czech', flag: '🇨🇿' },
+    'hu': { name: 'Hungarian', flag: '🇭🇺' },
+    'ro': { name: 'Romanian', flag: '🇷🇴' },
+    'bg': { name: 'Bulgarian', flag: '🇧🇬' },
+    'uk': { name: 'Ukrainian', flag: '🇺🇦' },
+    'auto': { name: 'Auto Detect', flag: '🌐' }
+};
+
+// Popular languages for quick reference
+const POPULAR_LANGS = ['en', 'id', 'es', 'fr', 'de', 'ja', 'ko', 'zh', 'ar', 'hi'];
+
+export default {
+    name: "translate",
+    alias: ["tr", "trans", "terjemah", "tl"],
+    category: "tools",
+    description: "Translate text between languages 🌍",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        const sender = m.pushName || 'Friend';
+        
+        // Show help if no arguments or wrong format
+        if (args.length < 3) {
+            // Create language list for display
+            const popularList = POPULAR_LANGS
+                .map(code => `${LANGUAGES[code].flag} ${code} - ${LANGUAGES[code].name}`)
+                .join('\n│ ');
+            
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *FOX TRANSLATOR* 🌍 ⧭─┐
+│
+├─⧭ *What I do:*
+│ Translate text between 30+ languages!
+│
+├─⧭ *Usage:*
+│ ${PREFIX}translate <from> <to> <text>
+│
+├─⧭ *Examples:*
+│ ${PREFIX}translate id en "Apa kabar?"
+│ ${PREFIX}translate en id "Hello world"
+│ ${PREFIX}translate auto id "Bonjour"
+│
+├─⧭ *Popular Languages:*
+│ ${popularList}
+│
+├─⧭ *See all languages:*
+│ ${PREFIX}translate languages
+│
+├─⧭ *Quick tips:*
+│ • Use "auto" for source language
+│ • Put text in quotes if it has spaces
+│ • Alias: .tr, .trans, .terjemah
+│
+└─⧭🦊 *Fox speaks your language!*`
+            }, { quoted: m });
+        }
+        
+        // Show all languages
+        if (args[0].toLowerCase() === 'languages' || args[0].toLowerCase() === 'langs') {
+            const langList = Object.entries(LANGUAGES)
+                .map(([code, lang]) => `${lang.flag} ${code} - ${lang.name}`)
+                .join('\n│ ');
+            
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *ALL SUPPORTED LANGUAGES* 🦊 ⧭─┐
+│
+├─⧭ ${Object.keys(LANGUAGES).length} Languages:
+│
+│ ${langList}
+│
+├─⧭ *Usage:*
+│ ${PREFIX}translate from to text
+│
+├─⧭ *Example:*
+│ ${PREFIX}translate en id "Hello"
+│
+└─⧭🦊 *Choose your language!*`
+            }, { quoted: m });
+        }
+        
+        const fromLang = args[0].toLowerCase();
+        const toLang = args[1].toLowerCase();
+        const text = args.slice(2).join(' ').trim();
+        
+        // Validate languages
+        if (!LANGUAGES[fromLang] && fromLang !== 'auto') {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *INVALID SOURCE LANGUAGE* ⧭─┐
+│
+├─⧭ "${fromLang}" not supported
+│
+├─⧭ *Use:* ${PREFIX}translate languages
+│ to see all available languages
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        if (!LANGUAGES[toLang]) {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *INVALID TARGET LANGUAGE* ⧭─┐
+│
+├─⧭ "${toLang}" not supported
+│
+├─⧭ *Use:* ${PREFIX}translate languages
+│ to see all available languages
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        if (text.length === 0) {
+            return sock.sendMessage(jid, {
+                text: `❌ *Empty text!*\n\nPlease provide text to translate.`
+            }, { quoted: m });
+        }
+        
+        try {
+            // Show processing
+            const fromDisplay = fromLang === 'auto' ? '🌐 Auto Detect' : `${LANGUAGES[fromLang].flag} ${LANGUAGES[fromLang].name}`;
+            const toDisplay = `${LANGUAGES[toLang].flag} ${LANGUAGES[toLang].name}`;
+            
+            const processingMsg = await sock.sendMessage(jid, {
+                text: `┌─⧭ *FOX IS TRANSLATING* 🦊 ⧭─┐
+│
+├─⧭ *From:* ${fromDisplay}
+├─⧭ *To:* ${toDisplay}
+├─⧭ *Text:* ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}
+│
+│ 🔄 Processing translation...
+│ Please wait a moment
+│
+└─⧭🦊`
+            }, { quoted: m });
+            
+            // Try multiple APIs for reliability
+            let translation = null;
+            let errors = [];
+            
+            // API 1: Google Translate (via rapidapi)
+            try {
+                const googleRes = await fetch('https://google-translate1.p.rapidapi.com/language/translate/v2', {
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/x-www-form-urlencoded',
+                        'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY', // Replace with actual key
+                        'X-RapidAPI-Host': 'google-translate1.p.rapidapi.com'
+                    },
+                    body: new URLSearchParams({
+                        q: text,
+                        target: toLang,
+                        source: fromLang === 'auto' ? undefined : fromLang
+                    })
+                });
+                
+                if (googleRes.ok) {
+                    const data = await googleRes.json();
+                    translation = data.data?.translations?.[0]?.translatedText;
+                }
+            } catch (e) {
+                errors.push('Google API failed');
+            }
+            
+            // API 2: LibreTranslate (free, no key needed)
+            if (!translation) {
+                try {
+                    const libreRes = await fetch('https://libretranslate.de/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            q: text,
+                            source: fromLang === 'auto' ? 'auto' : fromLang,
+                            target: toLang,
+                            format: 'text'
+                        })
+                    });
+                    
+                    if (libreRes.ok) {
+                        const data = await libreRes.json();
+                        translation = data.translatedText;
+                    }
+                } catch (e) {
+                    errors.push('LibreTranslate failed');
+                }
+            }
+            
+            // API 3: MyMemory Translator (free)
+            if (!translation) {
+                try {
+                    const langpair = fromLang === 'auto' ? `${toLang}` : `${fromLang}|${toLang}`;
+                    const memoryRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langpair}`);
+                    
+                    if (memoryRes.ok) {
+                        const data = await memoryRes.json();
+                        translation = data.responseData?.translatedText;
+                    }
+                } catch (e) {
+                    errors.push('MyMemory failed');
+                }
+            }
+            
+            // API 4: Fallback to AI (like your original)
+            if (!translation) {
+                try {
+                    const axios = (await import('axios')).default;
+                    const prompt = `Translate this text from ${fromLang} to ${toLang}:\n\n"${text}"\n\nProvide only the translation, no explanations.`;
+                    
+                    const response = await axios.get('https://iamtkm.vercel.app/ai/copilot', {
+                        params: { apikey: 'tkm', text: prompt },
+                        timeout: 10000
+                    });
+                    
+                    translation = response.data?.result || response.data?.response;
+                } catch (e) {
+                    errors.push('AI fallback failed');
+                }
+            }
+            
+            if (!translation) {
+                throw new Error(`All translation APIs failed: ${errors.join(', ')}`);
+            }
+            
+            // Clean translation (remove quotes if present)
+            translation = translation.replace(/^["']|["']$/g, '').trim();
+            
+            // Determine detected language if auto was used
+            let detectedLang = fromLang;
+            if (fromLang === 'auto') {
+                // Try to detect language (simplified - you could add detection later)
+                detectedLang = 'auto';
+            }
+            
+            const fromDisplayFinal = fromLang === 'auto' ? '🌐 Auto Detected' : `${LANGUAGES[fromLang].flag} ${LANGUAGES[fromLang].name}`;
+            
+            // Send translation
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *FOX TRANSLATION* 🌍 ⧭─┐
+│
+├─⧭ *📥 Original (${fromDisplayFinal}):*
+│ ${text}
+│
+├─⧭ *📤 Translation (${LANGUAGES[toLang].flag} ${LANGUAGES[toLang].name}):*
+│ ${translation}
+│
+├─⧭ *Requested by:* ${sender}
+│
+├─⧭ *Try another:*
+│ ${PREFIX}translate ${fromLang} ${toLang} "text"
+│
+└─⧭🦊 *Translation complete!*`
+            }, { quoted: m });
+            
+            // Delete processing message
+            if (processingMsg?.key?.id) {
+                await sock.sendMessage(jid, {
+                    delete: processingMsg.key
+                });
+            }
+            
+        } catch (error) {
+            console.error("Translate error:", error);
+            
+            // Helpful error message
+            let errorHint = "• Check language codes\n• Try different text\n• Use quotes around text";
+            
+            if (error.message.includes('timeout')) {
+                errorHint = "• Server timeout\n• Try again later";
+            } else if (error.message.includes('API')) {
+                errorHint = "• Translation service busy\n• Try English first";
+            }
+            
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *TRANSLATION FAILED* ❌ ⧭─┐
+│
+├─⧭ *Error:* ${error.message.substring(0, 100)}
+│
+├─⧭ *Tips:*
+│ ${errorHint}
+│
+├─⧭ *Example that works:*
+│ ${PREFIX}translate id en "Apa kabar?"
+│
+└─⧭🦊 *Even foxes make translation mistakes!*`
+            }, { quoted: m });
+        }
+    }
+};
+
+console.log('🌍 Translator module loaded');
+console.log(`🗣️ Languages: ${Object.keys(LANGUAGES).length} supported`);
