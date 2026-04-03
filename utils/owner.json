@@ -1,8 +1,8 @@
 {
-  "OWNER_JID": "254757975919:44@s.whatsapp.net",
-  "OWNER_NUMBER": "254757975919",
-  "OWNER_CLEAN_JID": "254757975919@s.whatsapp.net",
-  "OWNER_CLEAN_NUMBER": "254757975919",
+  "OWNER_JID": null,
+  "OWNER_NUMBER": null,
+  "OWNER_CLEAN_JID": null,
+  "OWNER_CLEAN_NUMBER": null,
   "ownerLID": null,
   "linkedAt": "2026-02-26T11:43:28.022Z",
   "autoLinked": false,
