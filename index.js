@@ -540,7 +540,7 @@ const botStatus = {
 };
 (function startStatusServer() {
     const _app = express();
-    const WEB_PORT = process.env.WEB_PORT || 3000;
+    const WEB_PORT = process.env.WEB_PORT || process.env.PORT || 3000;
     _app.get('/', (_req, res) => {
         const up = Math.floor((Date.now() - botStatus.startedAt) / 1000);
         const uptimeStr = `${Math.floor(up/3600)}h ${Math.floor((up%3600)/60)}m ${up%60}s`;
