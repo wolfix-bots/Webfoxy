@@ -1,0 +1,26 @@
+{
+  "logs": [
+    {
+      "sender": "130688003084487",
+      "fullSender": "130688003084487@lid",
+      "type": "image",
+      "caption": "I swear😭😭😭",
+      "fileInfo": "🖼️ 1080x1258 | 79KB",
+      "postedAt": "14:44:29",
+      "detectedAt": "14:44:27",
+      "timestamp": 1772106267713
+    },
+    {
+      "sender": "254732982940",
+      "fullSender": "254732982940@s.whatsapp.net",
+      "type": "video",
+      "caption": "_© CASPER-XD | CASPER TECH_",
+      "fileInfo": "🎬 0s | 162KB",
+      "postedAt": "14:46:52",
+      "detectedAt": "14:46:51",
+      "timestamp": 1772106411614
+    }
+  ],
+  "updatedAt": "2026-02-26T11:46:53.144Z",
+  "count": 2
+}
