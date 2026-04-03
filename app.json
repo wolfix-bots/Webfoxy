@@ -1,36 +1,41 @@
 {
-  "name": "Foxy Bot",
-  "description": "🦊 Foxy — a feature-rich WhatsApp bot powered by Baileys",
-  "keywords": ["whatsapp", "bot", "baileys", "nodejs"],
+  "name": "foxy-whatsapp-bot",
+  "description": "🦊 Foxy Bot — Your all-in-one WhatsApp companion. 100+ commands covering AI, stickers, games, group management, media downloads, and more. One-click deploy, zero setup headaches.",
+  "website": "https://github.com/wolfix-bots/Webfoxy",
   "repository": "https://github.com/wolfix-bots/Webfoxy",
-  "logo": "",
+  "logo": "https://i.ibb.co/b5Jx5Trp/63a1f423d038.jpg",
+  "keywords": [
+    "whatsapp", "bot", "baileys", "nodejs", "ai", "sticker",
+    "group-management", "media-downloader", "games", "foxy"
+  ],
   "success_url": "/",
   "env": {
     "SESSION_ID": {
-      "description": "Your WhatsApp session string (starts with FOXY-BOT: or WOLF-BOT:)",
+      "description": "🔑 Your WhatsApp session string — paste it here to connect the bot. Get one by running the bot locally first and copying the string from your .env file.",
       "required": true
     },
     "BOT_NAME": {
-      "description": "Name shown in bot menus",
+      "description": "🦊 What should your bot call itself? This name shows in menus and greetings. Keep it short and fun!",
       "value": "FOXY BOT",
       "required": false
     },
     "PREFIX": {
-      "description": "Command prefix (default: .)",
+      "description": "⚡ The character users type before commands. Popular choices: . ! / # — Default is a dot (.) so commands look like .menu .sticker .ai",
       "value": ".",
       "required": false
     },
     "OWNER_NUMBER": {
-      "description": "Your WhatsApp number with country code (e.g. 2547XXXXXXXX)",
+      "description": "👑 Your WhatsApp number with full country code — no spaces, no +. Example: 2547XXXXXXXX. You'll get exclusive owner commands like .update and .broadcast",
       "required": false
     },
     "BOT_MODE": {
-      "description": "Bot mode: public or private",
+      "description": "🌐 public = anyone can use the bot | private = only you and whitelisted users. Start with public, switch later if needed.",
       "value": "public",
       "required": false
     },
-    "WEB_PORT": {
-      "description": "Port for the status web page (Heroku sets PORT automatically)",
+    "AUTO_READ_STATUS": {
+      "description": "👁️ Should the bot automatically view everyone's WhatsApp Status? Set to true to enable, false to disable.",
+      "value": "false",
       "required": false
     }
   },
@@ -45,5 +50,8 @@
       "url": "heroku/nodejs"
     }
   ],
+  "scripts": {
+    "postdeploy": "echo '🦊 Foxy Bot deployed! Check your worker dyno with: heroku ps:scale worker=1 -a YOUR_APP_NAME'"
+  },
   "stack": "heroku-22"
 }

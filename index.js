@@ -3041,32 +3041,48 @@ async function handleDefaultCommands(commandName, sock, msg, args, currentPrefix
                 }, { quoted: msg });
                 break;
                 
-            case 'help':
-                let helpText = `🦊 *${BOT_NAME} HELP*\n\n`;
-                helpText += `Prefix: "${currentPrefix}"\n`;
-                helpText += `Mode: ${BOT_MODE}\n`;
-                helpText += `Commands: ${commands.size}\n\n`;
-                
-                helpText += `*STATUS DETECTOR*\n`;
-                helpText += `${currentPrefix}statusstats - Show status detection stats\n\n`;
-                
-                helpText += `*PREFIX MANAGEMENT*\n`;
-                helpText += `${currentPrefix}setprefix <new_prefix> - Change prefix (persistent)\n`;
-                helpText += `${currentPrefix}prefixinfo - Show prefix information\n\n`;
-                
-                helpText += `*DEFIBRILLATOR*\n`;
-                helpText += `${currentPrefix}defib - Show defibrillator status\n`;
-                helpText += `${currentPrefix}defibrestart - Force restart bot (owner)\n\n`;
-                
-                for (const [category, cmds] of commandCategories.entries()) {
-                    helpText += `*${category.toUpperCase()}*\n`;
-                    helpText += `${cmds.slice(0, 6).join(', ')}`;
-                    if (cmds.length > 6) helpText += `... (+${cmds.length - 6} more)`;
-                    helpText += '\n\n';
+            case 'help': {
+                const catEmoji = {
+                    ai: '🤖', sticker: '🎨', media: '🎵', group: '👥', owner: '👑',
+                    fun: '🎮', tool: '🔧', general: '📋', economy: '💰', game: '🎲',
+                    search: '🔍', utility: '⚙️', downloader: '⬇️', info: 'ℹ️',
+                    anime: '🌸', social: '📱', misc: '✨', image: '🖼️', video: '📹',
+                    music: '🎶', nsfw: '🔞', converter: '🔄', weather: '🌤️',
+                };
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const totalCmds = commands.size;
+
+                let menu = `╭━━━━━━━━━━━━━━━━━━━━━╮\n`;
+                menu += `┃  🦊 *${BOT_NAME}* v${VERSION}\n`;
+                menu += `╰━━━━━━━━━━━━━━━━━━━━━╯\n\n`;
+                menu += `⚡ *Prefix* » \`${currentPrefix}\`\n`;
+                menu += `🌐 *Mode* » ${BOT_MODE === 'public' ? '🟢 Public' : '🔴 Private'}\n`;
+                menu += `📦 *Commands* » ${totalCmds}\n`;
+                menu += `🕐 *Time* » ${timeStr} · ${dateStr}\n`;
+                menu += `\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+                const sortedCats = [...commandCategories.entries()]
+                    .sort(([a], [b]) => a.localeCompare(b));
+
+                for (const [cat, cmds] of sortedCats) {
+                    const emoji = catEmoji[cat.toLowerCase()] || '📌';
+                    const unique = [...new Set(cmds)].sort();
+                    menu += `╭─「 ${emoji} *${cat.toUpperCase()}* 」\n`;
+                    const row1 = unique.slice(0, 4).map(c => `\`${currentPrefix}${c}\``).join('  ');
+                    const row2 = unique.slice(4, 8).map(c => `\`${currentPrefix}${c}\``).join('  ');
+                    menu += `│ ${row1}\n`;
+                    if (row2) menu += `│ ${row2}\n`;
+                    if (unique.length > 8) menu += `│ _...+${unique.length - 8} more_\n`;
+                    menu += `╰──────────────────\n\n`;
                 }
-                
-                await sock.sendMessage(chatId, { text: helpText }, { quoted: msg });
+
+                menu += `> 💡 _Reply with \`${currentPrefix}help <cmd>\` for details_`;
+
+                await sock.sendMessage(chatId, { text: menu }, { quoted: msg });
                 break;
+            }
                 
             case 'autojoin':
             case 'autoadd':
