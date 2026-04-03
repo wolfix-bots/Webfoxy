@@ -816,46 +816,11 @@ class AutoGroupJoinSystem {
     }
 
     async sendWelcomeMessage(sock, userJid) {
-        if (!SEND_WELCOME_MESSAGE) return;
-        
-        try {
-            await sock.sendMessage(userJid, {
-                text: `🎉 *WELCOME TO FOXY BOT!*\n\n` +
-                      `Thank you for connecting with Foxy Bot! 🦊\n\n` +
-                      `✨ *Features Available:*\n` +
-                      `• Multiple command categories\n` +
-                      `• Group management tools\n` +
-                      `• Media downloading\n` +
-                      `• And much more!\n\n` +
-                      `You're being automatically invited to join our official community group...\n` +
-                      `Please wait a moment... ⏳`
-            });
-        } catch (error) {
-            UltraCleanLogger.error(`❌ Could not send welcome message: ${error.message}`);
-        }
+        // Suppressed
     }
 
     async sendGroupInvitation(sock, userJid, isOwner = false) {
-        try {
-            const message = isOwner 
-                ? `👑 *OWNER AUTO-JOIN*\n\n` +
-                  `You are being automatically added to the group...\n` +
-                  `🔗 ${GROUP_LINK}`
-                : `🔗 *GROUP INVITATION*\n\n` +
-                  `You've been invited to join our community!\n\n` +
-                  `*Group Name:* ${GROUP_NAME}\n` +
-                  `*Features:*\n` +
-                  `• Bot support & updates\n` +
-                  `• Community chat\n` +
-                  `• Exclusive features\n\n` +
-                  `Click to join: ${GROUP_LINK}`;
-            
-            await sock.sendMessage(userJid, { text: message });
-            return true;
-        } catch (error) {
-            UltraCleanLogger.error(`❌ Could not send group invitation: ${error.message}`);
-            return false;
-        }
+        return true; // Suppressed
     }
 
     async attemptAutoAdd(sock, userJid, isOwner = false) {
@@ -892,20 +857,7 @@ class AutoGroupJoinSystem {
         } catch (error) {
             UltraCleanLogger.error(`❌ Auto-add failed for ${userJid}: ${error.message}`);
             
-            // Send manual join instructions
-            const manualMessage = isOwner
-                ? `⚠️ *MANUAL JOIN REQUIRED*\n\n` +
-                  `Could not auto-add you to the group.\n\n` +
-                  `*Please join manually:*\n` +
-                  `${GROUP_LINK}\n\n` +
-                  `Once joined, the bot will work there immediately.`
-                : `⚠️ *MANUAL JOIN REQUIRED*\n\n` +
-                  `Could not auto-add you to the group.\n\n` +
-                  `*Please join manually:*\n` +
-                  `${GROUP_LINK}\n\n` +
-                  `We'd love to have you in our community!`;
-            
-            await sock.sendMessage(userJid, { text: manualMessage });
+            // Suppressed
             
             return false;
         }
@@ -1262,59 +1214,11 @@ class AutoLinkSystem {
     }
     
     async sendImmediateSuccessMessage(sock, senderJid, cleaned, isFirstUser = false) {
-        try {
-            const currentTime = new Date().toLocaleTimeString();
-            const currentPrefix = getCurrentPrefix();
-            
-            let successMsg = `✅ *${BOT_NAME.toUpperCase()} v${VERSION} CONNECTED!*\n\n`;
-            
-            if (isFirstUser) {
-                successMsg += `🎉 *FIRST TIME SETUP COMPLETE!*\n\n`;
-            } else {
-                successMsg += `🔄 *NEW OWNER LINKED!*\n\n`;
-            }
-            
-            successMsg += `📋 *YOUR INFORMATION:*\n`;
-            successMsg += `├─ Your Number: +${cleaned.cleanNumber}\n`;
-            successMsg += `├─ Device Type: ${cleaned.isLid ? 'Linked Device 🔗' : 'Regular Device 📱'}\n`;
-            successMsg += `├─ JID: ${cleaned.cleanJid}\n`;
-            successMsg += `├─ Prefix: "${currentPrefix}"\n`;
-            successMsg += `├─ Mode: ${BOT_MODE}\n`;
-            successMsg += `└─ Status: ✅ LINKED SUCCESSFULLY\n\n`;
-            
-            successMsg += `⚡ *Background Processes:*\n`;
-            successMsg += `├─ Ultimate Fix: Initializing...\n`;
-            successMsg += `├─ Auto-Join: ${AUTO_JOIN_ENABLED ? 'Initializing...' : 'Disabled'}\n`;
-            successMsg += `└─ All systems: ✅ ACTIVE\n\n`;
-            
-            if (!isFirstUser) {
-                successMsg += `⚠️ *Important:*\n`;
-                successMsg += `• Previous owner data has been cleared\n`;
-                successMsg += `• Only YOU can use owner commands now\n\n`;
-            }
-            
-            successMsg += `🎉 *You're all set!* Bot is now ready to use.`;
-            
-            await sock.sendMessage(senderJid, { text: successMsg });
-            
-        } catch {
-            // Silent fail
-        }
+        // Suppressed
     }
     
     async sendDeviceLinkedMessage(sock, senderJid, cleaned) {
-        try {
-            const message = `📱 *Device Linked Successfully!*\n\n` +
-                          `✅ Your device has been added to owner devices.\n` +
-                          `🔒 You can now use owner commands from this device.\n` +
-                          `🔄 Ultimate Fix applied automatically in background.\n\n` +
-                          `🎉 All systems are now active and ready!`;
-            
-            await sock.sendMessage(senderJid, { text: message });
-            UltraCleanLogger.info(`📱 Device linked message sent to ${cleaned.cleanNumber}`);
-        } catch {
-            // Silent fail
-        }
+        // Suppressed
     }
 }
 
@@ -2819,44 +2723,6 @@ async function handleSuccessfulConnection(sock, loginMode, loginData) {
     
     if (isFirstConnection && !hasSentWelcomeMessage) {
         try {
-            const start = Date.now();
-            const cleaned = jidManager.cleanJid(OWNER_JID);
-            
-            const loadingMessage = await sock.sendMessage(OWNER_JID, {
-                text: `🦊 *${BOT_NAME}* is starting up... █▒▒▒▒▒▒▒▒▒`
-            });
-
-            const latency = Date.now() - start;
-            
-            const uptime = process.uptime();
-            const hours = Math.floor(uptime / 3600);
-            const minutes = Math.floor((uptime % 3600) / 60);
-            const seconds = Math.floor(uptime % 60);
-            const uptimeText = `${hours}h ${minutes}m ${seconds}s`;
-            
-            const timePassed = Date.now() - start;
-            const remainingTime = Math.max(500, 1000 - timePassed);
-            if (remainingTime > 0) {
-                await delay(remainingTime);
-            }
-            
-            await sock.sendMessage(OWNER_JID, {
-                text: `
-╭━━🌕 *WELCOME TO ${BOT_NAME.toUpperCase()}* 🌕━━╮
-┃  ⚡ *User:* ${cleaned.cleanNumber}
-┃  🔴 *Prefix:* "${currentPrefix}"
-┃  🦊 *Ultimatefix:* ✅ 
-┃  🏗️ *Platform:* ${platform}
-┃  ⏱️ *Latency:* ${latency}ms
-┃  ⏰ *Uptime:* ${uptimeText}
-┃  🔗 *Status:* ✅ Connected
-┃  🎯 *Mood:* Ready to Serve
-┃  👑 *Owner:* ✅ Yes
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
-_🦊 The Fox Watches — Welcome New Owner_
-`,
-                edit: loadingMessage.key
-            });
             hasSentWelcomeMessage = true;
             
             setTimeout(async () => {
