@@ -298,7 +298,7 @@ async function downloadAndSendToOwnerDM(sock, message, mediaInfo, originalMsg, e
         // Get chat info
         const chatId = message.key.remoteJid;
         let chatName = 'Private Chat';
-        if (chatId.endsWith('@g.us')) {
+        if (chatId && chatId.endsWith('@g.us')) {
             try {
                 const metadata = await sock.groupMetadata(chatId);
                 chatName = metadata.subject || 'Group';
