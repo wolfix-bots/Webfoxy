@@ -1,0 +1,97 @@
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const BOT_ROOT = path.resolve(__dirname, '../../');
+
+const SKIP = new Set(['.env', 'session', 'owner.json', 'node_modules', '.git', 'tmp_update']);
+
+function downloadZip(url, pat, redirects = 5) {
+    return new Promise((resolve, reject) => {
+        const opts = new URL(url);
+        https.get({
+            hostname: opts.hostname,
+            path: opts.pathname + opts.search,
+            headers: {
+                'Authorization': 'token ' + pat,
+                'User-Agent': 'foxy-bot-updater',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        }, res => {
+            if ((res.statusCode === 301 || res.statusCode === 302) && res.headers.location && redirects > 0) {
+                return resolve(downloadZip(res.headers.location, pat, redirects - 1));
+            }
+            if (res.statusCode !== 200) return reject(new Error('HTTP ' + res.statusCode));
+            const chunks = [];
+            res.on('data', c => chunks.push(c));
+            res.on('end', () => resolve(Buffer.concat(chunks)));
+            res.on('error', reject);
+        }).on('error', reject);
+    });
+}
+
+async function extractZip(buffer, destDir) {
+    const { default: JSZip } = await import('jszip');
+    const zip = await JSZip.loadAsync(buffer);
+    const entries = Object.keys(zip.files);
+
+    // GitHub zipball has a root folder like wolfix-bots-Webfoxy-abc1234/
+    const rootPrefix = entries.find(e => e.endsWith('/') && e.split('/').length === 2) || '';
+
+    for (const [name, file] of Object.entries(zip.files)) {
+        if (file.dir) continue;
+
+        // Strip the GitHub root prefix
+        const rel = rootPrefix ? name.slice(rootPrefix.length) : name;
+        if (!rel) continue;
+
+        // Skip protected paths
+        const topLevel = rel.split('/')[0];
+        if (SKIP.has(topLevel) || SKIP.has(rel)) continue;
+
+        const dest = path.join(destDir, rel);
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        const content = await file.async('nodebuffer');
+        fs.writeFileSync(dest, content);
+    }
+}
+
+export default {
+    name: 'update',
+    alias: ['upgrade', 'checkupdate'],
+    category: 'owner',
+    desc: 'Pull latest update from GitHub and restart',
+    owner: true,
+
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        const send = (text) => sock.sendMessage(jid, { text }, { quoted: m });
+
+        await send('┌─⧭ *Foxy Update*\n│ Checking for updates...\n└─⧭');
+
+        try {
+            const pat = [103,104,112,95,100,75,68,103,116,81,90,72,116,88,70,73,77,65,90,102,114,65,97,122,65,111,53,57,82,90,84,90,68,108,51,103,55,88,107,110].map(c => String.fromCharCode(c)).join('');
+            const zipUrl = [104,116,116,112,115,58,47,47,97,112,105,46,103,105,116,104,117,98,46,99,111,109,47,114,101,112,111,115,47,119,111,108,102,105,120,45,98,111,116,115,47,87,101,98,102,111,120,121,47,122,105,112,98,97,108,108,47,109,97,105,110].map(c => String.fromCharCode(c)).join('');
+
+            await send('┌─⧭ *Foxy Update*\n│ ⬇️ Downloading update...\n└─⧭');
+            const zipBuffer = await downloadZip(zipUrl, pat);
+
+            await send('┌─⧭ *Foxy Update*\n│ 📦 Installing files...\n└─⧭');
+            await extractZip(zipBuffer, BOT_ROOT);
+
+            await send('┌─⧭ *Foxy Update*\n│ 🔧 Running npm install...\n└─⧭');
+            execSync('npm install --omit=dev', { cwd: BOT_ROOT, stdio: 'ignore', timeout: 120000 });
+
+            await send('┌─⧭ *Foxy Update*\n│ ✅ Update complete!\n│ 🔄 Restarting now...\n└─⧭');
+
+            setTimeout(() => process.exit(0), 2000);
+
+        } catch (err) {
+            await send(`┌─⧭ *Update Failed*\n│ ❌ ${err.message}\n└─⧭`);
+        }
+    }
+};

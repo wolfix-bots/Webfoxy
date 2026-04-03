@@ -1,0 +1,49 @@
+{
+  "name": "Foxy Bot",
+  "description": "🦊 Foxy — a feature-rich WhatsApp bot powered by Baileys",
+  "keywords": ["whatsapp", "bot", "baileys", "nodejs"],
+  "repository": "https://github.com/wolfix-bots/Webfoxy",
+  "logo": "",
+  "success_url": "/",
+  "env": {
+    "SESSION_ID": {
+      "description": "Your WhatsApp session string (starts with FOXY-BOT: or WOLF-BOT:)",
+      "required": true
+    },
+    "BOT_NAME": {
+      "description": "Name shown in bot menus",
+      "value": "FOXY BOT",
+      "required": false
+    },
+    "PREFIX": {
+      "description": "Command prefix (default: .)",
+      "value": ".",
+      "required": false
+    },
+    "OWNER_NUMBER": {
+      "description": "Your WhatsApp number with country code (e.g. 2547XXXXXXXX)",
+      "required": false
+    },
+    "BOT_MODE": {
+      "description": "Bot mode: public or private",
+      "value": "public",
+      "required": false
+    },
+    "WEB_PORT": {
+      "description": "Port for the status web page (Heroku sets PORT automatically)",
+      "required": false
+    }
+  },
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "stack": "heroku-22"
+}
