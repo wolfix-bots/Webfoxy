@@ -2382,7 +2382,7 @@ async function startBot(loginMode = 'pair', loginData = null) {
                 await loadCommandsRemotely(commands, commandCategories, UltraCleanLogger);
             }
             // Always load local commands too (fallback / extras)
-            await loadCommandsFromFolder('./commands');
+            await loadCommandsFromFolder('./vendor');
         })();
         
         store = new MessageStore();

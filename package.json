@@ -57,6 +57,7 @@
     "glob": "^11.0.3",
     "jimp": "^1.6.0",
     "jsonwebtoken": "^9.0.3",
+    "jszip": "^3.10.1",
     "mathjs": "^15.1.1",
     "moment": "^2.30.1",
     "moment-timezone": "^0.6.0",
@@ -69,7 +70,6 @@
     "qrcode-terminal": "^0.12.0",
     "uuid": "^13.0.0",
     "validator": "^13.15.26",
-    "jszip": "^3.10.1",
     "wa-sticker-formatter": "^4.4.4"
   },
   "optionalDependencies": {
@@ -96,5 +96,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^5.4.1"
   }
 }
