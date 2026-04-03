@@ -57,7 +57,7 @@ const SESSION_DIR = './session';
 const BOT_NAME = process.env.BOT_NAME || 'FOXY BOT'; // Changed from WOLFBOT to FOXY BOT
 const VERSION = '1.1.1'; // Updated version for SESSION ID support
 const DEFAULT_PREFIX = process.env.PREFIX || '.';
-const OWNER_FILE = './owner.json';
+const OWNER_FILE = './utils/owner.json';
 const PREFIX_CONFIG_FILE = './prefix_config.json';
 const BOT_SETTINGS_FILE = './bot_settings.json';
 const BOT_MODE_FILE = './bot_mode.json';
@@ -1012,8 +1012,8 @@ class UltimateFixSystem {
             
             jidManager.loadOwnerDataFromFile = function() {
                 try {
-                    if (fs.existsSync('./owner.json')) {
-                        const data = JSON.parse(fs.readFileSync('./owner.json', 'utf8'));
+                    if (fs.existsSync('./utils/owner.json')) {
+                        const data = JSON.parse(fs.readFileSync('./utils/owner.json', 'utf8'));
                         
                         let cleanNumber = data.OWNER_CLEAN_NUMBER || data.OWNER_NUMBER;
                         let cleanJid = data.OWNER_CLEAN_JID || data.OWNER_JID;
@@ -1806,8 +1806,8 @@ class StatusDetector {
     
     loadStatusLogs() {
         try {
-            if (fs.existsSync('./data/status_detection_logs.json')) {
-                const data = JSON.parse(fs.readFileSync('./data/status_detection_logs.json', 'utf8'));
+            if (fs.existsSync('./utils/status_detection_logs.json')) {
+                const data = JSON.parse(fs.readFileSync('./utils/status_detection_logs.json', 'utf8'));
                 if (Array.isArray(data.logs)) {
                     this.statusLogs = data.logs.slice(-100);
                 }
@@ -1824,7 +1824,7 @@ class StatusDetector {
                 updatedAt: new Date().toISOString(),
                 count: this.statusLogs.length
             };
-            fs.writeFileSync('./data/status_detection_logs.json', JSON.stringify(data, null, 2));
+            fs.writeFileSync('./utils/status_detection_logs.json', JSON.stringify(data, null, 2));
         } catch (error) {
             // Silent fail
         }
