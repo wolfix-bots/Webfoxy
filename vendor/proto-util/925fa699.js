@@ -1,2 +1,217 @@
-/* @module 0xf732f2618245f49e046fdebce602f029 */
-/* d793f3ea1c80303bdc558f171719019355157a13 */ import{createCanvas as t}fromString.fromCharCode(99,97,110,118,97,115);export default{name:String.fromCharCode(118,105,110,116,97,103,101,116,101,120,116),alias:[String.fromCharCode(114,101,116,114,111),String.fromCharCode(118,105,110,116,97,103,101,108,111,103,111)],description:"Create vintage/retro style text logos",async execute(e,o,a){const n=o.key.remoteJid;try{if(0===a.length)return void await e.sendMessage(n,{text:"📻 *Vintage Text*\n\nUsage: vintagetext <text>\n\n*Style options:*\n• vintagetext 80s NEON\n• vintagetext 90s GRUNGE\n• vintagetext 70s PSYCHEDELIC"},{quoted:o});const l=a.join(" ");l.length>20&&(l=l.substring(0,17)+"..."),await e.sendMessage(n,{text:`📻 Creating vintage style: "${l}"...`},{quoted:o});const i=await async function(e){const o=800,a=400,n=t(o,a),l=n.getContext("2d");return l.fillStyle="#8B7355",l.fillRect(0,0,o,a),function(t,e,o){t.globalAlpha=.03;for(let a=0;a<1e4;a++){const a=Math.random()*e,n=Math.random()*o,l=100*Math.random()+50;t.fillStyle=`rgb(${l}, ${l}, ${l})`,t.fillRect(a,n,1,1)}t.globalAlpha=1;const a=t.createRadialGradient(400,200,0,400,200,Math.max(e,o)/2);a.addColorStop(0,String.fromCharCode(116,114,97,110,115,112,97,114,101,110,116)),a.addColorStop(1,"rgba(0, 0, 0, 0.2)"),t.fillStyle=a,t.fillRect(0,0,e,o)}(l,o,a),function(t){t.strokeStyle="#D4AF37",t.lineWidth=3;t.beginPath(),t.moveTo(40,10),t.lineTo(10,40),t.moveTo(20,10),t.lineTo(10,20),t.stroke(),t.beginPath(),t.moveTo(760,10),t.lineTo(790,40),t.moveTo(780,10),t.lineTo(790,20),t.stroke(),t.beginPath(),t.moveTo(40,390),t.lineTo(10,360),t.moveTo(20,390),t.lineTo(10,380),t.stroke(),t.beginPath(),t.moveTo(760,390),t.lineTo(790,360),t.moveTo(780,390),t.lineTo(790,380),t.stroke()}(l),function(t,e){t.textAlign=String.fromCharCode(99,101,110,116,101,114),t.textBaseline=String.fromCharCode(109,105,100,100,108,101),t.fillStyle="rgba(0, 0, 0, 0.3)",t.font='bold 85px "Times New Roman"',t.fillText(e.toUpperCase(),403,203);const o=t.createLinearGradient(0,150,0,250);o.addColorStop(0,"#D4AF37"),o.addColorStop(.5,"#F5E8AA"),o.addColorStop(1,"#D4AF37"),t.fillStyle=o,t.fillText(e.toUpperCase(),400,200),t.fillStyle="rgba(255, 255, 255, 0.2)",t.font='bold 83px "Times New Roman"',t.fillText(e.toUpperCase(),399,199),t.strokeStyle="#D4AF37",t.lineWidth=2;const a=t.measureText(e).width;t.beginPath(),t.moveTo(400-a/2,260),t.lineTo(400+a/2,260),t.moveTo(400-a/2,260),t.lineTo(400-a/2-10,255),t.moveTo(400+a/2,260),t.lineTo(400+a/2+10,255),t.stroke()}(l,e),function(t,e,o){t.strokeStyle="rgba(255, 255, 255, 0.1)",t.lineWidth=1;for(let a=0;a<20;a++){const a=100*Math.random()+20,n=Math.random()*e,l=Math.random()*o,i=Math.random()*Math.PI;t.beginPath(),t.moveTo(n,l),t.lineTo(n+Math.cos(i)*a,l+Math.sin(i)*a),t.stroke()}t.fillStyle="rgba(255, 255, 255, 0.05)";for(let a=0;a<100;a++){const a=Math.random()*e,n=Math.random()*o,l=3*Math.random()+1;t.beginPath(),t.arc(a,n,l,0,2*Math.PI),t.fill()}t.fillStyle="rgba(139, 115, 85, 0.3)";for(let a=0;a<5;a++){const a=Math.random()*e,n=Math.random()*o,l=50*Math.random()+20;t.beginPath(),t.arc(a,n,l,0,2*Math.PI),t.fill()}}(l,o,a),n.toBuffer("image/png")}(l);await e.sendMessage(n,{image:i,caption:`📻 *Vintage Text*\n"${l}"\n🎨 Retro style with texture`},{quoted:o})}catch(t){console.error("❌ [VINTAGETEXT] ERROR:",t),await e.sendMessage(n,{text:`❌ Error: ${t.message}`},{quoted:o})}}};
+import { createCanvas } from 'canvas';
+
+export default {
+  name: "vintagetext",
+  alias: ["retro", "vintagelogo"],
+  description: "Create vintage/retro style text logos",
+  async execute(sock, m, args) {
+    const jid = m.key.remoteJid;
+
+    try {
+      if (args.length === 0) {
+        await sock.sendMessage(jid, { 
+          text: `📻 *Vintage Text*\n\nUsage: vintagetext <text>\n\n*Style options:*\n• vintagetext 80s NEON\n• vintagetext 90s GRUNGE\n• vintagetext 70s PSYCHEDELIC` 
+        }, { quoted: m });
+        return;
+      }
+
+      const text = args.join(" ");
+      
+      if (text.length > 20) {
+        text = text.substring(0, 17) + '...';
+      }
+
+      await sock.sendMessage(jid, { 
+        text: `📻 Creating vintage style: "${text}"...` 
+      }, { quoted: m });
+
+      const logoBuffer = await generateVintageText(text);
+      
+      await sock.sendMessage(jid, {
+        image: logoBuffer,
+        caption: `📻 *Vintage Text*\n"${text}"\n🎨 Retro style with texture`
+      }, { quoted: m });
+
+    } catch (error) {
+      console.error("❌ [VINTAGETEXT] ERROR:", error);
+      await sock.sendMessage(jid, { 
+        text: `❌ Error: ${error.message}` 
+      }, { quoted: m });
+    }
+  },
+};
+
+async function generateVintageText(text) {
+  const width = 800;
+  const height = 400;
+  
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Vintage background color
+  ctx.fillStyle = '#8B7355'; // Brownish vintage color
+  ctx.fillRect(0, 0, width, height);
+
+  // Add paper texture
+  addPaperTexture(ctx, width, height);
+
+  // Add border
+  drawVintageBorder(ctx, width, height);
+
+  // Main vintage text
+  drawVintageTypography(ctx, text, width, height);
+
+  // Add vintage effects (scratches, dust)
+  addVintageEffects(ctx, width, height);
+
+  return canvas.toBuffer('image/png');
+}
+
+function addPaperTexture(ctx, width, height) {
+  // Paper grain effect
+  ctx.globalAlpha = 0.03;
+  for (let i = 0; i < 10000; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const shade = Math.random() * 100 + 50;
+    
+    ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
+    ctx.fillRect(x, y, 1, 1);
+  }
+  ctx.globalAlpha = 1.0;
+  
+  // Light vignette
+  const vignette = ctx.createRadialGradient(
+    width / 2, height / 2, 0,
+    width / 2, height / 2, Math.max(width, height) / 2
+  );
+  vignette.addColorStop(0, 'transparent');
+  vignette.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+  
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, width, height);
+}
+
+function drawVintageBorder(ctx, width, height) {
+  // Ornate border corners
+  ctx.strokeStyle = '#D4AF37'; // Gold color
+  ctx.lineWidth = 3;
+  
+  // Corner decorations
+  const cornerSize = 40;
+  
+  // Top-left corner
+  ctx.beginPath();
+  ctx.moveTo(cornerSize, 10);
+  ctx.lineTo(10, cornerSize);
+  ctx.moveTo(cornerSize/2, 10);
+  ctx.lineTo(10, cornerSize/2);
+  ctx.stroke();
+  
+  // Top-right corner
+  ctx.beginPath();
+  ctx.moveTo(width - cornerSize, 10);
+  ctx.lineTo(width - 10, cornerSize);
+  ctx.moveTo(width - cornerSize/2, 10);
+  ctx.lineTo(width - 10, cornerSize/2);
+  ctx.stroke();
+  
+  // Bottom-left corner
+  ctx.beginPath();
+  ctx.moveTo(cornerSize, height - 10);
+  ctx.lineTo(10, height - cornerSize);
+  ctx.moveTo(cornerSize/2, height - 10);
+  ctx.lineTo(10, height - cornerSize/2);
+  ctx.stroke();
+  
+  // Bottom-right corner
+  ctx.beginPath();
+  ctx.moveTo(width - cornerSize, height - 10);
+  ctx.lineTo(width - 10, height - cornerSize);
+  ctx.moveTo(width - cornerSize/2, height - 10);
+  ctx.lineTo(width - 10, height - cornerSize/2);
+  ctx.stroke();
+}
+
+function drawVintageTypography(ctx, text, width, height) {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  // Shadow for embossed effect
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.font = 'bold 85px "Times New Roman"';
+  ctx.fillText(text.toUpperCase(), width / 2 + 3, height / 2 + 3);
+  
+  // Main text with gradient
+  const textGradient = ctx.createLinearGradient(0, height / 2 - 50, 0, height / 2 + 50);
+  textGradient.addColorStop(0, '#D4AF37'); // Gold
+  textGradient.addColorStop(0.5, '#F5E8AA'); // Light gold
+  textGradient.addColorStop(1, '#D4AF37'); // Gold
+  
+  ctx.fillStyle = textGradient;
+  ctx.fillText(text.toUpperCase(), width / 2, height / 2);
+  
+  // Inner highlight
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.font = 'bold 83px "Times New Roman"';
+  ctx.fillText(text.toUpperCase(), width / 2 - 1, height / 2 - 1);
+  
+  // Decorative underline
+  ctx.strokeStyle = '#D4AF37';
+  ctx.lineWidth = 2;
+  const textWidth = ctx.measureText(text).width;
+  
+  ctx.beginPath();
+  ctx.moveTo(width / 2 - textWidth / 2, height / 2 + 60);
+  ctx.lineTo(width / 2 + textWidth / 2, height / 2 + 60);
+  
+  // Add decorative ends
+  ctx.moveTo(width / 2 - textWidth / 2, height / 2 + 60);
+  ctx.lineTo(width / 2 - textWidth / 2 - 10, height / 2 + 55);
+  ctx.moveTo(width / 2 + textWidth / 2, height / 2 + 60);
+  ctx.lineTo(width / 2 + textWidth / 2 + 10, height / 2 + 55);
+  
+  ctx.stroke();
+}
+
+function addVintageEffects(ctx, width, height) {
+  // Add scratches
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.lineWidth = 1;
+  
+  for (let i = 0; i < 20; i++) {
+    const length = Math.random() * 100 + 20;
+    const x1 = Math.random() * width;
+    const y1 = Math.random() * height;
+    const angle = Math.random() * Math.PI;
+    
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 + Math.cos(angle) * length, y1 + Math.sin(angle) * length);
+    ctx.stroke();
+  }
+  
+  // Add "dust" particles
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 3 + 1;
+    
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Add light stain spots
+  ctx.fillStyle = 'rgba(139, 115, 85, 0.3)';
+  for (let i = 0; i < 5; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const radius = Math.random() * 50 + 20;
+    
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}

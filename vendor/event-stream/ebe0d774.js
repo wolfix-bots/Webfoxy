@@ -1,2 +1,52 @@
-/* @module 0xa32633e1e1d1cae2763a81846aff0040 */
-/* 199332f724273c28e4dc74622b9db83cee5283c6 */ export default{name:String.fromCharCode(114,111,108,108),alias:[String.fromCharCode(100,105,99,101),String.fromCharCode(114,111,108,108,100,105,99,101),"🎲"],category:String.fromCharCode(103,97,109,101,115),description:"Roll a dice (1-6) 🎲",async execute(e,n,a,t){const s=n.key.remoteJid,o=n.ni||String.fromCharCode(70,114,105,101,110,100);let i=6;a[0]&&!isNaN(a[0])&&(i=parseInt(a[0]),i<2&&(i=2),i>100&&(i=100));const d=Math.floor(Math.random()*i)+1,l=6===i?["⚀","⚁","⚂","⚃","⚄","⚅"][d-1]:"🎲";await e.sendMessage(s,{text:"┌─⧭ *DICE ROLL* 🎲 ⧭─┐\n│\n├─⧭ *Rolling dice...*\n│\n│ 🎲 Shaking...\n│\n└─⧭🦊"},{quoted:n}),setTimeout(async()=>{await e.sendMessage(s,{text:`┌─⧭ *DICE RESULT* 🎲 ⧭─┐\n│\n├─⧭ *Result:* ${l} ${d}\n├─⧭ *Range:* 1-${i}\n│\n├─⧭ *Rolled by:* ${o}\n│\n└─⧭🦊`},{quoted:n}),await e.sendMessage(s,{react:{text:"🎲",key:n.key}})},1500)}};
+export default {
+    name: 'roll',
+    alias: ['dice', 'rolldice', '🎲'],
+    category: 'games',
+    description: 'Roll a dice (1-6) 🎲',
+    
+    async execute(sock, msg, args, PREFIX) {
+        const chatId = msg.key.remoteJid;
+        const sender = msg.pushName || 'Friend';
+        
+        // Check for custom range
+        let max = 6;
+        if (args[0] && !isNaN(args[0])) {
+            max = parseInt(args[0]);
+            if (max < 2) max = 2;
+            if (max > 100) max = 100;
+        }
+        
+        const result = Math.floor(Math.random() * max) + 1;
+        
+        // Dice emoji based on result (for 6-sided dice)
+        const diceEmoji = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        const emoji = max === 6 ? diceEmoji[result - 1] : '🎲';
+        
+        await sock.sendMessage(chatId, {
+            text: `┌─⧭ *DICE ROLL* 🎲 ⧭─┐
+│
+├─⧭ *Rolling dice...*
+│
+│ 🎲 Shaking...
+│
+└─⧭🦊`
+        }, { quoted: msg });
+        
+        setTimeout(async () => {
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *DICE RESULT* 🎲 ⧭─┐
+│
+├─⧭ *Result:* ${emoji} ${result}
+├─⧭ *Range:* 1-${max}
+│
+├─⧭ *Rolled by:* ${sender}
+│
+└─⧭🦊`
+            }, { quoted: msg });
+            
+            await sock.sendMessage(chatId, {
+                react: { text: "🎲", key: msg.key }
+            });
+        }, 1500);
+    }
+};

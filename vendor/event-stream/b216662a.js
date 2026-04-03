@@ -1,2 +1,127 @@
-/* @module 0xac371630f84442f1725a8e100890ef96 */
-/* fd287e0a06c0b427faf4e3e85b8429545fe54885 */ import e fromString.fromCharCode(97,120,105,111,115);export default{name:String.fromCharCode(109,101,109,101),alias:[String.fromCharCode(109,101,109,101,115),"😂",String.fromCharCode(100,97,110,107,109,101,109,101)],description:"Get random memes from Reddit 🎭",category:String.fromCharCode(109,101,100,105,97),ownerOnly:!1,async execute(t,ud,n,a){const r=ud.key.remoteJid;if(String.fromCharCode(104,101,108,112)===n[0]?.toLowerCase())return t.sendMessage(r,{text:`┌─⧭ *FOXY MEMES* 🎭 ⧭─┐\n│\n├─⧭ *Usage:*\n│ • ${a}meme - Random meme\n│ • ${a}meme <subreddit>\n│\n├─⧭ *Examples:*\n│ • ${a}meme\n│ • ${a}meme memes\n│ • ${a}meme dankmemes\n│ • ${a}meme programmingmemes\n│\n├─⧭ *Popular Subreddits:*\n│ • memes\n│ • dankmemes\n│ • wholesomememes\n│ • me_irl\n│ • ProgrammerHumor\n│\n└─⧭🦊`},{quoted:ud});try{let a=String.fromCharCode(109,101,109,101,115);n[0]&&!n[0].startsWith(String.fromCharCode(104,116,116,112))&&(a=n[0].toLowerCase());const s=(await e.get(`https://meme-api.com/gimme/${a}`,{timeout:8e3})).data;if(!s||!s.url)throw new Error("No meme found");s.url.includes(".gif")||s.url.includes(".mp4")?await t.sendMessage(r,{video:{url:s.url},caption:`┌─⧭ *FOXY MEME* 🎭 ⧭─┐\n│\n├─⧭ *Title:* ${s.title}\n├─⧭ *Subreddit:* r/${s.subreddit}\n├─⧭ *Author:* u/${s.author}\n├─⧭ *Upvotes:* ⬆️ ${s.ups||"N/A"}\n│\n└─⧭🦊`,gifPlayback:!0},{quoted:ud}):await t.sendMessage(r,{image:{url:s.url},caption:`┌─⧭ *FOXY MEME* 🎭 ⧭─┐\n│\n├─⧭ *Title:* ${s.title}\n├─⧭ *Subreddit:* r/${s.subreddit}\n├─⧭ *Author:* u/${s.author}\n├─⧭ *Upvotes:* ⬆️ ${s.ups||"N/A"}\n│\n└─⧭🦊`},{quoted:ud}),await t.sendMessage(r,{react:{text:"😂",key:ud.key}})}catch(n){console.error("Meme error:",n.message);try{const n=(await e.get("https://meme-api.herokuapp.com/gimme",{timeout:5e3})).data;await t.sendMessage(r,{image:{url:n.url},caption:`┌─⧭ *FOXY MEME* 🎭 ⧭─┐\n│\n├─⧭ *Title:* ${n.title}\n├─⧭ *Subreddit:* r/${n.subreddit}\n├─⧭ *Author:* u/${n.author}\n│\n└─⧭🦊`},{quoted:ud}),await t.sendMessage(r,{react:{text:"😂",key:ud.key}})}catch(e){await t.sendMessage(r,{react:{text:"❌",key:ud.key}})}}}};
+import axios from 'axios';
+
+export default {
+    name: "meme",
+    alias: ["memes", "😂", "dankmeme"],
+    description: "Get random memes from Reddit 🎭",
+    category: "media",
+    ownerOnly: false,
+
+    async execute(sock, m, args, PREFIX) {
+        const jid = m.key.remoteJid;
+        
+        // Show help if no subcommand
+        if (args[0]?.toLowerCase() === 'help') {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY MEMES* 🎭 ⧭─┐
+│
+├─⧭ *Usage:*
+│ • ${PREFIX}meme - Random meme
+│ • ${PREFIX}meme <subreddit>
+│
+├─⧭ *Examples:*
+│ • ${PREFIX}meme
+│ • ${PREFIX}meme memes
+│ • ${PREFIX}meme dankmemes
+│ • ${PREFIX}meme programmingmemes
+│
+├─⧭ *Popular Subreddits:*
+│ • memes
+│ • dankmemes
+│ • wholesomememes
+│ • me_irl
+│ • ProgrammerHumor
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        try {
+            // Determine subreddit
+            let subreddit = 'memes';
+            if (args[0] && !args[0].startsWith('http')) {
+                subreddit = args[0].toLowerCase();
+            }
+            
+            // Fetch meme from Reddit
+            const response = await axios.get(`https://meme-api.com/gimme/${subreddit}`, {
+                timeout: 8000
+            });
+            
+            const meme = response.data;
+            
+            if (!meme || !meme.url) {
+                throw new Error('No meme found');
+            }
+            
+            // Determine if it's image or video/gif
+            const isGif = meme.url.includes('.gif') || meme.url.includes('.mp4');
+            
+            // Send meme
+            if (isGif) {
+                await sock.sendMessage(jid, {
+                    video: { url: meme.url },
+                    caption: `┌─⧭ *FOXY MEME* 🎭 ⧭─┐
+│
+├─⧭ *Title:* ${meme.title}
+├─⧭ *Subreddit:* r/${meme.subreddit}
+├─⧭ *Author:* u/${meme.author}
+├─⧭ *Upvotes:* ⬆️ ${meme.ups || 'N/A'}
+│
+└─⧭🦊`,
+                    gifPlayback: true
+                }, { quoted: m });
+            } else {
+                await sock.sendMessage(jid, {
+                    image: { url: meme.url },
+                    caption: `┌─⧭ *FOXY MEME* 🎭 ⧭─┐
+│
+├─⧭ *Title:* ${meme.title}
+├─⧭ *Subreddit:* r/${meme.subreddit}
+├─⧭ *Author:* u/${meme.author}
+├─⧭ *Upvotes:* ⬆️ ${meme.ups || 'N/A'}
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Add reaction
+            await sock.sendMessage(jid, {
+                react: { text: "😂", key: m.key }
+            });
+            
+        } catch (error) {
+            console.error('Meme error:', error.message);
+            
+            // Try fallback API if first fails
+            try {
+                const fallback = await axios.get('https://meme-api.herokuapp.com/gimme', {
+                    timeout: 5000
+                });
+                
+                const meme = fallback.data;
+                
+                await sock.sendMessage(jid, {
+                    image: { url: meme.url },
+                    caption: `┌─⧭ *FOXY MEME* 🎭 ⧭─┐
+│
+├─⧭ *Title:* ${meme.title}
+├─⧭ *Subreddit:* r/${meme.subreddit}
+├─⧭ *Author:* u/${meme.author}
+│
+└─⧭🦊`
+                }, { quoted: m });
+                
+                await sock.sendMessage(jid, {
+                    react: { text: "😂", key: m.key }
+                });
+                
+            } catch (fallbackError) {
+                // Silent fail - just react with ❌
+                await sock.sendMessage(jid, {
+                    react: { text: "❌", key: m.key }
+                });
+            }
+        }
+    }
+};

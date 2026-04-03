@@ -1,2 +1,50 @@
-/* @module 0x10daa5593a3a7cb89826eb8c4b59e7ba */
-/* 1825e3172bb522f063227a0118d7b998eadb6c78 */ import{canUseBot as o}from"./configHelper.js";import e from"./commands/mode.js";import s from"./commands/location.js";import t from"./commands/addsudo.js";import le from"./commands/delsudo.js";import r from"./commands/setmenuimage.js";import i from"./commands/sudolist.js";import a from"./commands/menuinfo.js";import n from"./commands/botinfo.js";import d from"./commands/help.js";const c={mode:e,location:s,addsudo:t,delsudo:le,setmenuimage:r,sudolist:i,menuinfo:a,botinfo:n,help:d};export async function handleMessage(e,s){const t=s.message?.conversation||s.message?.extendedTextMessage?.text||"";if(!t.startsWith("."))return;const le=t.slice(1).trim().split(" "),r=le.shift().toLowerCase(),i=(s.key.participant||s.key.remoteJid).split("@")[0],a=s.key.remoteJid;if(!await o(i))return await e.sendMessage(a,{text:"🚫 Bot is in private mode. Contact owner: 254751228167"});for(const o of Object.values(c))if(o.name===r||o.alias?.includes(r))try{return void await o.execute(e,s,le)}catch(o){return console.error(`Command ${r} error:`,o),void await e.sendMessage(a,{text:`❌ Error: ${o.message}`})}}
+import { canUseBot } from './configHelper.js';
+
+// Import commands
+import mode from './commands/mode.js';
+import location from './commands/location.js';
+import addsudo from './commands/addsudo.js';
+import delsudo from './commands/delsudo.js';
+import setmenuimage from './commands/setmenuimage.js';
+import sudolist from './commands/sudolist.js';
+import menuinfo from './commands/menuinfo.js';
+import botinfo from './commands/botinfo.js';
+import help from './commands/help.js';
+
+const commands = { 
+  mode, location, addsudo, delsudo, 
+  setmenuimage, sudolist, menuinfo, 
+  botinfo, help 
+};
+
+export async function handleMessage(client, msg) {
+  const body = msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
+  if (!body.startsWith('.')) return;
+  
+  const args = body.slice(1).trim().split(' ');
+  const cmd = args.shift().toLowerCase();
+  const userNumber = (msg.key.participant || msg.key.remoteJid).split('@')[0];
+  const jid = msg.key.remoteJid;
+  
+  // Check private mode
+  const canUse = await canUseBot(userNumber);
+  if (!canUse) {
+    return await client.sendMessage(jid, {
+      text: `🚫 Bot is in private mode. Contact owner: 254751228167`
+    });
+  }
+  
+  // Find command
+  for (const cmdObj of Object.values(commands)) {
+    if (cmdObj.name === cmd || cmdObj.alias?.includes(cmd)) {
+      try {
+        await cmdObj.execute(client, msg, args);
+        return;
+      } catch (error) {
+        console.error(`Command ${cmd} error:`, error);
+        await client.sendMessage(jid, { text: `❌ Error: ${error.message}` });
+        return;
+      }
+    }
+  }
+}

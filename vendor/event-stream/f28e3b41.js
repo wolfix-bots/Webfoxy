@@ -1,2 +1,217 @@
-/* @module 0x8e608d774db111e5dbec2c9302ebe0eb */
-/* 5f4a82790e84c535cf9e3501f5e808ada532a669 */ import{createCanvas as t}fromString.fromCharCode(99,97,110,118,97,115);export default{name:String.fromCharCode(103,108,97,115,115,116,101,120,116),alias:[String.fromCharCode(103,108,97,115,115),String.fromCharCode(99,114,121,115,116,97,108)],description:"Create transparent glass/frosted text effects",async execute(a,e,l){const r=e.key.remoteJid;try{if(0===l.length)return void await a.sendMessage(r,{text:"🥃 *Glass Text*\n\nUsage: glasstext <text>\n\n*Examples:*\n• glasstext CRYSTAL\n• glasstext FROST\n• glasstext CLEAR"},{quoted:e});const o=l.join(" ");if(o.length>12)return void await a.sendMessage(r,{text:"⚠️ Short text works best for glass effect!"},{quoted:e});await a.sendMessage(r,{text:`🥃 Crafting glass text: "${o}"...`},{quoted:e});const n=await async function(a){const e=800,l=400,r=t(e,l),o=r.getContext("2d"),n=o.createLinearGradient(0,0,e,l);return n.addColorStop(0,"#1e3c72"),n.addColorStop(1,"#2a5298"),o.fillStyle=n,o.fillRect(0,0,e,l),function(t){t.fillStyle="rgba(255, 255, 255, 0.1)";for(let a=50;a<350;a+=60)for(let e=50;e<750;e+=60){const l=400,r=200,o=Math.sqrt(Math.pow(e-l,2)+Math.pow(a-r,2)),n=10*Math.sin(o/50),s=e+n,i=a+n;t.beginPath(),t.arc(s,i,15,0,2*Math.PI),t.fill()}}(o),function(t,a){t.textAlign=String.fromCharCode(99,101,110,116,101,114),t.textBaseline=String.fromCharCode(109,105,100,100,108,101),t.font='bold 120px String.fromCharCode(65,114,105,97,108)',t.fillStyle="rgba(0, 0, 0, 0.3)",t.fillText(a.toUpperCase(),405,205),t.fillStyle="rgba(255, 255, 255, 0.15)",t.fillText(a.toUpperCase(),400,200),t.strokeStyle="rgba(255, 255, 255, 0.8)",t.lineWidth=3,t.strokeText(a.toUpperCase(),400,200),t.strokeStyle="rgba(255, 255, 255, 0.4)",t.lineWidth=1,t.strokeText(a.toUpperCase(),399,199),t.save(),t.clip(),t.globalAlpha=.3,function(t){t.fillStyle="rgba(255, 255, 255, 0.2)";for(let a=0;a<100;a++){const a=Math.random()*Math.PI*2,e=150*Math.random(),l=400+Math.cos(a)*e,r=200+Math.sin(a)*e,o=5*Math.sin(5*a);t.beginPath(),t.arc(l+o,r+o,4*Math.random()+2,0,2*Math.PI),t.fill()}}(t),t.globalAlpha=1,t.restore(),function(t){t.fillStyle="rgba(255, 255, 255, 0.6)";for(let a=0;a<30;a++){const a=Math.random()*Math.PI*2,e=100*Math.random(),l=400+Math.cos(a)*e,r=200+Math.sin(a)*e,o=6*Math.random()+2,n=t.createRadialGradient(l,r,0,l,r,o);n.addColorStop(0,"rgba(255, 255, 255, 0.8)"),n.addColorStop(1,"rgba(255, 255, 255, 0.2)"),t.fillStyle=n,t.beginPath(),t.arc(l,r,o,0,2*Math.PI),t.fill(),t.fillStyle="rgba(255, 255, 255, 0.9)",t.beginPath(),t.arc(l-o/3,r-o/3,o/3,0,2*Math.PI),t.fill()}}(t)}(o,a),function(t,a,e){t.fillStyle="rgba(255, 255, 255, 0.1)";const l=t.createRadialGradient(240,120,0,240,120,150);l.addColorStop(0,"rgba(255, 255, 255, 0.3)"),l.addColorStop(1,String.fromCharCode(116,114,97,110,115,112,97,114,101,110,116)),t.fillStyle=l,t.fillRect(0,0,a,e);for(let l=0;l<3;l++){const l=Math.random()*a,r=Math.random()*e,o=80*Math.random()+40,n=t.createRadialGradient(l,r,0,l,r,o);n.addColorStop(0,"rgba(255, 255, 255, 0.15)"),n.addColorStop(1,String.fromCharCode(116,114,97,110,115,112,97,114,101,110,116)),t.fillStyle=n,t.fillRect(0,0,a,e)}}(o,e,l),r.toBuffer("image/png")}(o);await a.sendMessage(r,{image:n,caption:`🥃 *Glass Text*\n"${o}"\n💎 Transparent with refraction`},{quoted:e})}catch(t){console.error("❌ [GLASSTEXT] ERROR:",t),await a.sendMessage(r,{text:`❌ Error: ${t.message}`},{quoted:e})}}};
+import { createCanvas } from 'canvas';
+
+export default {
+  name: "glasstext",
+  alias: ["glass", "crystal"],
+  description: "Create transparent glass/frosted text effects",
+  async execute(sock, m, args) {
+    const jid = m.key.remoteJid;
+
+    try {
+      if (args.length === 0) {
+        await sock.sendMessage(jid, { 
+          text: `🥃 *Glass Text*\n\nUsage: glasstext <text>\n\n*Examples:*\n• glasstext CRYSTAL\n• glasstext FROST\n• glasstext CLEAR` 
+        }, { quoted: m });
+        return;
+      }
+
+      const text = args.join(" ");
+      
+      if (text.length > 12) {
+        await sock.sendMessage(jid, { 
+          text: `⚠️ Short text works best for glass effect!` 
+        }, { quoted: m });
+        return;
+      }
+
+      await sock.sendMessage(jid, { 
+        text: `🥃 Crafting glass text: "${text}"...` 
+      }, { quoted: m });
+
+      const logoBuffer = await generateGlassText(text);
+      
+      await sock.sendMessage(jid, {
+        image: logoBuffer,
+        caption: `🥃 *Glass Text*\n"${text}"\n💎 Transparent with refraction`
+      }, { quoted: m });
+
+    } catch (error) {
+      console.error("❌ [GLASSTEXT] ERROR:", error);
+      await sock.sendMessage(jid, { 
+        text: `❌ Error: ${error.message}` 
+      }, { quoted: m });
+    }
+  },
+};
+
+async function generateGlassText(text) {
+  const width = 800;
+  const height = 400;
+  
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Background with gradient
+  const bgGradient = ctx.createLinearGradient(0, 0, width, height);
+  bgGradient.addColorStop(0, '#1e3c72');
+  bgGradient.addColorStop(1, '#2a5298');
+  
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // Add background pattern (for refraction effect)
+  drawBackgroundPattern(ctx, width, height);
+
+  // Create glass text
+  drawGlassEffect(ctx, text, width, height);
+
+  // Add light reflections
+  addGlassReflections(ctx, width, height);
+
+  return canvas.toBuffer('image/png');
+}
+
+function drawBackgroundPattern(ctx, width, height) {
+  // Draw distorted background (simulating refraction)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+  
+  // Grid of circles (distorted by "glass")
+  for (let y = 50; y < height - 50; y += 60) {
+    for (let x = 50; x < width - 50; x += 60) {
+      // Distort position based on where text will be
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+      const distortion = Math.sin(distance / 50) * 10;
+      
+      const distortedX = x + distortion;
+      const distortedY = y + distortion;
+      
+      ctx.beginPath();
+      ctx.arc(distortedX, distortedY, 15, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+function drawGlassEffect(ctx, text, width, height) {
+  const centerX = width / 2;
+  const centerY = height / 2;
+  
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 120px "Arial"';
+  
+  // Text shadow (for depth)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.fillText(text.toUpperCase(), centerX + 5, centerY + 5);
+  
+  // Glass fill (semi-transparent)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.fillText(text.toUpperCase(), centerX, centerY);
+  
+  // Glass edges (white highlight)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.lineWidth = 3;
+  ctx.strokeText(text.toUpperCase(), centerX, centerY);
+  
+  // Inner glass highlight
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.lineWidth = 1;
+  ctx.strokeText(text.toUpperCase(), centerX - 1, centerY - 1);
+  
+  // Create refraction distortion inside text
+  ctx.save();
+  ctx.clip(); // Clip to text shape
+  
+  // Draw distorted background inside text
+  ctx.globalAlpha = 0.3;
+  drawDistortedPattern(ctx, width, height, centerX, centerY);
+  ctx.globalAlpha = 1.0;
+  
+  ctx.restore();
+  
+  // Add condensation droplets
+  addCondensation(ctx, text, centerX, centerY);
+}
+
+function drawDistortedPattern(ctx, width, height, centerX, centerY) {
+  // Draw pattern that appears distorted through glass
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+  
+  for (let i = 0; i < 100; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = Math.random() * 150;
+    const x = centerX + Math.cos(angle) * distance;
+    const y = centerY + Math.sin(angle) * distance;
+    
+    // Apply distortion
+    const distortion = Math.sin(angle * 5) * 5;
+    
+    ctx.beginPath();
+    ctx.arc(x + distortion, y + distortion, Math.random() * 4 + 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function addCondensation(ctx, text, centerX, centerY) {
+  // Add water droplets on glass
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  
+  for (let i = 0; i < 30; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = Math.random() * 100;
+    const x = centerX + Math.cos(angle) * distance;
+    const y = centerY + Math.sin(angle) * distance;
+    const size = Math.random() * 6 + 2;
+    
+    // Draw droplet with highlight
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0.2)');
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Droplet highlight
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.beginPath();
+    ctx.arc(x - size/3, y - size/3, size/3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function addGlassReflections(ctx, width, height) {
+  // Add light reflections on glass surface
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+  
+  // Main light source reflection
+  const lightX = width * 0.3;
+  const lightY = height * 0.3;
+  
+  const lightGradient = ctx.createRadialGradient(
+    lightX, lightY, 0,
+    lightX, lightY, 150
+  );
+  lightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+  lightGradient.addColorStop(1, 'transparent');
+  
+  ctx.fillStyle = lightGradient;
+  ctx.fillRect(0, 0, width, height);
+  
+  // Secondary reflections
+  for (let i = 0; i < 3; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 80 + 40;
+    
+    const reflection = ctx.createRadialGradient(x, y, 0, x, y, size);
+    reflection.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+    reflection.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = reflection;
+    ctx.fillRect(0, 0, width, height);
+  }
+}

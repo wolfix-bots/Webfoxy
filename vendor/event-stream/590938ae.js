@@ -1,2 +1,141 @@
-/* @module 0x85de844c756c760d218b0f61db57661a */
-/* 81fc0734abb72e02e371091a2ea500b14ee09e50 */ export default{name:String.fromCharCode(107,105,99,107),alias:[String.fromCharCode(114,101,109,111,118,101),String.fromCharCode(98,97,110)],category:String.fromCharCode(103,114,111,117,112),description:"Remove users from group",async execute(e,n,t,i,a){const s=n.key.remoteJid,d=s.endsWith("@g.us"),{jidManager:o}=a;if(!d)return e.sendMessage(s,{text:"┌─⧭ *GROUP ONLY* 👥 ⧭─┐\n│\n├─⧭ This command only works in groups!\n│\n└─⧭🦊"},{quoted:n});try{const t=(await e.groupMetadata(s)).participants,a=n.key.participant||s;if(String.fromCharCode(97,100,109,105,110)!==t.find(e=>e.id===a)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==t.find(e=>e.id===a)?.admin&&!n.key.fromMe)return e.sendMessage(s,{text:"┌─⧭ *ADMIN ONLY* 👑 ⧭─┐\n│\n├─⧭ Only admins can kick members!\n│\n└─⧭🦊"},{quoted:n});if(String.fromCharCode(97,100,109,105,110)!==t.find(n=>n.id===e.user.id)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==t.find(n=>n.id===e.user.id)?.admin)return e.sendMessage(s,{text:"┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐\n│\n├─⧭ I need to be an admin to kick people!\n│\n└─⧭🦊"},{quoted:n});let d=null;const r=n.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0],ht=n.message?.extendedTextMessage?.contextInfo?.participant;if(d=r||ht,!d)return e.sendMessage(s,{text:`┌─⧭ *KICK USER* 👢 ⧭─┐\n│\n├─⧭ *Usage:*\n│ • @mention the user\n│ • Reply to their message\n│\n├─⧭ *Examples:*\n│ • ${i}kick @user\n│ • Reply to message → ${i}kick\n│\n└─⧭🦊`},{quoted:n});if(d===e.user.id)return e.sendMessage(s,{text:"┌─⧭ *CAN'T KICK BOT* 🤖 ⧭─┐\n│\n├─⧭ You can't kick me! I'ht a good fox!\n│\n└─⧭🦊"},{quoted:n});if((String.fromCharCode(97,100,109,105,110)===t.find(e=>e.id===d)?.admin||String.fromCharCode(115,117,112,101,114,97,100,109,105,110)===t.find(e=>e.id===d)?.admin)&&!n.key.fromMe)return e.sendMessage(s,{text:"┌─⧭ *CAN'T KICK ADMIN* 👑 ⧭─┐\n│\n├─⧭ You can't kick another admin!\n│\n└─⧭🦊"},{quoted:n});await e.groupParticipantsUpdate(s,[d],String.fromCharCode(114,101,109,111,118,101));const u=o.cleanJid(d);await e.sendMessage(s,{text:`┌─⧭ *✅ USER KICKED* ⧭─┐\n│\n├─⧭ *User:* @${u.cleanNumber}\n├─⧭ *Kicked by:* ${n.wm||String.fromCharCode(65,100,109,105,110)}\n│\n│ 👢 Bye bye!\n│\n└─⧭🦊`,mentions:[d]},{quoted:n})}catch(t){console.error("Kick error:",t),await e.sendMessage(s,{text:`┌─⧭ *KICK FAILED* ❌ ⧭─┐\n│\n├─⧭ ${t.message}\n│\n├─⧭ *Possible reasons:*\n│ • User not in group\n│ • Bot not admin\n│ • Trying to kick admin\n│\n└─⧭🦊`},{quoted:n})}}};
+export default {
+    name: "kick",
+    alias: ["remove", "ban"],
+    category: "group",
+    description: "Remove users from group",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const chatId = m.key.remoteJid;
+        const isGroup = chatId.endsWith('@g.us');
+        const { jidManager } = extra;
+        
+        if (!isGroup) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *GROUP ONLY* 👥 ⧭─┐
+│
+├─⧭ This command only works in groups!
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        try {
+            const groupMetadata = await sock.groupMetadata(chatId);
+            const participants = groupMetadata.participants;
+            const senderId = m.key.participant || chatId;
+            
+            // Check if sender is admin
+            const isSenderAdmin = participants.find(p => p.id === senderId)?.admin === 'admin' ||
+                                 participants.find(p => p.id === senderId)?.admin === 'superadmin';
+            
+            if (!isSenderAdmin && !m.key.fromMe) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *ADMIN ONLY* 👑 ⧭─┐
+│
+├─⧭ Only admins can kick members!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check if bot is admin
+            const isBotAdmin = participants.find(p => p.id === sock.user.id)?.admin === 'admin' || 
+                              participants.find(p => p.id === sock.user.id)?.admin === 'superadmin';
+            
+            if (!isBotAdmin) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐
+│
+├─⧭ I need to be an admin to kick people!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Get target user
+            let target = null;
+            
+            // Check mentions
+            const mentioned = m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+            
+            // Check quoted message
+            const quoted = m.message?.extendedTextMessage?.contextInfo?.participant;
+            
+            target = mentioned || quoted;
+            
+            if (!target) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *KICK USER* 👢 ⧭─┐
+│
+├─⧭ *Usage:*
+│ • @mention the user
+│ • Reply to their message
+│
+├─⧭ *Examples:*
+│ • ${PREFIX}kick @user
+│ • Reply to message → ${PREFIX}kick
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check if trying to kick bot
+            if (target === sock.user.id) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *CAN'T KICK BOT* 🤖 ⧭─┐
+│
+├─⧭ You can't kick me! I'm a good fox!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check if trying to kick admin (and sender is not super admin)
+            const isTargetAdmin = participants.find(p => p.id === target)?.admin === 'admin' ||
+                                 participants.find(p => p.id === target)?.admin === 'superadmin';
+            
+            if (isTargetAdmin && !m.key.fromMe) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *CAN'T KICK ADMIN* 👑 ⧭─┐
+│
+├─⧭ You can't kick another admin!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Kick user
+            await sock.groupParticipantsUpdate(chatId, [target], 'remove');
+            
+            const cleaned = jidManager.cleanJid(target);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *✅ USER KICKED* ⧭─┐
+│
+├─⧭ *User:* @${cleaned.cleanNumber}
+├─⧭ *Kicked by:* ${m.pushName || 'Admin'}
+│
+│ 👢 Bye bye!
+│
+└─⧭🦊`,
+                mentions: [target]
+            }, { quoted: m });
+            
+        } catch (error) {
+            console.error('Kick error:', error);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *KICK FAILED* ❌ ⧭─┐
+│
+├─⧭ ${error.message}
+│
+├─⧭ *Possible reasons:*
+│ • User not in group
+│ • Bot not admin
+│ • Trying to kick admin
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+    }
+};

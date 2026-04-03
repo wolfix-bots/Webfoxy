@@ -1,2 +1,68 @@
-/* @module 0x7eb35747764e879b3aa982feaa105f88 */
-/* a61bfa4c48bfefffb4b7d2a95fb3809f889296aa */ import e fromString.fromCharCode(97,120,105,111,115);export default{name:String.fromCharCode(100,101,101,112,115,101,101,107),alias:["ds",String.fromCharCode(115,101,101,107),"ai"],desc:"Chat with DeepSeek AI assistant 🧠",category:String.fromCharCode(103,101,110,101,114,97,108),usage:".deepseek [your message]",async execute(s,t,a){try{const o=t.key.remoteJid,r=a.join(" ").trim();if(!r)return void await s.sendMessage(o,{text:"🧠 *Please provide a message!*\n\nExample: `.deepseek What is the meaning of life?`"});await s.sendPresenceUpdate(String.fromCharCode(99,111,109,112,111,115,105,110,103),o);const n=await e.post("https://apis.xwolf.space/api/ai/deepseek",{prompt:r},{headers:{String.fromCharCode(67,111,110,116,101,110,116,45,84,121,112,101):"application/json"},timeout:3e4}),i=n.data.response||n.data.message||JSON.stringify(n.data);await s.sendMessage(o,{text:`🧠 *DeepSeek AI:*\n\n${i}`})}catch(e){console.error("🧠 Error in deepseek command:",e);let a="❌ Failed to get response from DeepSeek!";String.fromCharCode(69,67,79,78,78,65,66,79,82,84,69,68)===e.code?a="⏱️ Request timeout! DeepSeek is taking too long to respond.":e.response?a=`⚠️ API Error: ${e.response.status} - ${e.response.statusText}`:e.request&&(a="🌐 Network error! Could not reach DeepSeek service."),await s.sendMessage(t.key.remoteJid,{text:a})}}};
+import axios from "axios";
+
+export default {
+  name: "deepseek",
+  alias: ["ds", "seek", "ai"],
+  desc: "Chat with DeepSeek AI assistant 🧠",
+  category: "general",
+  usage: ".deepseek [your message]",
+
+  async execute(sock, m, args) {
+    try {
+      const chatId = m.key.remoteJid;
+      const userMessage = args.join(" ").trim();
+
+      // Check if user provided a message
+      if (!userMessage) {
+        await sock.sendMessage(chatId, {
+          text: "🧠 *Please provide a message!*\n\nExample: `.deepseek What is the meaning of life?`",
+        });
+        return;
+      }
+
+      // Send typing indicator
+      await sock.sendPresenceUpdate("composing", chatId);
+
+      // Call the DeepSeek API
+      const response = await axios.post(
+        "https://apis.xwolf.space/api/ai/deepseek",
+        {
+          prompt: userMessage,
+          // Optional system prompt
+          // system: "You are DeepSeek, a helpful AI assistant.",
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
+        }
+      );
+
+      // Extract the AI response
+      const aiResponse = response.data.response || response.data.message || JSON.stringify(response.data);
+
+      // Send the response
+      await sock.sendMessage(chatId, {
+        text: `🧠 *DeepSeek AI:*\n\n${aiResponse}`,
+      });
+
+    } catch (error) {
+      console.error("🧠 Error in deepseek command:", error);
+
+      let errorMessage = "❌ Failed to get response from DeepSeek!";
+
+      if (error.code === "ECONNABORTED") {
+        errorMessage = "⏱️ Request timeout! DeepSeek is taking too long to respond.";
+      } else if (error.response) {
+        errorMessage = `⚠️ API Error: ${error.response.status} - ${error.response.statusText}`;
+      } else if (error.request) {
+        errorMessage = "🌐 Network error! Could not reach DeepSeek service.";
+      }
+
+      await sock.sendMessage(m.key.remoteJid, {
+        text: errorMessage,
+      });
+    }
+  },
+};

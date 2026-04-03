@@ -1,2 +1,116 @@
-/* @module 0x79e2be98d30abcade30eaa2be5422f20 */
-/* 0ee132da47abdaf1d4f0f32714a2b2d630835d86 */ import e fromString.fromCharCode(97,120,105,111,115);export default{name:String.fromCharCode(108,111,103,111),alias:[String.fromCharCode(98,114,97,110,100),String.fromCharCode(100,101,115,105,103,110,108,111,103,111),String.fromCharCode(108,111,103,111,109,97,107,101,114),String.fromCharCode(102,111,120,108,111,103,111),String.fromCharCode(99,114,101,97,116,101,108,111,103,111)],category:"ai",description:"Generate AI-powered logo designs for your brand 🎨",async execute(n,o,a,s){const t=o.key.remoteJid;if(!a.length)return n.sendMessage(t,{text:`┌─⧭ *FOXY LOGO DESIGNER* 🎨 ⧭─┐\n│\n├─⧭ *What I do:*\n│ Generate professional AI logos for your brand!\n│\n├─⧭ *Usage:*\n│ ${s}logo <business name/type>\n│\n├─⧭ *Examples:*\n│ • ${s}logo coffee shop\n│ • ${s}logo tech startup\n│ • ${s}logo gym fitness\n│ • ${s}logo bakery cake\n│\n├─⧭ *Popular Business Types:`});const i=a.join(" "),r=`professional vector logo design for ${i}, minimalist, clean lines, modern branding, high quality, 2d, white background, scalable vector, professional brand identity, unique design`;try{await n.sendMessage(t,{text:`┌─⧭ *FOXY CREATING* 🎨 ⧭─┐\n│\n├─⧭ *Business:* ${i}\n│\n│ 🖌️ Designing your logo...\n│ ⏳ This may take a few seconds\n│\n└─⧭🦊`});const o=`https://api.giftedtech.co.ke/api/ai/magicstudio?apikey=gifted&prompt=${encodeURIComponent(r)}`,a=await e.get(o,{timeout:3e4});if(!a.data.success||!a.data.result)throw new Error("Failed to generate logo");{const e=a.data.result.imageUrl||a.data.result;await n.sendMessage(t,{image:{url:e},caption:`┌─⧭ *🦊 FOXY LOGO DESIGN* ⧭─┐\n│\n├─⧭ *Business:* ${i}\n├─⧭ *Style:* Modern Minimalist\n│\n├─⧭ *Perfect for:*\n│ • Brand identity\n│ • Website header\n│ • Social media\n│ • Business cards\n│\n├─⧭ *Try another variation:*\n│ ${s}logo ${i.split(" ")[0]} creative\n│ ${s}logo ${i.split(" ")[0]} elegant\n│\n└─⧭🦊 *Your brand is ready!*`})}}catch(e){console.error("Logo error:",e),await n.sendMessage(t,{text:`┌─⧭ *LOGO FAILED* ❌ ⧭─┐\n│\n├─⧭ *Error:* ${e.message}\n│\n├─⧭ *Try:*\n│ • ${s}logo cafe\n│ • ${s}logo tech\n│ • ${s}logo shop\n│ • Simpler business name\n│\n└─⧭🦊 *Even foxes have bad design days!*`})}}};
+import axios from 'axios';
+
+export default {
+    name: "logo",
+    alias: ["brand", "designlogo", "logomaker", "foxlogo", "createlogo"],
+    category: "ai",
+    description: "Generate AI-powered logo designs for your brand 🎨",
+    
+    async execute(sock, m, args, prefix) {
+        const jid = m.key.remoteJid;
+        
+        const businessTypes = [
+            "☕ coffee shop",
+            "💻 tech startup",
+            "💪 gym fitness",
+            "🍰 bakery cake",
+            "🍔 restaurant",
+            "👕 clothing brand",
+            "📱 app development",
+            "🏠 real estate",
+            "🎵 music studio",
+            "📷 photography",
+            "💅 beauty salon",
+            "🐾 pet shop",
+            "📚 education",
+            "🏥 medical",
+            "🔧 automotive"
+        ];
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY LOGO DESIGNER* 🎨 ⧭─┐
+│
+├─⧭ *What I do:*
+│ Generate professional AI logos for your brand!
+│
+├─⧭ *Usage:*
+│ ${prefix}logo <business name/type>
+│
+├─⧭ *Examples:*
+│ • ${prefix}logo coffee shop
+│ • ${prefix}logo tech startup
+│ • ${prefix}logo gym fitness
+│ • ${prefix}logo bakery cake
+│
+├─⧭ *Popular Business Types:`
+            });
+        }
+        
+        const business = args.join(' ');
+        
+        // Enhanced prompt for better logo generation
+        const prompt = `professional vector logo design for ${business}, minimalist, clean lines, modern branding, high quality, 2d, white background, scalable vector, professional brand identity, unique design`;
+        
+        try {
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY CREATING* 🎨 ⧭─┐
+│
+├─⧭ *Business:* ${business}
+│
+│ 🖌️ Designing your logo...
+│ ⏳ This may take a few seconds
+│
+└─⧭🦊`
+            });
+            
+            // USING GIFTEDTECH MAGICSTUDIO API
+            const apiUrl = `https://api.giftedtech.co.ke/api/ai/magicstudio?apikey=gifted&prompt=${encodeURIComponent(prompt)}`;
+            
+            const response = await axios.get(apiUrl, { timeout: 30000 });
+            
+            if (response.data.success && response.data.result) {
+                const imageUrl = response.data.result.imageUrl || response.data.result;
+                
+                await sock.sendMessage(jid, {
+                    image: { url: imageUrl },
+                    caption: `┌─⧭ *🦊 FOXY LOGO DESIGN* ⧭─┐
+│
+├─⧭ *Business:* ${business}
+├─⧭ *Style:* Modern Minimalist
+│
+├─⧭ *Perfect for:*
+│ • Brand identity
+│ • Website header
+│ • Social media
+│ • Business cards
+│
+├─⧭ *Try another variation:*
+│ ${prefix}logo ${business.split(' ')[0]} creative
+│ ${prefix}logo ${business.split(' ')[0]} elegant
+│
+└─⧭🦊 *Your brand is ready!*`
+                });
+            } else {
+                throw new Error('Failed to generate logo');
+            }
+            
+        } catch (error) {
+            console.error('Logo error:', error);
+            
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *LOGO FAILED* ❌ ⧭─┐
+│
+├─⧭ *Error:* ${error.message}
+│
+├─⧭ *Try:*
+│ • ${prefix}logo cafe
+│ • ${prefix}logo tech
+│ • ${prefix}logo shop
+│ • Simpler business name
+│
+└─⧭🦊 *Even foxes have bad design days!*`
+            });
+        }
+    }
+};

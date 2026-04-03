@@ -1,2 +1,147 @@
-/* @module 0x12b3ba7cbdd25f6f531863e4f619ca9c */
-/* eb0c3c57e2cded8e4f986694300e1498839be123 */ import e from"fs";import n fromString.fromCharCode(112,97,116,104);import{foxCanUse as s,foxMode as t,foxOwners as o}from"../../utils/foxMaster.js";const i="./fox_den";export default{name:String.fromCharCode(117,108,116,105,109,97,116,101,102,105,120),alias:[String.fromCharCode(102,105,120),String.fromCharCode(114,101,112,97,105,114),String.fromCharCode(114,101,115,101,116,98,111,116)],category:String.fromCharCode(115,121,115,116,101,109),description:"Fix common bot issues",async execute(a,r,l,cc){if(!s(r,String.fromCharCode(117,108,116,105,109,97,116,101,102,105,120))){const e=t.getMessage();return void(e&&await a.sendMessage(r.key.remoteJid,{text:e}))}if(!o.isOwner(r))return void await a.sendMessage(r.key.remoteJid,{text:"❌ *OWNER ONLY* 🦊\n\nOnly bot owners can use ultimate fix!\n\n🦊 This is a powerful tool!"});const u=l[0]?.toLowerCase();if(u&&[String.fromCharCode(101,99,111,110,111,109,121),String.fromCharCode(103,114,111,117,112,115),String.fromCharCode(97,108,108),String.fromCharCode(104,101,108,112)].includes(u))if(String.fromCharCode(104,101,108,112)!==u)if(String.fromCharCode(99,111,110,102,105,114,109)===l[1])try{if(String.fromCharCode(101,99,111,110,111,109,121)===u||String.fromCharCode(97,108,108)===u){const s=n.join(i,"fox_economy.json"),t=n.join(i,"fox_shop.json");e.existsSync(s)&&e.unlinkSync(s),e.existsSync(t)&&e.unlinkSync(t)}if(String.fromCharCode(103,114,111,117,112,115)===u||String.fromCharCode(97,108,108)===u){const s=n.join(i,"fox_groups.json");e.existsSync(s)&&e.unlinkSync(s)}if(String.fromCharCode(97,108,108)===u){const s=n.join(i,"fox_games.json"),t=n.join(i,"prefixes.json");e.existsSync(s)&&e.unlinkSync(s),e.existsSync(t)&&e.unlinkSync(t)}await a.sendMessage(r.key.remoteJid,{text:`✅ *${u.toUpperCase()} RESET COMPLETE!* 🦊\n\n*Reset type:* ${u}\n*Performed by:* ${r.dg||String.fromCharCode(79,119,110,101,114)}\n*Time:* ${(new Date).toLocaleTimeString()}\n\n*What was reset:*\n`+(String.fromCharCode(101,99,111,110,111,109,121)===u?"• Economy database\n• Shop items\n• User balances":String.fromCharCode(103,114,111,117,112,115)===u?"• Group settings\n• Welcome/Goodbye messages\n• Group rules":"• All bot data (except owner settings)")+"\n\n*What was preserved:*\n• Owner settings\n• Bot mode\n• Setup status\n\n💡 *Bot will recreate data as needed!*\n\n🦊 Fresh start achieved!"})}catch(e){await a.sendMessage(r.key.remoteJid,{text:`❌ *FIX FAILED* 🦊\n\n*Error:* ${e.message}\n\n💡 *Try manually deleting files in ./fox_den/*\n\n🦊 Even ultimate fixes can fail!`})}else await a.sendMessage(r.key.remoteJid,{text:`⚠️ *CONFIRMATION REQUIRED* 🦊\n\nYou are about to reset: ${u.toUpperCase()}\n\n*This will delete:*\n`+(String.fromCharCode(101,99,111,110,111,109,121)===u?"• All user balances\n• Shop data\n• Inventory items\n• Leaderboard":String.fromCharCode(103,114,111,117,112,115)===u?"• All group settings\n• Welcome messages\n• Goodbye messages\n• Group rules\n• Polls":"• Everything except owner settings")+"\n\n⚠️ *THIS CANNOT BE UNDONE!*\n\n"+`To confirm: ${cc}ultimatefix ${u} confirm\n\n🦊 Are you absolutely sure?`});else await a.sendMessage(r.key.remoteJid,{text:"🔧 *ULTIMATE FIX HELP* 🦊\n\n*What it does:*\nResets specific bot data to fix issues.\n\n*When to use:*\n• Economy commands not working\n• Group settings corrupted\n• Bot behaving strangely\n\n*What gets reset:*\n• economy - User balances, shop, inventory\n• groups - Group settings, rules, polls\n• all - Everything except owner settings\n\n*What's preserved:*\n• Owner settings\n• Bot mode\n• Setup status\n\n🦊 Use only when necessary!"});else await a.sendMessage(r.key.remoteJid,{text:`🔧 *ULTIMATE FIX* 🦊\n\nUsage: ${cc}ultimatefix <type>\n\n*Available fixes:*\n• ${cc}ultimatefix economy - Reset economy data\n• ${cc}ultimatefix groups - Reset group settings\n• ${cc}ultimatefix all - Reset everything\n• ${cc}ultimatefix help - Show this help\n\n⚠️ *WARNING:*\n• This will DELETE data\n• Cannot be undone\n• Backup recommended\n\n💡 *Use carefully!*\n\n🦊 Fix what's broken!`})}};
+// commands/system/ultimatefix.js
+import fs from 'fs';
+import path from 'path';
+import { foxCanUse, foxMode, foxOwners } from '../../utils/foxMaster.js';
+
+const FOX_DEN = './fox_den';
+
+export default {
+    name: 'ultimatefix',
+    alias: ['fix', 'repair', 'resetbot'],
+    category: 'system',
+    description: 'Fix common bot issues',
+    
+    async execute(sock, msg, args, prefix) {
+        if (!foxCanUse(msg, 'ultimatefix')) {
+            const message = foxMode.getMessage();
+            if (message) await sock.sendMessage(msg.key.remoteJid, { text: message });
+            return;
+        }
+        
+        // Check if user is owner
+        if (!foxOwners.isOwner(msg)) {
+            await sock.sendMessage(msg.key.remoteJid, {
+                text: `❌ *OWNER ONLY* 🦊\n\n` +
+                      `Only bot owners can use ultimate fix!\n\n` +
+                      `🦊 This is a powerful tool!`
+            });
+            return;
+        }
+        
+        const fixType = args[0]?.toLowerCase();
+        
+        if (!fixType || !['economy', 'groups', 'all', 'help'].includes(fixType)) {
+            await sock.sendMessage(msg.key.remoteJid, {
+                text: `🔧 *ULTIMATE FIX* 🦊\n\n` +
+                      `Usage: ${prefix}ultimatefix <type>\n\n` +
+                      `*Available fixes:*\n` +
+                      `• ${prefix}ultimatefix economy - Reset economy data\n` +
+                      `• ${prefix}ultimatefix groups - Reset group settings\n` +
+                      `• ${prefix}ultimatefix all - Reset everything\n` +
+                      `• ${prefix}ultimatefix help - Show this help\n\n` +
+                      `⚠️ *WARNING:*\n` +
+                      `• This will DELETE data\n` +
+                      `• Cannot be undone\n` +
+                      `• Backup recommended\n\n` +
+                      `💡 *Use carefully!*\n\n` +
+                      `🦊 Fix what's broken!`
+            });
+            return;
+        }
+        
+        if (fixType === 'help') {
+            await sock.sendMessage(msg.key.remoteJid, {
+                text: `🔧 *ULTIMATE FIX HELP* 🦊\n\n` +
+                      `*What it does:*\n` +
+                      `Resets specific bot data to fix issues.\n\n` +
+                      `*When to use:*\n` +
+                      `• Economy commands not working\n` +
+                      `• Group settings corrupted\n` +
+                      `• Bot behaving strangely\n\n` +
+                      `*What gets reset:*\n` +
+                      `• economy - User balances, shop, inventory\n` +
+                      `• groups - Group settings, rules, polls\n` +
+                      `• all - Everything except owner settings\n\n` +
+                      `*What's preserved:*\n` +
+                      `• Owner settings\n` +
+                      `• Bot mode\n` +
+                      `• Setup status\n\n` +
+                      `🦊 Use only when necessary!`
+            });
+            return;
+        }
+        
+        // Confirm before proceeding
+        if (args[1] !== 'confirm') {
+            await sock.sendMessage(msg.key.remoteJid, {
+                text: `⚠️ *CONFIRMATION REQUIRED* 🦊\n\n` +
+                      `You are about to reset: ${fixType.toUpperCase()}\n\n` +
+                      `*This will delete:*\n` +
+                      `${fixType === 'economy' ? '• All user balances\n• Shop data\n• Inventory items\n• Leaderboard' : 
+                        fixType === 'groups' ? '• All group settings\n• Welcome messages\n• Goodbye messages\n• Group rules\n• Polls' : 
+                        '• Everything except owner settings'}\n\n` +
+                      `⚠️ *THIS CANNOT BE UNDONE!*\n\n` +
+                      `To confirm: ${prefix}ultimatefix ${fixType} confirm\n\n` +
+                      `🦊 Are you absolutely sure?`
+            });
+            return;
+        }
+        
+        // Perform the fix
+        try {
+            if (fixType === 'economy' || fixType === 'all') {
+                const economyFile = path.join(FOX_DEN, 'fox_economy.json');
+                const shopFile = path.join(FOX_DEN, 'fox_shop.json');
+                
+                if (fs.existsSync(economyFile)) {
+                    fs.unlinkSync(economyFile);
+                }
+                if (fs.existsSync(shopFile)) {
+                    fs.unlinkSync(shopFile);
+                }
+            }
+            
+            if (fixType === 'groups' || fixType === 'all') {
+                const groupsFile = path.join(FOX_DEN, 'fox_groups.json');
+                if (fs.existsSync(groupsFile)) {
+                    fs.unlinkSync(groupsFile);
+                }
+            }
+            
+            if (fixType === 'all') {
+                const gamesFile = path.join(FOX_DEN, 'fox_games.json');
+                const prefixesFile = path.join(FOX_DEN, 'prefixes.json');
+                
+                if (fs.existsSync(gamesFile)) {
+                    fs.unlinkSync(gamesFile);
+                }
+                if (fs.existsSync(prefixesFile)) {
+                    fs.unlinkSync(prefixesFile);
+                }
+            }
+            
+            await sock.sendMessage(msg.key.remoteJid, {
+                text: `✅ *${fixType.toUpperCase()} RESET COMPLETE!* 🦊\n\n` +
+                      `*Reset type:* ${fixType}\n` +
+                      `*Performed by:* ${msg.pushName || 'Owner'}\n` +
+                      `*Time:* ${new Date().toLocaleTimeString()}\n\n` +
+                      `*What was reset:*\n` +
+                      `${fixType === 'economy' ? '• Economy database\n• Shop items\n• User balances' : 
+                        fixType === 'groups' ? '• Group settings\n• Welcome/Goodbye messages\n• Group rules' : 
+                        '• All bot data (except owner settings)'}\n\n` +
+                      `*What was preserved:*\n` +
+                      `• Owner settings\n• Bot mode\n• Setup status\n\n` +
+                      `💡 *Bot will recreate data as needed!*\n\n` +
+                      `🦊 Fresh start achieved!`
+            });
+            
+        } catch (error) {
+            await sock.sendMessage(msg.key.remoteJid, {
+                text: `❌ *FIX FAILED* 🦊\n\n` +
+                      `*Error:* ${error.message}\n\n` +
+                      `💡 *Try manually deleting files in ./fox_den/*\n\n` +
+                      `🦊 Even ultimate fixes can fail!`
+            });
+        }
+    }
+};

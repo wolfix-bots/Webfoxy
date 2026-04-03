@@ -1,2 +1,433 @@
-/* @module 0x844d4e6d6cf9791ca9d195859109ec99 */
-/* 8012b123187b07e363f104ea1c5279b896a5734a */ import e fromString.fromCharCode(97,120,105,111,115);import{downloadMediaMessage as n}from"@whiskeysockets/baileys";export default{name:String.fromCharCode(105,109,103,98,98),alias:[String.fromCharCode(117,112,108,111,97,100),String.fromCharCode(105,109,103,117,114,108),String.fromCharCode(102,111,120,121,112,105,99),String.fromCharCode(105,109,97,103,101,104,111,115,116),String.fromCharCode(102,111,120,121,105,109,103)],description:"Convert replied image to ImgBB URL directly 📸",category:String.fromCharCode(117,116,105,108,105,116,121),async execute(e,r,i,s,l){const c=r.key.remoteJid,{jidManager:d}=l,g=r.sa||String.fromCharCode(70,114,105,101,110,100),uk=async(n,t=null)=>{const a={quoted:r};return t&&(a.edit=t),await e.sendMessage(c,{text:n},a)};try{const i=r.message?.extendedTextMessage?.contextInfo?.quotedMessage;if(!i?.imageMessage)return await uk(`┌─⧭ *FOXY IMAGE UPLOADER* 📸 ⧭─┐\n│\n├─⧭ *What I do:*\n│ Upload images to ImgBB and give you a direct URL!\n│\n├─⧭ *How to use:*\n│ 1. Reply to an image\n│ 2. Type \`${s}imgbb\`\n│ 3. Get permanent URL instantly\n│\n├─⧭ *Features:*\n│ • 📦 Permanent storage (no expiration)\n│ • 🔗 Direct image links\n│ • 📱 Works on any device\n│ • 🆓 Completely free\n│ • 📊 Up to 32MB per image\n│\n├─⧭ *Examples:*\n│ • Reply to image → \`.imgbb\`\n│ • Reply to image → \`.upload\`\n│ • Reply to image → \`.foxypic\`\n│\n├─⧭ *Supported formats:*\n│ • JPG, JPEG, PNG, GIF, WebP\n│\n└─⧭🦊 *Foxy hosts your images!*`);const l=t();if(!l||32!==l.length)return await uk("┌─⧭ *API KEY ISSUE* ❌ ⧭─┐\n│\n├─⧭ ImgBB API key is not properly configured.\n│\n├─⧭ *Please contact the bot owner.*\n│\n└─⧭🦊");const p=r.key.participant||c,u=d.cleanJid(p);console.log(`🦊 Image upload by: ${u.cleanNumber||String.fromCharCode(85,110,107,110,111,119,110)}`);const y=await uk("┌─⧭ *FOXY UPLOADER* ⧭─┐\n│\n├─⧭ *Step 1/3:* 📥 Downloading image...\n│\n│ Please wait while Foxy works! 🦊\n│\n└─⧭");let h;try{console.log("🦊 Downloading image via Baileys...");const t={key:r.key,message:{...i}};if(h=await n(t,String.fromCharCode(98,117,102,102,101,114),{},{reuploadRequest:e.updateMediaMessage,logger:console}),!h||0===h.length)throw new Error("Empty image buffer");console.log(`✅ Downloaded ${h.length} bytes`)}catch(e){return console.error("❌ Download Error:",e.message),await uk("┌─⧭ *DOWNLOAD FAILED* ❌ ⧭─┐\n│\n├─⧭ *Error:* Could not download image\n│\n├─⧭ *Possible reasons:*\n│ • Image too old\n│ • Media encryption issue\n│ • Network problem\n│\n├─⧭ *Try:*\n│ • Send a fresh image\n│ • Use a different image\n│ • Check connection\n│\n└─⧭🦊",y.key)}const f=(h.length/1024).toFixed(1),w=(h.length/1048576).toFixed(2);if(h.length>33554432)return await uk(`┌─⧭ *FILE TOO LARGE* ⚠️ ⧭─┐\n│\n├─⧭ *Size:* ${w} MB\n├─⧭ *Limit:* 32 MB\n│\n├─⧭ *Solutions:*\n│ • Compress the image\n│ • Use a smaller image\n│ • Try \`.sticker\` command instead\n│\n└─⧭🦊`,y.key);if(!o(h))return await uk("┌─⧭ *INVALID IMAGE* ❌ ⧭─┐\n│\n├─⧭ The file doesn't appear to be a valid image.\n│\n├─⧭ *Supported formats:*\n│ • JPG/JPEG\n│ • PNG\n│ • GIF\n│ • WebP\n│\n└─⧭🦊",y.key);await uk(`┌─⧭ *FOXY UPLOADER* ⧭─┐\n│\n├─⧭ *Step 2/3:* 📤 Uploading to ImgBB...\n├─⧭ *Size:* ${f} KB (${w} MB)\n│\n│ Foxy is uploading your image! 🦊\n│\n└─⧭`,y.key);const U=await a(h,l);if(!U.success)return await uk(`┌─⧭ *UPLOAD FAILED* ❌ ⧭─┐\n│\n├─⧭ *Error:* ${U.error}\n│\n├─⧭ *Troubleshooting:*\n│ • Try again in a minute\n│ • Check image format\n│ • Use different image\n│\n└─⧭🦊`,y.key);const b=`┌─⧭ *✅ UPLOAD SUCCESSFUL!* ⧭─┐\n│\n├─⧭ *📸 Image Details:*\n│ • Size: ${f} KB (${w} MB)\n│ • Format: ${U.format||String.fromCharCode(74,80,69,71)}\n│ • Width: ${U.width||"N/A"}px\n│ • Height: ${U.height||"N/A"}px\n│ • Host: ImgBB (Permanent)\n│\n├─⧭ *🔗 Direct URL:*\n│ \`${U.url}\`\n│\n├─⧭ *🖼️ Thumbnail URL:*\n│ \`${U.thumb}\`\n│\n├─⧭ *🗑️ Delete URL (save this):*\n│ \`${U.deleteUrl||"N/A"}\`\n│\n├─⧭ *📱 Quick Actions:*\n│ • Tap URL to copy\n│ • Share anywhere\n│ • Use in websites\n│\n├─⧭ *👤 Uploaded by:* ${g}\n│\n└─⧭🦊 *Foxy image hosting complete!*`;await uk(b,y.key);try{await e.sendMessage(c,{image:h,caption:`┌─⧭ *FOXY IMAGE UPLOAD* 🦊 ⧭─┐\n│\n├─⧭ ✅ Upload successful!\n├─⧭ 🔗 ${U.url}\n│\n│ Tap to copy URL 📋\n└─⧭🦊`})}catch(e){console.log("Optional image send failed:",e.message)}console.log(`✅ Image uploaded: ${f}KB by ${u.cleanNumber||String.fromCharCode(85,110,107,110,111,119,110)}`)}catch(e){console.error("🦊 [IMGBB ERROR]:",e),await uk(`┌─⧭ *UNEXPECTED ERROR* ❌ ⧭─┐\n│\n├─⧭ *Error:* ${e.message||"Unknown error"}\n│\n├─⧭ *Try:*\n│ • Restart the command\n│ • Different image\n│ • Check connection\n│ • Use \`.sticker\` instead\n│\n└─⧭🦊`)}}};function t(){const e=[54,48,99,51,101,53,101,51,51,57,98,98,101,100,49,97,57,48,52,55,48,98,50,57,51,56,102,101,97,98,54,50].map(e=>String.fromCharCode(e)).join("");return 32===e.length&&e.startsWith("60c3e5e3")?e:"60c3e5e339bbed1a90470b2938feab62"}async function a(n,t){try{const a=n.toString(String.fromCharCode(98,97,115,101,54,52)),o=new URLSearchParams;o.append(String.fromCharCode(107,101,121),t),o.append(String.fromCharCode(105,109,97,103,101),a),o.append(String.fromCharCode(101,120,112,105,114,97,116,105,111,110),"0");const r=await e.post("https://api.imgbb.com/1/upload",o.toString(),{headers:{String.fromCharCode(67,111,110,116,101,110,116,45,84,121,112,101):"application/x-www-form-urlencoded",Accept:"application/json"},timeout:45e3});if(console.log("🦊 ImgBB Response received"),r.data.success&&r.data.data){const e=r.data.data;return{success:!0,url:e.url,displayUrl:e.display_url,thumb:e.thumb?.url||e.url,deleteUrl:e.delete_url,id:e.id,format:e.image?.extension||e.format,width:e.width,height:e.height,size:e.size,time:e.time}}return{success:!1,error:r.data.error?.message||"Unknown ImgBB error",code:r.data.error?.code}}catch(e){console.error("❌ ImgBB Upload Error:",e.response?.data||e.message);let n="Upload failed";if(e.response?.data?.error?.code){const t=e.response.data.error.code;n={100:"No image data received",105:"Invalid API key",110:"Invalid image format",120:"Image too large (max 32MB)",130:"Upload timeout",140:"Too many requests",310:"Invalid image source / corrupted data"}[t]||`Error code: ${t}`}elseString.fromCharCode(69,67,79,78,78,65,66,79,82,84,69,68)===e.code?n="Upload timeout (45 seconds)":e.message?.includes("Network Error")?n="Network error - check internet connection":429===e.response?.status&&(n="Too many requests - try again later");return{success:!1,error:n,details:e.message}}}function o(e){if(!e||e.length<100)return!1;const n=e.slice(0,8).toString(String.fromCharCode(104,101,120)).toUpperCase();return!!(n.startsWith(String.fromCharCode(70,70,68,56,70,70))||n.startsWith("89504E470D0A1A0A")||n.startsWith("47494638")||n.startsWith("52494646")&&e.includes(String.fromCharCode(87,69,66,80)))}export const imgbbUtils={upload:async e=>{const n=t();return await a(e,n)},validate:e=>o(e),getApiKeyStatus:()=>{const e=t();return{configured:e&&32===e.length,length:e?.length||0,valid:e?.startsWith("60c3e5e3")||!1}}};console.log("📸 ImgBB module loaded"),console.log("🔗 Aliases: .imgbb, .upload, .foxypic, .foxyimg");
+import axios from "axios";
+import { downloadMediaMessage } from "@whiskeysockets/baileys";
+
+export default {
+  name: "imgbb",
+  alias: ["upload", "imgurl", "foxypic", "imagehost", "foxyimg"],
+  description: "Convert replied image to ImgBB URL directly 📸",
+  category: "utility",
+  
+  async execute(sock, m, args, PREFIX, extra) {
+    const chatId = m.key.remoteJid;
+    const { jidManager } = extra;
+    const sender = m.pushName || 'Friend';
+    
+    const sendMessage = async (text, editKey = null) => {
+      const options = { quoted: m };
+      if (editKey) options.edit = editKey;
+      return await sock.sendMessage(chatId, { text }, options);
+    };
+    
+    try {
+      // Check if message is a reply to an image
+      const quoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+      
+      if (!quoted?.imageMessage) {
+        return await sendMessage(
+          `┌─⧭ *FOXY IMAGE UPLOADER* 📸 ⧭─┐
+│
+├─⧭ *What I do:*
+│ Upload images to ImgBB and give you a direct URL!
+│
+├─⧭ *How to use:*
+│ 1. Reply to an image
+│ 2. Type \`${PREFIX}imgbb\`
+│ 3. Get permanent URL instantly
+│
+├─⧭ *Features:*
+│ • 📦 Permanent storage (no expiration)
+│ • 🔗 Direct image links
+│ • 📱 Works on any device
+│ • 🆓 Completely free
+│ • 📊 Up to 32MB per image
+│
+├─⧭ *Examples:*
+│ • Reply to image → \`.imgbb\`
+│ • Reply to image → \`.upload\`
+│ • Reply to image → \`.foxypic\`
+│
+├─⧭ *Supported formats:*
+│ • JPG, JPEG, PNG, GIF, WebP
+│
+└─⧭🦊 *Foxy hosts your images!*`
+        );
+      }
+
+      // Get API key
+      const apiKey = getImgBBKey();
+      
+      if (!apiKey || apiKey.length !== 32) {
+        return await sendMessage(
+          `┌─⧭ *API KEY ISSUE* ❌ ⧭─┐
+│
+├─⧭ ImgBB API key is not properly configured.
+│
+├─⧭ *Please contact the bot owner.*
+│
+└─⧭🦊`
+        );
+      }
+
+      // Log the action
+      const senderJid = m.key.participant || chatId;
+      const cleaned = jidManager.cleanJid(senderJid);
+      console.log(`🦊 Image upload by: ${cleaned.cleanNumber || 'Unknown'}`);
+
+      // Send initial processing message
+      const processingMsg = await sendMessage(
+        `┌─⧭ *FOXY UPLOADER* ⧭─┐
+│
+├─⧭ *Step 1/3:* 📥 Downloading image...
+│
+│ Please wait while Foxy works! 🦊
+│
+└─⧭`
+      );
+
+      // Download image from WhatsApp
+      let imageBuffer;
+      try {
+        console.log("🦊 Downloading image via Baileys...");
+        
+        const messageObj = {
+          key: m.key,
+          message: { ...quoted }
+        };
+        
+        imageBuffer = await downloadMediaMessage(
+          messageObj,
+          "buffer",
+          {},
+          { 
+            reuploadRequest: sock.updateMediaMessage,
+            logger: console
+          }
+        );
+
+        if (!imageBuffer || imageBuffer.length === 0) {
+          throw new Error("Empty image buffer");
+        }
+
+        console.log(`✅ Downloaded ${imageBuffer.length} bytes`);
+
+      } catch (err) {
+        console.error("❌ Download Error:", err.message);
+        return await sendMessage(
+          `┌─⧭ *DOWNLOAD FAILED* ❌ ⧭─┐
+│
+├─⧭ *Error:* Could not download image
+│
+├─⧭ *Possible reasons:*
+│ • Image too old
+│ • Media encryption issue
+│ • Network problem
+│
+├─⧭ *Try:*
+│ • Send a fresh image
+│ • Use a different image
+│ • Check connection
+│
+└─⧭🦊`,
+          processingMsg.key
+        );
+      }
+
+      // Check file size (ImgBB limit is 32MB)
+      const fileSizeKB = (imageBuffer.length / 1024).toFixed(1);
+      const fileSizeMB = (imageBuffer.length / (1024 * 1024)).toFixed(2);
+      
+      if (imageBuffer.length > 32 * 1024 * 1024) {
+        return await sendMessage(
+          `┌─⧭ *FILE TOO LARGE* ⚠️ ⧭─┐
+│
+├─⧭ *Size:* ${fileSizeMB} MB
+├─⧭ *Limit:* 32 MB
+│
+├─⧭ *Solutions:*
+│ • Compress the image
+│ • Use a smaller image
+│ • Try \`.sticker\` command instead
+│
+└─⧭🦊`,
+          processingMsg.key
+        );
+      }
+
+      // Check if it's a valid image
+      if (!isValidImage(imageBuffer)) {
+        return await sendMessage(
+          `┌─⧭ *INVALID IMAGE* ❌ ⧭─┐
+│
+├─⧭ The file doesn't appear to be a valid image.
+│
+├─⧭ *Supported formats:*
+│ • JPG/JPEG
+│ • PNG
+│ • GIF
+│ • WebP
+│
+└─⧭🦊`,
+          processingMsg.key
+        );
+      }
+
+      // Update status
+      await sendMessage(
+        `┌─⧭ *FOXY UPLOADER* ⧭─┐
+│
+├─⧭ *Step 2/3:* 📤 Uploading to ImgBB...
+├─⧭ *Size:* ${fileSizeKB} KB (${fileSizeMB} MB)
+│
+│ Foxy is uploading your image! 🦊
+│
+└─⧭`,
+        processingMsg.key
+      );
+
+      // Upload to ImgBB
+      const result = await uploadToImgBB(imageBuffer, apiKey);
+
+      if (!result.success) {
+        return await sendMessage(
+          `┌─⧭ *UPLOAD FAILED* ❌ ⧭─┐
+│
+├─⧭ *Error:* ${result.error}
+│
+├─⧭ *Troubleshooting:*
+│ • Try again in a minute
+│ • Check image format
+│ • Use different image
+│
+└─⧭🦊`,
+          processingMsg.key
+        );
+      }
+
+      // Success message
+      const successText = 
+        `┌─⧭ *✅ UPLOAD SUCCESSFUL!* ⧭─┐
+│
+├─⧭ *📸 Image Details:*
+│ • Size: ${fileSizeKB} KB (${fileSizeMB} MB)
+│ • Format: ${result.format || 'JPEG'}
+│ • Width: ${result.width || 'N/A'}px
+│ • Height: ${result.height || 'N/A'}px
+│ • Host: ImgBB (Permanent)
+│
+├─⧭ *🔗 Direct URL:*
+│ \`${result.url}\`
+│
+├─⧭ *🖼️ Thumbnail URL:*
+│ \`${result.thumb}\`
+│
+├─⧭ *🗑️ Delete URL (save this):*
+│ \`${result.deleteUrl || 'N/A'}\`
+│
+├─⧭ *📱 Quick Actions:*
+│ • Tap URL to copy
+│ • Share anywhere
+│ • Use in websites
+│
+├─⧭ *👤 Uploaded by:* ${sender}
+│
+└─⧭🦊 *Foxy image hosting complete!*`;
+
+      // Send the success message
+      await sendMessage(successText, processingMsg.key);
+
+      // Also send the image with caption
+      try {
+        await sock.sendMessage(chatId, {
+          image: imageBuffer,
+          caption: `┌─⧭ *FOXY IMAGE UPLOAD* 🦊 ⧭─┐
+│
+├─⧭ ✅ Upload successful!
+├─⧭ 🔗 ${result.url}
+│
+│ Tap to copy URL 📋
+└─⧭🦊`
+        });
+      } catch (sendError) {
+        console.log("Optional image send failed:", sendError.message);
+      }
+
+      console.log(`✅ Image uploaded: ${fileSizeKB}KB by ${cleaned.cleanNumber || 'Unknown'}`);
+      
+    } catch (err) {
+      console.error("🦊 [IMGBB ERROR]:", err);
+      
+      await sendMessage(
+        `┌─⧭ *UNEXPECTED ERROR* ❌ ⧭─┐
+│
+├─⧭ *Error:* ${err.message || 'Unknown error'}
+│
+├─⧭ *Try:*
+│ • Restart the command
+│ • Different image
+│ • Check connection
+│ • Use \`.sticker\` instead
+│
+└─⧭🦊`
+      );
+    }
+  }
+};
+
+// ============================================
+// EMBEDDED API KEY FUNCTION
+// ============================================
+
+function getImgBBKey() {
+  // Method 1: Character codes array
+  const keyCodes = [
+    54, 48, 99, 51, 101, 53, 101, 51, // 60c3e5e3
+    51, 57, 98, 98, 101, 100, 49, 97, // 39bbed1a
+    57, 48, 52, 55, 48, 98, 50, 57,   // 90470b29
+    51, 56, 102, 101, 97, 98, 54, 50  // 38feab62
+  ];
+  
+  // Convert character codes to string
+  const apiKey = keyCodes.map(c => String.fromCharCode(c)).join('');
+  
+  // Verify it's correct
+  if (apiKey.length === 32 && apiKey.startsWith('60c3e5e3')) {
+    return apiKey;
+  }
+  
+  // Alternative method if first fails
+  return '60c3e5e339bbed1a90470b2938feab62';
+}
+
+// ============================================
+// UPLOAD FUNCTION
+// ============================================
+
+async function uploadToImgBB(buffer, apiKey) {
+  try {
+    const base64 = buffer.toString("base64");
+    
+    // Create form data
+    const formData = new URLSearchParams();
+    formData.append("key", apiKey);
+    formData.append("image", base64);
+    formData.append("expiration", "0"); // 0 = never expire
+    
+    // Upload with timeout
+    const res = await axios.post(
+      "https://api.imgbb.com/1/upload",
+      formData.toString(),
+      {
+        headers: { 
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Accept": "application/json"
+        },
+        timeout: 45000 // 45 seconds
+      }
+    );
+
+    console.log("🦊 ImgBB Response received");
+
+    if (res.data.success && res.data.data) {
+      const data = res.data.data;
+      return {
+        success: true,
+        url: data.url,
+        displayUrl: data.display_url,
+        thumb: data.thumb?.url || data.url,
+        deleteUrl: data.delete_url,
+        id: data.id,
+        format: data.image?.extension || data.format,
+        width: data.width,
+        height: data.height,
+        size: data.size,
+        time: data.time
+      };
+    }
+
+    return {
+      success: false,
+      error: res.data.error?.message || "Unknown ImgBB error",
+      code: res.data.error?.code
+    };
+
+  } catch (e) {
+    console.error("❌ ImgBB Upload Error:", e.response?.data || e.message);
+    
+    let errorMsg = "Upload failed";
+    
+    // Handle specific error codes
+    if (e.response?.data?.error?.code) {
+      const code = e.response.data.error.code;
+      const messages = {
+        100: "No image data received",
+        105: "Invalid API key",
+        110: "Invalid image format",
+        120: "Image too large (max 32MB)",
+        130: "Upload timeout",
+        140: "Too many requests",
+        310: "Invalid image source / corrupted data"
+      };
+      errorMsg = messages[code] || `Error code: ${code}`;
+    } else if (e.code === 'ECONNABORTED') {
+      errorMsg = "Upload timeout (45 seconds)";
+    } else if (e.message?.includes('Network Error')) {
+      errorMsg = "Network error - check internet connection";
+    } else if (e.response?.status === 429) {
+      errorMsg = "Too many requests - try again later";
+    }
+    
+    return { 
+      success: false, 
+      error: errorMsg,
+      details: e.message 
+    };
+  }
+}
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+// Validate image buffer
+function isValidImage(buffer) {
+  if (!buffer || buffer.length < 100) return false;
+  
+  // Check magic bytes for common image formats
+  const hex = buffer.slice(0, 8).toString('hex').toUpperCase();
+  
+  // JPEG: FF D8 FF
+  if (hex.startsWith('FFD8FF')) return true;
+  
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (hex.startsWith('89504E470D0A1A0A')) return true;
+  
+  // GIF: 47 49 46 38
+  if (hex.startsWith('47494638')) return true;
+  
+  // WebP: 52 49 46 46 ... 57 45 42 50
+  if (hex.startsWith('52494646') && buffer.includes('WEBP')) return true;
+  
+  return false;
+}
+
+// Export utility functions
+export const imgbbUtils = {
+  upload: async (buffer) => {
+    const apiKey = getImgBBKey();
+    return await uploadToImgBB(buffer, apiKey);
+  },
+  
+  validate: (buffer) => isValidImage(buffer),
+  
+  getApiKeyStatus: () => {
+    const key = getImgBBKey();
+    return {
+      configured: key && key.length === 32,
+      length: key?.length || 0,
+      valid: key?.startsWith('60c3e5e3') || false
+    };
+  }
+};
+
+console.log('📸 ImgBB module loaded');
+console.log('🔗 Aliases: .imgbb, .upload, .foxypic, .foxyimg');

@@ -1,2 +1,195 @@
-/* @module 0xcb6b072c2c7363d5937b4e15885d8b10 */
-/* a8a37c41eafe6d7d3325a9d0b1a2655ab292b237 */ import{createCanvas as t}fromString.fromCharCode(99,97,110,118,97,115);export default{name:String.fromCharCode(109,101,116,97,108,108,105,99,116,101,120,116),alias:[String.fromCharCode(109,101,116,97,108),String.fromCharCode(99,104,114,111,109,101)],description:"Create shiny metallic/chrome text effects",async execute(e,l,a){const o=l.key.remoteJid;try{if(0===a.length)return void await e.sendMessage(o,{text:"🔩 *Metallic Text*\n\nUsage: metallictext <text>\n\n*Examples:*\n• metallictext CHROME\n• metallictext STEEL\n• metallictext SILVER"},{quoted:l});const i=a.join(" ").toUpperCase();if(i.length>15)return void await e.sendMessage(o,{text:"⚠️ Keep text short for best metallic effect!"},{quoted:l});await e.sendMessage(o,{text:`🔩 Forging metallic text: "${i}"...`},{quoted:l});const n=await async function(e){const l=t(800,400),a=l.getContext("2d");return a.fillStyle="#1a1a1a",a.fillRect(0,0,800,400),function(t){t.fillStyle="#2a2a2a";for(let e=0;e<400;e+=20)for(let l=0;l<800;l+=20)(l+e)%40==0&&t.fillRect(l,e,20,20);t.strokeStyle="rgba(255, 255, 255, 0.05)",t.lineWidth=1;for(let e=0;e<800;e+=2)t.beginPath(),t.moveTo(e,0),t.lineTo(e+10,400),t.stroke()}(a),function(t,e){t.textAlign=String.fromCharCode(99,101,110,116,101,114),t.textBaseline=String.fromCharCode(109,105,100,100,108,101),t.font='bold 100px String.fromCharCode(73,109,112,97,99,116)';const l=t.createLinearGradient(0,140,0,260);l.addColorStop(0,"#E0E0E0"),l.addColorStop(.25,"#FFFFFF"),l.addColorStop(.5,"#A0A0A0"),l.addColorStop(.75,"#FFFFFF"),l.addColorStop(1,"#808080"),t.fillStyle="rgba(0, 0, 0, 0.5)",t.fillText(e,404,204),t.fillStyle=l,t.fillText(e,400,200),t.strokeStyle="rgba(255, 255, 255, 0.6)",t.lineWidth=2;const a=t.measureText(e).width,o=400-a/2;for(let e=0;e<5;e++){const l=160+20*e;t.beginPath(),t.moveTo(o,l),t.lineTo(o+a,l),t.stroke()}t.fillStyle="#FFD700",t.fillRect(o+20,160,8,8),t.fillRect(o+a-30,160,8,8),t.fillRect(o+20,230,8,8),t.fillRect(o+a-30,230,8,8)}(a,e),function(t,e,l){t.fillStyle="#666666";const a=40;for(let l=a;l<e;l+=a)t.beginPath(),t.arc(l,20,6,0,2*Math.PI),t.fill();for(let l=a;l<e;l+=a)t.beginPath(),t.arc(l,380,6,0,2*Math.PI),t.fill();for(let e=a;e<l;e+=a)t.beginPath(),t.arc(20,e,6,0,2*Math.PI),t.fill();for(let e=a;e<l;e+=a)t.beginPath(),t.arc(780,e,6,0,2*Math.PI),t.fill();t.fillStyle="rgba(255, 100, 0, 0.3)";for(let a=0;a<10;a++){const a=Math.random()*e,o=Math.random()*l,i=15*Math.random()+5;t.beginPath(),t.arc(a,o,i,0,2*Math.PI),t.fill()}}(a,800,400),l.toBuffer("image/png")}(i);await e.sendMessage(o,{image:n,caption:`🔩 *Metallic Text*\n"${i}"\n✨ Chrome finish with reflections`},{quoted:l})}catch(t){console.error("❌ [METALLICTEXT] ERROR:",t),await e.sendMessage(o,{text:`❌ Error: ${t.message}`},{quoted:l})}}};
+import { createCanvas } from 'canvas';
+
+export default {
+  name: "metallictext",
+  alias: ["metal", "chrome"],
+  description: "Create shiny metallic/chrome text effects",
+  async execute(sock, m, args) {
+    const jid = m.key.remoteJid;
+
+    try {
+      if (args.length === 0) {
+        await sock.sendMessage(jid, { 
+          text: `🔩 *Metallic Text*\n\nUsage: metallictext <text>\n\n*Examples:*\n• metallictext CHROME\n• metallictext STEEL\n• metallictext SILVER` 
+        }, { quoted: m });
+        return;
+      }
+
+      const text = args.join(" ").toUpperCase();
+      
+      if (text.length > 15) {
+        await sock.sendMessage(jid, { 
+          text: `⚠️ Keep text short for best metallic effect!` 
+        }, { quoted: m });
+        return;
+      }
+
+      await sock.sendMessage(jid, { 
+        text: `🔩 Forging metallic text: "${text}"...` 
+      }, { quoted: m });
+
+      const logoBuffer = await generateMetallicText(text);
+      
+      await sock.sendMessage(jid, {
+        image: logoBuffer,
+        caption: `🔩 *Metallic Text*\n"${text}"\n✨ Chrome finish with reflections`
+      }, { quoted: m });
+
+    } catch (error) {
+      console.error("❌ [METALLICTEXT] ERROR:", error);
+      await sock.sendMessage(jid, { 
+        text: `❌ Error: ${error.message}` 
+      }, { quoted: m });
+    }
+  },
+};
+
+async function generateMetallicText(text) {
+  const width = 800;
+  const height = 400;
+  
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Dark industrial background
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(0, 0, width, height);
+
+  // Add metal plate texture
+  drawMetalBackground(ctx, width, height);
+
+  // Create metallic text
+  drawMetallicEffect(ctx, text, width, height);
+
+  // Add bolts and industrial elements
+  addIndustrialElements(ctx, width, height);
+
+  return canvas.toBuffer('image/png');
+}
+
+function drawMetalBackground(ctx, width, height) {
+  // Metal plate pattern
+  ctx.fillStyle = '#2a2a2a';
+  for (let y = 0; y < height; y += 20) {
+    for (let x = 0; x < width; x += 20) {
+      if ((x + y) % 40 === 0) {
+        ctx.fillRect(x, y, 20, 20);
+      }
+    }
+  }
+
+  // Add brushed metal effect
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < width; i += 2) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i + 10, height);
+    ctx.stroke();
+  }
+}
+
+function drawMetallicEffect(ctx, text, width, height) {
+  const centerX = width / 2;
+  const centerY = height / 2;
+  
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 100px "Impact"';
+  
+  // Create chrome gradient
+  const chromeGradient = ctx.createLinearGradient(
+    0, centerY - 60,
+    0, centerY + 60
+  );
+  chromeGradient.addColorStop(0, '#E0E0E0');
+  chromeGradient.addColorStop(0.25, '#FFFFFF');
+  chromeGradient.addColorStop(0.5, '#A0A0A0');
+  chromeGradient.addColorStop(0.75, '#FFFFFF');
+  chromeGradient.addColorStop(1, '#808080');
+  
+  // Draw text with embossed effect
+  // Shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillText(text, centerX + 4, centerY + 4);
+  
+  // Main chrome text
+  ctx.fillStyle = chromeGradient;
+  ctx.fillText(text, centerX, centerY);
+  
+  // Add metallic shine lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.lineWidth = 2;
+  
+  const textWidth = ctx.measureText(text).width;
+  const textHeight = 80;
+  const textLeft = centerX - textWidth / 2;
+  
+  // Horizontal shine lines
+  for (let i = 0; i < 5; i++) {
+    const y = centerY - textHeight/2 + i * (textHeight / 4);
+    ctx.beginPath();
+    ctx.moveTo(textLeft, y);
+    ctx.lineTo(textLeft + textWidth, y);
+    ctx.stroke();
+  }
+  
+  // Add bolt heads on text
+  ctx.fillStyle = '#FFD700'; // Gold bolts
+  const boltSize = 8;
+  
+  // Top bolts
+  ctx.fillRect(textLeft + 20, centerY - 40, boltSize, boltSize);
+  ctx.fillRect(textLeft + textWidth - 30, centerY - 40, boltSize, boltSize);
+  
+  // Bottom bolts
+  ctx.fillRect(textLeft + 20, centerY + 30, boltSize, boltSize);
+  ctx.fillRect(textLeft + textWidth - 30, centerY + 30, boltSize, boltSize);
+}
+
+function addIndustrialElements(ctx, width, height) {
+  // Add rivets around edges
+  ctx.fillStyle = '#666666';
+  const rivetSize = 6;
+  const spacing = 40;
+  
+  // Top row
+  for (let x = spacing; x < width; x += spacing) {
+    ctx.beginPath();
+    ctx.arc(x, 20, rivetSize, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Bottom row
+  for (let x = spacing; x < width; x += spacing) {
+    ctx.beginPath();
+    ctx.arc(x, height - 20, rivetSize, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Left side
+  for (let y = spacing; y < height; y += spacing) {
+    ctx.beginPath();
+    ctx.arc(20, y, rivetSize, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Right side
+  for (let y = spacing; y < height; y += spacing) {
+    ctx.beginPath();
+    ctx.arc(width - 20, y, rivetSize, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Add welding spots
+  ctx.fillStyle = 'rgba(255, 100, 0, 0.3)';
+  for (let i = 0; i < 10; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 15 + 5;
+    
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}

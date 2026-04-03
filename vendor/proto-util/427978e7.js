@@ -1,2 +1,730 @@
-/* @module 0xd5c9f888844e6a9bad4591a6e20b8eae */
-/* 40188c7d6da652ce13a15bd1ab623a36f4ac5ece */ import e from"fs";import n fromString.fromCharCode(112,97,116,104);import{fileURLToPath as s}fromString.fromCharCode(117,114,108);import{downloadMediaMessage as o}from"@whiskeysockets/baileys";const t=s(import.meta.url),a=(n.dirname(t),"./viewonce_downloads"),i="foxy is the best 🦊",r=new Map,c="./vv_preferences.json";function g(){try{const n=Array.from(r.entries()).map(([e,n])=>({chatId:e,...n}));e.writeFileSync(c,JSON.stringify(n,null,2))}catch(e){console.error("Error saving preferences:",e)}}function l(e){return r.has(e)||(r.set(e,{customCaption:i,showSenderInfo:!0,showFileInfo:!0,showOriginalCaption:!0}),g()),r.get(e)}function d(s=24){try{const o=e.readdirSync(a),t=Date.now(),i=60*s*60*1e3;let r=0;for(const s of o){const o=n.join(a,s);t-e.statSync(o).mtimeMs>i&&(e.unlinkSync(o),r++,console.log(`🧹 Cleaned old file: ${s}`))}r>0&&console.log(`🧹 Cleaned ${r} old files from ${a}`)}catch(e){console.error("Error cleaning old files:",e)}}!function(){try{if(e.existsSync(c)){const n=e.readFileSync(c,String.fromCharCode(117,116,102,56));JSON.parse(n).forEach(e=>r.set(e.chatId,e)),console.log("📥 VV: Loaded preferences")}}catch(e){console.error("Error loading preferences:",e)}}(),e.existsSync(a)||e.mkdirSync(a,{recursive:!0}),d(),setInterval(()=>{d(1)},36e5);export default{name:"vv",alias:[String.fromCharCode(118,105,101,119,111,110,99,101),"vo"],description:"Download view-once media and show it in chat",category:String.fromCharCode(117,116,105,108,105,116,121),async execute(s,t,c,d,u){const iz=t.key.remoteJid,f=t.message?.extendedTextMessage?.contextInfo?.quotedMessage,p=t.message?.extendedTextMessage?.contextInfo,v=c[0]?.toLowerCase();if(!f||!p){if(String.fromCharCode(99,108,101,97,110)===v||String.fromCharCode(99,108,101,97,114)===v)try{const o=e.readdirSync(a);let i=0;for(const s of o){const o=n.join(a,s);e.unlinkSync(o),i++}return s.sendMessage(iz,{text:`┌─⧭ *VV CLEANUP* ⧭─┐\n│\n├─⧭ *Files Deleted:* ${i}\n│\n│ Temporary files have been cleaned.\n│\n└─⧭🦊`},{quoted:t})}catch(e){return s.sendMessage(iz,{text:`❌ Error: ${e.message}`},{quoted:t})}else{if(String.fromCharCode(99,97,112,116,105,111,110)===v){const e=c[1]?.toLowerCase(),n=l(iz);if(String.fromCharCode(115,101,116)===e){const e=c.slice(2).join(" ");return e?(n.customCaption=String.fromCharCode(110,111,110,101)===e?"":e,r.set(iz,n),g(),s.sendMessage(iz,{text:`┌─⧭ *CAPTION UPDATED* ⧭─┐\n│\n├─⧭ *New Caption:*\n│ ${String.fromCharCode(110,111,110,101)===e?String.fromCharCode(68,105,115,97,98,108,101,100):`"${e}"`}\n│\n│ This will be shown on downloaded media.\n│\n└─⧭🦊`},{quoted:t})):s.sendMessage(iz,{text:"┌─⧭ *VV CAPTION* ⧭─┐\n│\n├─⧭ *Usage:*\n│ .vv caption set [text]\n│ .vv caption set none\n│\n├─⧭ *Examples:*\n│ .vv caption set WolfBot is best\n│ .vv caption set none\n│\n└─⧭🦊"},{quoted:t})}if("default"===e)return n.customCaption=i,r.set(iz,n),g(),s.sendMessage(iz,{text:`┌─⧭ *CAPTION RESET* ⧭─┐\n│\n├─⧭ *Default Caption:*\n│ "${i}"\n│\n└─⧭🦊`},{quoted:t});if(String.fromCharCode(115,104,111,119)===e){const e=n.customCaption||String.fromCharCode(68,105,115,97,98,108,101,100),o=""===e?String.fromCharCode(68,105,115,97,98,108,101,100):`"${e}"`;return s.sendMessage(iz,{text:`┌─⧭ *CURRENT CAPTION* ⧭─┐\n│\n├─⧭ ${o}\n│\n├─⧭ *Default:*\n│ "${i}"\n│\n└─⧭🦊`},{quoted:t})}return s.sendMessage(iz,{text:"┌─⧭ *VV CAPTION COMMANDS* ⧭─┐\n│\n├─⧭ .vv caption set [text]\n├─⧭ .vv caption set none\n├─⧭ .vv caption default\n├─⧭ .vv caption show\n│\n└─⧭🦊"},{quoted:t})}if(String.fromCharCode(105,110,102,111)===v){const e=c[1]?.toLowerCase(),n=l(iz);if("on"===e||String.fromCharCode(111,102,102)===e){const o="on"===e,a=c[2]?.toLowerCase();returnString.fromCharCode(115,101,110,100,101,114)===a?(n.showSenderInfo=o,r.set(iz,n),g(),s.sendMessage(iz,{text:`┌─⧭ *SENDER INFO* ⧭─┐\n│\n├─⧭ *Status:* ${o?"✅ ON":"❌ OFF"}\n│\n│ Sender info will ${o?String.fromCharCode(110,111,119):"no longer"} be shown.\n│\n└─⧭🦊`},{quoted:t})):String.fromCharCode(102,105,108,101)===a?(n.showFileInfo=o,r.set(iz,n),g(),s.sendMessage(iz,{text:`┌─⧭ *FILE INFO* ⧭─┐\n│\n├─⧭ *Status:* ${o?"✅ ON":"❌ OFF"}\n│\n│ File info will ${o?String.fromCharCode(110,111,119):"no longer"} be shown.\n│\n└─⧭🦊`},{quoted:t})):String.fromCharCode(111,114,105,103,105,110,97,108)===a?(n.showOriginalCaption=o,r.set(iz,n),g(),s.sendMessage(iz,{text:`┌─⧭ *ORIGINAL CAPTION* ⧭─┐\n│\n├─⧭ *Status:* ${o?"✅ ON":"❌ OFF"}\n│\n│ Original caption will ${o?String.fromCharCode(110,111,119):"no longer"} be shown.\n│\n└─⧭🦊`},{quoted:t})):s.sendMessage(iz,{text:"┌─⧭ *INFO SETTINGS* ⧭─┐\n│\n├─⧭ *Usage:*\n│ .vv info on gs\n│ .vv info off file\n│ .vv info on original\n│\n└─⧭🦊"},{quoted:t})}if(String.fromCharCode(115,116,97,116,117,115)===e){const e=l(iz);return s.sendMessage(iz,{text:`┌─⧭ *INFO DISPLAY SETTINGS* ⧭─┐\n│\n├─⧭ *Sender info:* ${e.showSenderInfo?"✅ ON":"❌ OFF"}\n├─⧭ *File info:* ${e.showFileInfo?"✅ ON":"❌ OFF"}\n├─⧭ *Original caption:* ${e.showOriginalCaption?"✅ ON":"❌ OFF"}\n│\n└─⧭🦊`},{quoted:t})}return s.sendMessage(iz,{text:"┌─⧭ *VV INFO COMMANDS* ⧭─┐\n│\n├─⧭ .vv info on gs\n├─⧭ .vv info off file\n├─⧭ .vv info on original\n├─⧭ .vv info status\n│\n└─⧭🦊"},{quoted:t})}if(String.fromCharCode(115,101,116,116,105,110,103,115)===v||String.fromCharCode(112,114,101,102,115)===v){const e=l(iz),n=""===e.customCaption?String.fromCharCode(68,105,115,97,98,108,101,100):`"${e.customCaption}"`;return s.sendMessage(iz,{text:`┌─⧭ *VV SETTINGS* ⧭─┐\n│\n├─⧭ *Caption:* ${n}\n├─⧭ *Sender info:* ${e.showSenderInfo?"✅":"❌"}\n├─⧭ *File info:* ${e.showFileInfo?"✅":"❌"}\n├─⧭ *Original caption:* ${e.showOriginalCaption?"✅":"❌"}\n│\n├─⧭ *Commands:*\n│ .vv caption\n│ .vv info\n│ .vv clean\n│\n└─⧭🦊`},{quoted:t})}if(String.fromCharCode(104,101,108,112)===v)return s.sendMessage(iz,{text:`┌─⧭ *VV DOWNLOADER HELP* ⧭─┐\n│\n├─⧭ *How to use:*\n│ Reply to any view-once message with .vv\n│\n├─⧭ *Commands:*\n│ • .vv - Download view-once\n│ • .vv caption - Manage caption\n│ • .vv info - Toggle info display\n│ • .vv settings - Show settings\n│ • .vv clean - Clear temp files\n│ • .vv help - This help\n│\n├─⧭ *Default Caption:*\n│ "${i}"\n│\n└─⧭🦊`},{quoted:t})}return s.sendMessage(iz,{text:"┌─⧭ *VV DOWNLOADER* ⧭─┐\n│\n├─⧭ Reply to a view-once message with .vv\n│\n├─⧭ *Commands:*\n│ .vv help - Full help\n│ .vv settings - Show settings\n│\n└─⧭🦊"},{quoted:t})}const w=function(e){return e?{key:{remoteJid:e.remoteJid,id:e.stanzaId,participant:e.participant,fromMe:e.fromMe},message:e.quotedMessage}:null}(p);if(!w)return s.sendMessage(iz,{text:"❌ Could not retrieve the quoted message."},{quoted:t});if(M=w,!M?.message||!(M.message.imageMessage?.viewOnce||M.message.videoMessage?.viewOnce||M.message.audioMessage?.viewOnce||M.message.viewOnceMessageV2||M.message.viewOnceMessageV2Extension||M.message.viewOnceMessage||M.message.ephemeralMessage?.message?.viewOnceMessage))return s.sendMessage(iz,{text:"❌ This is not a view-once message.\n\nReply only to view-once photos, videos, or audio."},{quoted:t});var M;const h=function(e){try{if(e.message?.imageMessage?.viewOnce)return{type:String.fromCharCode(105,109,97,103,101),message:e.message.imageMessage,direct:!0};if(e.message?.videoMessage?.viewOnce)return{type:String.fromCharCode(118,105,100,101,111),message:e.message.videoMessage,direct:!0};if(e.message?.audioMessage?.viewOnce)return{type:String.fromCharCode(97,117,100,105,111),message:e.message.audioMessage,direct:!0};let n=null;if(e.message?.viewOnceMessageV2?.message?n=e.message.viewOnceMessageV2.message:e.message?.viewOnceMessageV2Extension?.message?n=e.message.viewOnceMessageV2Extension.message:e.message?.viewOnceMessage?.message?n=e.message.viewOnceMessage.message:e.message?.ephemeralMessage?.message?.viewOnceMessage?.message&&(n=e.message.ephemeralMessage.message.viewOnceMessage.message),n?.imageMessage)return{type:String.fromCharCode(105,109,97,103,101),message:n.imageMessage,direct:!1};if(n?.videoMessage)return{type:String.fromCharCode(118,105,100,101,111),message:n.videoMessage,direct:!1};if(n?.audioMessage)return{type:String.fromCharCode(97,117,100,105,111),message:n.audioMessage,direct:!1}}catch(e){console.error("Error extracting view-once media:",e)}return null}(w);if(!h)return s.sendMessage(iz,{text:"❌ Could not extract media from the view-once message."},{quoted:t});try{const i=await async function(s,t,i,r,c){try{console.log(`⬇️ Downloading ${i.type}...`);const g=await o(t,String.fromCharCode(98,117,102,102,101,114),{},{logger:{level:String.fromCharCode(115,105,108,101,110,116)},reuploadRequest:s.updateMediaMessage});if(!g||0===g.length)throw new Error("Download failed: empty buffer");const d=g.length/1048576;if(d>50)throw new Error(`File too large: ${d.toFixed(2)}MB (max: 50MB)`);const u=i.message.mimetype||"",iz=function(e,n=""){const s=Date.now(),o=Math.random().toString(36).substring(2,8);let t=".bin";if(n){const e=n.split("/");if(e.length>1){const n=e[1].split(";")[0];t=n.includes(String.fromCharCode(106,112,101,103))||n.includes(String.fromCharCode(106,112,103))?".jpg":n.includes(String.fromCharCode(112,110,103))?".png":n.includes(String.fromCharCode(103,105,102))?".gif":n.includes(String.fromCharCode(119,101,98,112))?".webp":n.includes(String.fromCharCode(109,112,52))?".mp4":n.includes("3gp")?".3gp":n.includes(String.fromCharCode(109,111,118))?".mov":n.includes(String.fromCharCode(111,103,103))?".ogg":n.includes(String.fromCharCode(109,112,101,103))||n.includes(String.fromCharCode(109,112,51))?".mp3":n.includes(String.fromCharCode(97,97,99))?".aac":n.includes(String.fromCharCode(109,52,97))?".m4a":"."+n}}return`${e}_${s}_${o}${t}`}(i.type,u),f=n.join(a,iz);e.writeFileSync(f,g);const p=(g.length/1024).toFixed(2);console.log(`✅ Downloaded: ${iz} (${p} KB)`);const v=function(e,n,s,o,t){const a=l(t);let i="";return a.customCaption&&String.fromCharCode(110,111,110,101)!==a.customCaption&&(i+=a.customCaption+"\n"),a.showSenderInfo&&(i+=`👤 From: ${s}\n`),a.showFileInfo&&(i+=`📊 Size: ${n} KB\n`,String.fromCharCode(118,105,100,101,111)===e.type&&e.message.seconds&&(i+=`⏱️ Duration: ${e.message.seconds}s\n`),e.message.width&&e.message.height&&(i+=`📐 ${e.message.width}x${e.message.height}\n`)),a.showOriginalCaption&&o&&(i+=`📝 Original: ${o}\n`),i.trim()||null}(i,p,function(e){if(!e)return e;const n=e.split(":")[0];return n.includes("@")?n:n+"@s.whatsapp.net"}(t.key.participant||t.key.remoteJid).split("@")[0],i.message.caption||"",r);let w={};v&&(w.caption=v);let M=null;switch(i.type){caseString.fromCharCode(105,109,97,103,101):M=await s.sendMessage(r,{image:e.readFileSync(f),...w},{quoted:c});break;caseString.fromCharCode(118,105,100,101,111):w.seconds=i.message.seconds||0,M=await s.sendMessage(r,{video:e.readFileSync(f),...w},{quoted:c});break;caseString.fromCharCode(97,117,100,105,111):M=await s.sendMessage(r,{audio:e.readFileSync(f),mimetype:u||"audio/mpeg",...w},{quoted:c})}if(M)return console.log(`✅ Media sent to chat: ${iz}`),function(s,o=5e3){setTimeout(()=>{try{e.existsSync(s)&&(e.unlinkSync(s),console.log(`🗑️ Cleaned up: ${n.basename(s)}`))}catch(e){console.error("Error cleaning up file:",e)}},o)}(f),{success:!0,filename:iz,filepath:f,type:i.type,sizeKB:p,sizeMB:d.toFixed(2),mimetype:u,caption:v,sentMessageId:M.key.id};throw new Error("Failed to send media to chat")}catch(e){return console.error("Download/send failed:",e.message),{success:!1,error:e.message}}}(s,w,h,iz,t);i.success||await s.sendMessage(iz,{text:`┌─⧭ *VV FAILED* ⧭─┐\n│\n├─⧭ *Error:*\n│ ${i.error}\n│\n│ • Media may have expired\n│ • File too large (max 50MB)\n│ • Network issues\n│\n└─⧭🦊`},{quoted:t})}catch(e){console.error("Unexpected error:",e),await s.sendMessage(iz,{text:`❌ Error: ${e.message}`},{quoted:t})}}};console.log("📥 VV Module loaded"),console.log(`📁 Temp storage: ${n.resolve(a)}`),console.log(`📝 Default caption: "${i}"`);
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { downloadMediaMessage } from '@whiskeysockets/baileys';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configuration
+const CONFIG = {
+    SAVE_DIR: './viewonce_downloads',
+    MAX_SIZE_MB: 50,
+    AUTO_CLEANUP: true,
+    CLEANUP_DELAY: 5000,
+    DEFAULT_CAPTION: 'foxy is the best 🦊', // Default caption
+    SHOW_SENDER_INFO: true, // Toggle for sender info
+    SHOW_FILE_INFO: true,   // Toggle for file info
+    SHOW_ORIGINAL_CAPTION: true // Toggle for original caption
+};
+
+// Store user preferences per chat
+const userPreferences = new Map(); // chatId -> preferences
+
+// Load preferences from file
+const PREFERENCES_FILE = './vv_preferences.json';
+function loadPreferences() {
+    try {
+        if (fs.existsSync(PREFERENCES_FILE)) {
+            const data = fs.readFileSync(PREFERENCES_FILE, 'utf8');
+            const parsed = JSON.parse(data);
+            parsed.forEach(pref => userPreferences.set(pref.chatId, pref));
+            console.log('📥 VV: Loaded preferences');
+        }
+    } catch (error) {
+        console.error('Error loading preferences:', error);
+    }
+}
+
+// Save preferences to file
+function savePreferences() {
+    try {
+        const data = Array.from(userPreferences.entries()).map(([chatId, prefs]) => ({
+            chatId,
+            ...prefs
+        }));
+        fs.writeFileSync(PREFERENCES_FILE, JSON.stringify(data, null, 2));
+    } catch (error) {
+        console.error('Error saving preferences:', error);
+    }
+}
+
+// Load preferences on startup
+loadPreferences();
+
+// Ensure save directory exists
+if (!fs.existsSync(CONFIG.SAVE_DIR)) {
+    fs.mkdirSync(CONFIG.SAVE_DIR, { recursive: true });
+}
+
+// Utility functions
+function cleanJid(jid) {
+    if (!jid) return jid;
+    const clean = jid.split(':')[0];
+    return clean.includes('@') ? clean : clean + '@s.whatsapp.net';
+}
+
+function generateFilename(type, mimetype = '') {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8);
+    
+    let extension = '.bin';
+    if (mimetype) {
+        const parts = mimetype.split('/');
+        if (parts.length > 1) {
+            const subtype = parts[1].split(';')[0];
+            if (subtype.includes('jpeg') || subtype.includes('jpg')) extension = '.jpg';
+            else if (subtype.includes('png')) extension = '.png';
+            else if (subtype.includes('gif')) extension = '.gif';
+            else if (subtype.includes('webp')) extension = '.webp';
+            else if (subtype.includes('mp4')) extension = '.mp4';
+            else if (subtype.includes('3gp')) extension = '.3gp';
+            else if (subtype.includes('mov')) extension = '.mov';
+            else if (subtype.includes('ogg')) extension = '.ogg';
+            else if (subtype.includes('mpeg') || subtype.includes('mp3')) extension = '.mp3';
+            else if (subtype.includes('aac')) extension = '.aac';
+            else if (subtype.includes('m4a')) extension = '.m4a';
+            else extension = '.' + subtype;
+        }
+    }
+    
+    return `${type}_${timestamp}_${random}${extension}`;
+}
+
+// Check if message is view-once
+function isViewOnceMessage(message) {
+    if (!message?.message) return false;
+    
+    if (message.message.imageMessage?.viewOnce) return true;
+    if (message.message.videoMessage?.viewOnce) return true;
+    if (message.message.audioMessage?.viewOnce) return true;
+    
+    if (message.message.viewOnceMessageV2) return true;
+    if (message.message.viewOnceMessageV2Extension) return true;
+    if (message.message.viewOnceMessage) return true;
+    
+    if (message.message.ephemeralMessage?.message?.viewOnceMessage) return true;
+    
+    return false;
+}
+
+// Extract media from view-once message
+function extractViewOnceMedia(message) {
+    try {
+        // Direct view-once media
+        if (message.message?.imageMessage?.viewOnce) {
+            return {
+                type: 'image',
+                message: message.message.imageMessage,
+                direct: true
+            };
+        }
+        if (message.message?.videoMessage?.viewOnce) {
+            return {
+                type: 'video',
+                message: message.message.videoMessage,
+                direct: true
+            };
+        }
+        if (message.message?.audioMessage?.viewOnce) {
+            return {
+                type: 'audio',
+                message: message.message.audioMessage,
+                direct: true
+            };
+        }
+        
+        // Wrapped view-once media
+        let wrappedMessage = null;
+        if (message.message?.viewOnceMessageV2?.message) {
+            wrappedMessage = message.message.viewOnceMessageV2.message;
+        } else if (message.message?.viewOnceMessageV2Extension?.message) {
+            wrappedMessage = message.message.viewOnceMessageV2Extension.message;
+        } else if (message.message?.viewOnceMessage?.message) {
+            wrappedMessage = message.message.viewOnceMessage.message;
+        } else if (message.message?.ephemeralMessage?.message?.viewOnceMessage?.message) {
+            wrappedMessage = message.message.ephemeralMessage.message.viewOnceMessage.message;
+        }
+        
+        if (wrappedMessage?.imageMessage) {
+            return {
+                type: 'image',
+                message: wrappedMessage.imageMessage,
+                direct: false
+            };
+        }
+        if (wrappedMessage?.videoMessage) {
+            return {
+                type: 'video',
+                message: wrappedMessage.videoMessage,
+                direct: false
+            };
+        }
+        if (wrappedMessage?.audioMessage) {
+            return {
+                type: 'audio',
+                message: wrappedMessage.audioMessage,
+                direct: false
+            };
+        }
+    } catch (error) {
+        console.error('Error extracting view-once media:', error);
+    }
+    
+    return null;
+}
+
+// Get the message being replied to
+function getQuotedMessage(contextInfo) {
+    if (!contextInfo) return null;
+    
+    const quotedMessage = {
+        key: {
+            remoteJid: contextInfo.remoteJid,
+            id: contextInfo.stanzaId,
+            participant: contextInfo.participant,
+            fromMe: contextInfo.fromMe
+        },
+        message: contextInfo.quotedMessage
+    };
+    
+    return quotedMessage;
+}
+
+// Delete file after delay
+function cleanupFile(filepath, delay = CONFIG.CLEANUP_DELAY) {
+    if (!CONFIG.AUTO_CLEANUP) return;
+    
+    setTimeout(() => {
+        try {
+            if (fs.existsSync(filepath)) {
+                fs.unlinkSync(filepath);
+                console.log(`🗑️ Cleaned up: ${path.basename(filepath)}`);
+            }
+        } catch (error) {
+            console.error('Error cleaning up file:', error);
+        }
+    }, delay);
+}
+
+// Get preferences for a chat
+function getChatPreferences(chatId) {
+    if (!userPreferences.has(chatId)) {
+        // Set default preferences
+        userPreferences.set(chatId, {
+            customCaption: CONFIG.DEFAULT_CAPTION,
+            showSenderInfo: CONFIG.SHOW_SENDER_INFO,
+            showFileInfo: CONFIG.SHOW_FILE_INFO,
+            showOriginalCaption: CONFIG.SHOW_ORIGINAL_CAPTION
+        });
+        savePreferences();
+    }
+    return userPreferences.get(chatId);
+}
+
+// Generate caption based on preferences
+function generateCaption(mediaInfo, fileSizeKB, senderNumber, originalCaption, chatId) {
+    const prefs = getChatPreferences(chatId);
+    let caption = '';
+    
+    // Start with custom caption if set
+    if (prefs.customCaption && prefs.customCaption !== 'none') {
+        caption += prefs.customCaption + '\n';
+    }
+    
+    // Add sender info if enabled
+    if (prefs.showSenderInfo) {
+        caption += `👤 From: ${senderNumber}\n`;
+    }
+    
+    // Add file info if enabled
+    if (prefs.showFileInfo) {
+        caption += `📊 Size: ${fileSizeKB} KB\n`;
+        if (mediaInfo.type === 'video' && mediaInfo.message.seconds) {
+            caption += `⏱️ Duration: ${mediaInfo.message.seconds}s\n`;
+        }
+        if (mediaInfo.message.width && mediaInfo.message.height) {
+            caption += `📐 ${mediaInfo.message.width}x${mediaInfo.message.height}\n`;
+        }
+    }
+    
+    // Add original caption if enabled and exists
+    if (prefs.showOriginalCaption && originalCaption) {
+        caption += `📝 Original: ${originalCaption}\n`;
+    }
+    
+    // Remove trailing newline
+    return caption.trim() || null;
+}
+
+// Download media and send to chat
+async function downloadAndSendMedia(sock, message, mediaInfo, chatId, originalMsg) {
+    try {
+        console.log(`⬇️ Downloading ${mediaInfo.type}...`);
+        
+        // Download the media
+        const buffer = await downloadMediaMessage(
+            message,
+            'buffer',
+            {},
+            {
+                logger: { level: 'silent' },
+                reuploadRequest: sock.updateMediaMessage
+            }
+        );
+        
+        if (!buffer || buffer.length === 0) {
+            throw new Error('Download failed: empty buffer');
+        }
+        
+        // Check file size
+        const fileSizeMB = buffer.length / (1024 * 1024);
+        if (fileSizeMB > CONFIG.MAX_SIZE_MB) {
+            throw new Error(`File too large: ${fileSizeMB.toFixed(2)}MB (max: ${CONFIG.MAX_SIZE_MB}MB)`);
+        }
+        
+        // Generate temporary filename
+        const mimetype = mediaInfo.message.mimetype || '';
+        const filename = generateFilename(mediaInfo.type, mimetype);
+        const filepath = path.join(CONFIG.SAVE_DIR, filename);
+        
+        // Save temporarily
+        fs.writeFileSync(filepath, buffer);
+        const fileSizeKB = (buffer.length / 1024).toFixed(2);
+        
+        console.log(`✅ Downloaded: ${filename} (${fileSizeKB} KB)`);
+        
+        // Get sender info
+        const fromUser = message.key.participant || message.key.remoteJid;
+        const senderNumber = cleanJid(fromUser).split('@')[0];
+        const originalCaption = mediaInfo.message.caption || '';
+        
+        // Generate caption based on preferences
+        const caption = generateCaption(mediaInfo, fileSizeKB, senderNumber, originalCaption, chatId);
+        
+        let mediaOptions = {};
+        if (caption) {
+            mediaOptions.caption = caption;
+        }
+        
+        let sentMessage = null;
+        
+        // Send based on media type
+        switch (mediaInfo.type) {
+            case 'image':
+                sentMessage = await sock.sendMessage(chatId, {
+                    image: fs.readFileSync(filepath),
+                    ...mediaOptions
+                }, { quoted: originalMsg });
+                break;
+                
+            case 'video':
+                mediaOptions.seconds = mediaInfo.message.seconds || 0;
+                sentMessage = await sock.sendMessage(chatId, {
+                    video: fs.readFileSync(filepath),
+                    ...mediaOptions
+                }, { quoted: originalMsg });
+                break;
+                
+            case 'audio':
+                sentMessage = await sock.sendMessage(chatId, {
+                    audio: fs.readFileSync(filepath),
+                    mimetype: mimetype || 'audio/mpeg',
+                    ...mediaOptions
+                }, { quoted: originalMsg });
+                break;
+        }
+        
+        if (sentMessage) {
+            console.log(`✅ Media sent to chat: ${filename}`);
+            
+            // Clean up the file after sending
+            cleanupFile(filepath);
+            
+            return {
+                success: true,
+                filename,
+                filepath,
+                type: mediaInfo.type,
+                sizeKB: fileSizeKB,
+                sizeMB: fileSizeMB.toFixed(2),
+                mimetype,
+                caption,
+                sentMessageId: sentMessage.key.id
+            };
+        } else {
+            throw new Error('Failed to send media to chat');
+        }
+        
+    } catch (error) {
+        console.error('Download/send failed:', error.message);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Clean old files from directory
+function cleanOldFiles(maxAgeHours = 24) {
+    try {
+        const files = fs.readdirSync(CONFIG.SAVE_DIR);
+        const now = Date.now();
+        const maxAgeMs = maxAgeHours * 60 * 60 * 1000;
+        let deletedCount = 0;
+        
+        for (const file of files) {
+            const filepath = path.join(CONFIG.SAVE_DIR, file);
+            const stats = fs.statSync(filepath);
+            const fileAge = now - stats.mtimeMs;
+            
+            if (fileAge > maxAgeMs) {
+                fs.unlinkSync(filepath);
+                deletedCount++;
+                console.log(`🧹 Cleaned old file: ${file}`);
+            }
+        }
+        
+        if (deletedCount > 0) {
+            console.log(`🧹 Cleaned ${deletedCount} old files from ${CONFIG.SAVE_DIR}`);
+        }
+    } catch (error) {
+        console.error('Error cleaning old files:', error);
+    }
+}
+
+// Clean old files on startup
+cleanOldFiles();
+
+// Auto-cleanup every hour
+setInterval(() => {
+    cleanOldFiles(1); // Clean files older than 1 hour
+}, 60 * 60 * 1000);
+
+// Main command module
+export default {
+    name: 'vv',
+    alias: ['viewonce', 'vo'],
+    description: 'Download view-once media and show it in chat',
+    category: 'utility',
+    
+    async execute(sock, msg, args, PREFIX, extra) {
+        const chatId = msg.key.remoteJid;
+        
+        // Check if this is a reply to another message
+        const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+        const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
+        
+        // Handle subcommands first
+        const subCommand = args[0]?.toLowerCase();
+        
+        if (!quotedMsg || !contextInfo) {
+            if (subCommand === 'clean' || subCommand === 'clear') {
+                try {
+                    const files = fs.readdirSync(CONFIG.SAVE_DIR);
+                    let deletedCount = 0;
+                    
+                    for (const file of files) {
+                        const filepath = path.join(CONFIG.SAVE_DIR, file);
+                        fs.unlinkSync(filepath);
+                        deletedCount++;
+                    }
+                    
+                    return sock.sendMessage(chatId, { 
+                        text: `┌─⧭ *VV CLEANUP* ⧭─┐
+│
+├─⧭ *Files Deleted:* ${deletedCount}
+│
+│ Temporary files have been cleaned.
+│
+└─⧭🦊` 
+                    }, { quoted: msg });
+                    
+                } catch (error) {
+                    return sock.sendMessage(chatId, { 
+                        text: `❌ Error: ${error.message}` 
+                    }, { quoted: msg });
+                }
+            } 
+            else if (subCommand === 'caption') {
+                const action = args[1]?.toLowerCase();
+                const prefs = getChatPreferences(chatId);
+                
+                if (action === 'set') {
+                    const newCaption = args.slice(2).join(' ');
+                    if (!newCaption) {
+                        return sock.sendMessage(chatId, { 
+                            text: `┌─⧭ *VV CAPTION* ⧭─┐
+│
+├─⧭ *Usage:*
+│ .vv caption set [text]
+│ .vv caption set none
+│
+├─⧭ *Examples:*
+│ .vv caption set WolfBot is best
+│ .vv caption set none
+│
+└─⧭🦊` 
+                        }, { quoted: msg });
+                    }
+                    
+                    prefs.customCaption = newCaption === 'none' ? '' : newCaption;
+                    userPreferences.set(chatId, prefs);
+                    savePreferences();
+                    
+                    return sock.sendMessage(chatId, { 
+                        text: `┌─⧭ *CAPTION UPDATED* ⧭─┐
+│
+├─⧭ *New Caption:*
+│ ${newCaption === 'none' ? 'Disabled' : `"${newCaption}"`}
+│
+│ This will be shown on downloaded media.
+│
+└─⧭🦊` 
+                    }, { quoted: msg });
+                }
+                else if (action === 'default') {
+                    prefs.customCaption = CONFIG.DEFAULT_CAPTION;
+                    userPreferences.set(chatId, prefs);
+                    savePreferences();
+                    
+                    return sock.sendMessage(chatId, { 
+                        text: `┌─⧭ *CAPTION RESET* ⧭─┐
+│
+├─⧭ *Default Caption:*
+│ "${CONFIG.DEFAULT_CAPTION}"
+│
+└─⧭🦊` 
+                    }, { quoted: msg });
+                }
+                else if (action === 'show') {
+                    const current = prefs.customCaption || 'Disabled';
+                    const status = current === '' ? 'Disabled' : `"${current}"`;
+                    
+                    return sock.sendMessage(chatId, { 
+                        text: `┌─⧭ *CURRENT CAPTION* ⧭─┐
+│
+├─⧭ ${status}
+│
+├─⧭ *Default:*
+│ "${CONFIG.DEFAULT_CAPTION}"
+│
+└─⧭🦊` 
+                    }, { quoted: msg });
+                }
+                else {
+                    return sock.sendMessage(chatId, { 
+                        text: `┌─⧭ *VV CAPTION COMMANDS* ⧭─┐
+│
+├─⧭ .vv caption set [text]
+├─⧭ .vv caption set none
+├─⧭ .vv caption default
+├─⧭ .vv caption show
+│
+└─⧭🦊` 
+                    }, { quoted: msg });
+                }
+            }
+            else if (subCommand === 'info') {
+                const action = args[1]?.toLowerCase();
+                const prefs = getChatPreferences(chatId);
+                
+                if (action === 'on' || action === 'off') {
+                    const toggle = action === 'on';
+                    const type = args[2]?.toLowerCase();
+                    
+                    if (type === 'sender') {
+                        prefs.showSenderInfo = toggle;
+                        userPreferences.set(chatId, prefs);
+                        savePreferences();
+                        
+                        return sock.sendMessage(chatId, { 
+                            text: `┌─⧭ *SENDER INFO* ⧭─┐
+│
+├─⧭ *Status:* ${toggle ? '✅ ON' : '❌ OFF'}
+│
+│ Sender info will ${toggle ? 'now' : 'no longer'} be shown.
+│
+└─⧭🦊` 
+                        }, { quoted: msg });
+                    }
+                    else if (type === 'file') {
+                        prefs.showFileInfo = toggle;
+                        userPreferences.set(chatId, prefs);
+                        savePreferences();
+                        
+                        return sock.sendMessage(chatId, { 
+                            text: `┌─⧭ *FILE INFO* ⧭─┐
+│
+├─⧭ *Status:* ${toggle ? '✅ ON' : '❌ OFF'}
+│
+│ File info will ${toggle ? 'now' : 'no longer'} be shown.
+│
+└─⧭🦊` 
+                        }, { quoted: msg });
+                    }
+                    else if (type === 'original') {
+                        prefs.showOriginalCaption = toggle;
+                        userPreferences.set(chatId, prefs);
+                        savePreferences();
+                        
+                        return sock.sendMessage(chatId, { 
+                            text: `┌─⧭ *ORIGINAL CAPTION* ⧭─┐
+│
+├─⧭ *Status:* ${toggle ? '✅ ON' : '❌ OFF'}
+│
+│ Original caption will ${toggle ? 'now' : 'no longer'} be shown.
+│
+└─⧭🦊` 
+                        }, { quoted: msg });
+                    }
+                    else {
+                        return sock.sendMessage(chatId, { 
+                            text: `┌─⧭ *INFO SETTINGS* ⧭─┐
+│
+├─⧭ *Usage:*
+│ .vv info on sender
+│ .vv info off file
+│ .vv info on original
+│
+└─⧭🦊` 
+                        }, { quoted: msg });
+                    }
+                }
+                else if (action === 'status') {
+                    const prefs = getChatPreferences(chatId);
+                    
+                    return sock.sendMessage(chatId, { 
+                        text: `┌─⧭ *INFO DISPLAY SETTINGS* ⧭─┐
+│
+├─⧭ *Sender info:* ${prefs.showSenderInfo ? '✅ ON' : '❌ OFF'}
+├─⧭ *File info:* ${prefs.showFileInfo ? '✅ ON' : '❌ OFF'}
+├─⧭ *Original caption:* ${prefs.showOriginalCaption ? '✅ ON' : '❌ OFF'}
+│
+└─⧭🦊` 
+                    }, { quoted: msg });
+                }
+                else {
+                    return sock.sendMessage(chatId, { 
+                        text: `┌─⧭ *VV INFO COMMANDS* ⧭─┐
+│
+├─⧭ .vv info on sender
+├─⧭ .vv info off file
+├─⧭ .vv info on original
+├─⧭ .vv info status
+│
+└─⧭🦊` 
+                    }, { quoted: msg });
+                }
+            }
+            else if (subCommand === 'settings' || subCommand === 'prefs') {
+                const prefs = getChatPreferences(chatId);
+                const captionStatus = prefs.customCaption === '' ? 'Disabled' : `"${prefs.customCaption}"`;
+                
+                return sock.sendMessage(chatId, { 
+                    text: `┌─⧭ *VV SETTINGS* ⧭─┐
+│
+├─⧭ *Caption:* ${captionStatus}
+├─⧭ *Sender info:* ${prefs.showSenderInfo ? '✅' : '❌'}
+├─⧭ *File info:* ${prefs.showFileInfo ? '✅' : '❌'}
+├─⧭ *Original caption:* ${prefs.showOriginalCaption ? '✅' : '❌'}
+│
+├─⧭ *Commands:*
+│ .vv caption
+│ .vv info
+│ .vv clean
+│
+└─⧭🦊` 
+                }, { quoted: msg });
+            }
+            else if (subCommand === 'help') {
+                return sock.sendMessage(chatId, { 
+                    text: `┌─⧭ *VV DOWNLOADER HELP* ⧭─┐
+│
+├─⧭ *How to use:*
+│ Reply to any view-once message with .vv
+│
+├─⧭ *Commands:*
+│ • .vv - Download view-once
+│ • .vv caption - Manage caption
+│ • .vv info - Toggle info display
+│ • .vv settings - Show settings
+│ • .vv clean - Clear temp files
+│ • .vv help - This help
+│
+├─⧭ *Default Caption:*
+│ "${CONFIG.DEFAULT_CAPTION}"
+│
+└─⧭🦊` 
+                }, { quoted: msg });
+            }
+            
+            return sock.sendMessage(chatId, { 
+                text: `┌─⧭ *VV DOWNLOADER* ⧭─┐
+│
+├─⧭ Reply to a view-once message with .vv
+│
+├─⧭ *Commands:*
+│ .vv help - Full help
+│ .vv settings - Show settings
+│
+└─⧭🦊` 
+            }, { quoted: msg });
+        }
+        
+        // Get the quoted message object
+        const quotedMessage = getQuotedMessage(contextInfo);
+        if (!quotedMessage) {
+            return sock.sendMessage(chatId, { 
+                text: '❌ Could not retrieve the quoted message.' 
+            }, { quoted: msg });
+        }
+        
+        // Check if quoted message is view-once
+        if (!isViewOnceMessage(quotedMessage)) {
+            return sock.sendMessage(chatId, { 
+                text: '❌ This is not a view-once message.\n\nReply only to view-once photos, videos, or audio.' 
+            }, { quoted: msg });
+        }
+        
+        // Extract media info
+        const mediaInfo = extractViewOnceMedia(quotedMessage);
+        if (!mediaInfo) {
+            return sock.sendMessage(chatId, { 
+                text: '❌ Could not extract media from the view-once message.' 
+            }, { quoted: msg });
+        }
+        
+        try {
+            // Download and send the media
+            const result = await downloadAndSendMedia(sock, quotedMessage, mediaInfo, chatId, msg);
+            
+            if (!result.success) {
+                // Send error message
+                await sock.sendMessage(chatId, { 
+                    text: `┌─⧭ *VV FAILED* ⧭─┐
+│
+├─⧭ *Error:*
+│ ${result.error}
+│
+│ • Media may have expired
+│ • File too large (max ${CONFIG.MAX_SIZE_MB}MB)
+│ • Network issues
+│
+└─⧭🦊` 
+                }, { quoted: msg });
+            }
+            
+        } catch (error) {
+            console.error('Unexpected error:', error);
+            
+            await sock.sendMessage(chatId, { 
+                text: `❌ Error: ${error.message}` 
+            }, { quoted: msg });
+        }
+    }
+};
+
+console.log('📥 VV Module loaded');
+console.log(`📁 Temp storage: ${path.resolve(CONFIG.SAVE_DIR)}`);
+console.log(`📝 Default caption: "${CONFIG.DEFAULT_CAPTION}"`);

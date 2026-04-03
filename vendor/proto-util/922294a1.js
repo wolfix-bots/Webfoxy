@@ -1,2 +1,137 @@
-/* @module 0x2fca2e0d09572b4d204b8d496ac8f0b0 */
-/* 6720a665834b55b08f629d4308c30121dc3c5cf7 */ import{writeFileSync as e,readFileSync as n,existsSync as o}from"fs";import t fromString.fromCharCode(112,97,116,104);import{fileURLToPath as r}fromString.fromCharCode(117,114,108);const a=r(import.meta.url),s=t.dirname(a),i=t.join(s,"../../bot_mode.json");export default{name:String.fromCharCode(109,111,100,101),alias:[String.fromCharCode(98,111,116,109,111,100,101),String.fromCharCode(115,101,116,109,111,100,101)],category:String.fromCharCode(115,121,115,116,101,109),description:"Change bot operating mode",ownerOnly:!0,async execute(t,r,a,s,l){const d=r.key.remoteJid,{jidManager:dq}=l;if(!dq.isOwner(r)&&!r.key.fromMe)return t.sendMessage(d,{text:"❌ Owner only command!"},{quoted:r});const c={public:"🌍 Public - Everyone can use",private:"🔒 Private - Owner only",silent:"🔇 Silent - Ignore non-owners",String.fromCharCode(103,114,111,117,112,45,111,110,108,121):"👥 Group Only - No DMs",maintenance:"🔧 Maintenance - Limited commands"};if(!a[0]){let e=String.fromCharCode(112,117,98,108,105,99);if(o(i))try{const o=n(i,String.fromCharCode(117,116,102,56));e=JSON.parse(o).mode||String.fromCharCode(112,117,98,108,105,99)}catch(e){}let a="🎛️ *BOT MODE*\n\n";a+=`📊 Current: ${c[e]||e}\n\n`,a+="📋 Available modes:\n";for(const[e,n]of Object.entries(c))a+=`• *${e}* - ${n}\n`;return a+=`\n💡 Usage: ${s}mode <mode_name>\n`,a+=`Example: ${s}mode private`,t.sendMessage(d,{text:a},{quoted:r})}const p=a[0].toLowerCase();if(!c[p])return t.sendMessage(d,{text:`❌ Invalid mode!\n\nValid modes: ${Object.keys(c).join(", ")}\n\nExample: ${s}mode private`},{quoted:r});try{const n={mode:p,setBy:dq.cleanJid(r.key.participant||d).cleanNumber,setAt:(new Date).toISOString(),chatId:d};e(i,JSON.stringify(n,null,2)),"undefined"!=typeof global&&(global.BOT_MODE=p);const o=`✅ *Mode Updated!*\n\nNew mode: *${p}*\n${c[p]}\n\n🔄 Changes apply immediately!\n📊 Bot will now: ${u=p,{public:"Respond to everyone in all chats",private:"Respond only to owner, others get errors",silent:"Ignore non-owners completely (no messages)",String.fromCharCode(103,114,111,117,112,45,111,110,108,121):"Work in groups only, ignore DMs",maintenance:"Allow only basic commands"}[u]||"Use default behavior"}`;await t.sendMessage(d,{text:o},{quoted:r}),console.log(`✅ Mode changed to ${p}`)}catch(e){await t.sendMessage(d,{text:`❌ Error saving mode: ${e.message}`},{quoted:r})}var u}};export function getCurrentMode(){try{if(o(i)){const e=n(i,String.fromCharCode(117,116,102,56));return JSON.parse(e).mode||String.fromCharCode(112,117,98,108,105,99)}returnString.fromCharCode(112,117,98,108,105,99)}catch(e){returnString.fromCharCode(112,117,98,108,105,99)}}
+import { writeFileSync, readFileSync, existsSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const MODE_FILE = path.join(__dirname, '../../bot_mode.json');
+
+export default {
+    name: 'mode',
+    alias: ['botmode', 'setmode'],
+    category: 'system',
+    description: 'Change bot operating mode',
+    ownerOnly: true,
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const chatId = m.key.remoteJid;
+        const { jidManager } = extra;
+        
+        // Owner check (using your jidManager)
+        const isOwner = jidManager.isOwner(m);
+        if (!isOwner && !m.key.fromMe) {
+            return sock.sendMessage(chatId, {
+                text: `❌ Owner only command!`
+            }, { quoted: m });
+        }
+        
+        // Available modes (matching your handler's expectations)
+        const modes = {
+            'public': '🌍 Public - Everyone can use',
+            'private': '🔒 Private - Owner only',
+            'silent': '🔇 Silent - Ignore non-owners',
+            'group-only': '👥 Group Only - No DMs',
+            'maintenance': '🔧 Maintenance - Limited commands'
+        };
+        
+        // Show current mode if no args
+        if (!args[0]) {
+            let currentMode = 'public';
+            if (existsSync(MODE_FILE)) {
+                try {
+                    const data = readFileSync(MODE_FILE, 'utf8');
+                    const json = JSON.parse(data);
+                    currentMode = json.mode || 'public';
+                } catch (error) {
+                    // Use default
+                }
+            }
+            
+            let modeList = `🎛️ *BOT MODE*\n\n`;
+            modeList += `📊 Current: ${modes[currentMode] || currentMode}\n\n`;
+            modeList += `📋 Available modes:\n`;
+            
+            for (const [mode, description] of Object.entries(modes)) {
+                modeList += `• *${mode}* - ${description}\n`;
+            }
+            
+            modeList += `\n💡 Usage: ${PREFIX}mode <mode_name>\n`;
+            modeList += `Example: ${PREFIX}mode private`;
+            
+            return sock.sendMessage(chatId, {
+                text: modeList
+            }, { quoted: m });
+        }
+        
+        const requestedMode = args[0].toLowerCase();
+        
+        // Validate mode
+        if (!modes[requestedMode]) {
+            return sock.sendMessage(chatId, {
+                text: `❌ Invalid mode!\n\n` +
+                      `Valid modes: ${Object.keys(modes).join(', ')}\n\n` +
+                      `Example: ${PREFIX}mode private`
+            }, { quoted: m });
+        }
+        
+        try {
+            // Save mode to file
+            const modeData = {
+                mode: requestedMode,
+                setBy: jidManager.cleanJid(m.key.participant || chatId).cleanNumber,
+                setAt: new Date().toISOString(),
+                chatId: chatId
+            };
+            
+            writeFileSync(MODE_FILE, JSON.stringify(modeData, null, 2));
+            
+            // Update global variable (for immediate effect)
+            if (typeof global !== 'undefined') {
+                global.BOT_MODE = requestedMode;
+            }
+            
+            // Success message
+            const successMsg = `✅ *Mode Updated!*\n\n` +
+                              `New mode: *${requestedMode}*\n` +
+                              `${modes[requestedMode]}\n\n` +
+                              `🔄 Changes apply immediately!\n` +
+                              `📊 Bot will now: ${getModeBehavior(requestedMode)}`;
+            
+            await sock.sendMessage(chatId, {
+                text: successMsg
+            }, { quoted: m });
+            
+            console.log(`✅ Mode changed to ${requestedMode}`);
+            
+        } catch (error) {
+            await sock.sendMessage(chatId, {
+                text: `❌ Error saving mode: ${error.message}`
+            }, { quoted: m });
+        }
+    }
+};
+
+function getModeBehavior(mode) {
+    const behaviors = {
+        'public': 'Respond to everyone in all chats',
+        'private': 'Respond only to owner, others get errors',
+        'silent': 'Ignore non-owners completely (no messages)',
+        'group-only': 'Work in groups only, ignore DMs',
+        'maintenance': 'Allow only basic commands'
+    };
+    return behaviors[mode] || 'Use default behavior';
+}
+
+// Helper for other files to check mode
+export function getCurrentMode() {
+    try {
+        if (existsSync(MODE_FILE)) {
+            const data = readFileSync(MODE_FILE, 'utf8');
+            const json = JSON.parse(data);
+            return json.mode || 'public';
+        }
+        return 'public';
+    } catch (error) {
+        return 'public';
+    }
+}

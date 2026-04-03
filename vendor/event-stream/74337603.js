@@ -1,2 +1,336 @@
-/* @module 0xa88841375a8d79257917901786a297d6 */
-/* 1edfc22295899ee821a3fd82b3779940c3d59eb0 */ import{downloadContentFromMessage as e,generateWAMessageContent as t,generateWAMessageFromContent as s}from"@whiskeysockets/baileys";import a fromString.fromCharCode(99,114,121,112,116,111);import n from"fs";import o fromString.fromCharCode(112,97,116,104);import{fileURLToPath as i}fromString.fromCharCode(117,114,108);import{PassThrough as r}fromString.fromCharCode(115,116,114,101,97,109);const u=i(import.meta.url);async function d(t,s){const a=await e(t,s);let n=Buffer.from([]);for await(const e of a)n=Buffer.concat([n,e]);return n}o.dirname(u);export default{name:String.fromCharCode(116,111,103,115,116,97,116,117,115),alias:[String.fromCharCode(115,119,103,99),String.fromCharCode(103,114,111,117,112,115,116,97,116,117,115),String.fromCharCode(116,111,115,103,114,111,117,112),"gs",String.fromCharCode(103,115,116,97,116,117,115),String.fromCharCode(103,115,116,97,116,117,115)],description:"Send group status updates 📢",category:String.fromCharCode(103,114,111,117,112),adminOnly:!0,ownerOnly:!1,async execute(e,n,o,i,u){try{const o=n.key.remoteJid,yf=n.key.participant||n.key.remoteJid,{jidManager:g}=u;if(!o.endsWith("@g.us"))return e.sendMessage(o,{text:"┌─⧭ *GROUP ONLY* 👥 ⧭─┐\n│\n├─⧭ This command only works in groups!\n│\n└─⧭🦊"},{quoted:n});try{const t=(await e.groupMetadata(o)).participants.find(e=>e.id===yf);if((!t||String.fromCharCode(97,100,109,105,110)!==t.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==t.admin)&&!n.key.fromMe)return e.sendMessage(o,{text:"┌─⧭ *ADMIN ONLY* 👑 ⧭─┐\n│\n├─⧭ Only group admins can use this command!\n│\n└─⧭🦊"},{quoted:n})}catch{return e.sendMessage(o,{text:"┌─⧭ *ERROR* ❌ ⧭─┐\n│\n├─⧭ Could not verify admin status.\n│\n└─⧭🦊"},{quoted:n})}const c=n.message?.conversation||n.message?.extendedTextMessage?.text||"",p=n.message?.extendedTextMessage?.contextInfo?.quotedMessage;if(!p&&!c.trim())return e.sendMessage(o,{text:`┌─⧭ *GROUP STATUS* 📢 ⧭─┐\n│\n├─⧭ *What it does:*\n│ Send updates that appear in group info\n│\n├─⧭ *Usage:*\n│ • Reply to any message: ${i}togstatus\n│ • Add text: ${i}togstatus Your message\n│ • Works with images, videos, audio\n│\n├─⧭ *Examples:*\n│ • Reply to image → ${i}togstatus\n│ • ${i}togstatus New group rules!\n│ • Reply to video + "Check this out"\n│\n├─⧭ *Supported media:*\n│ • Images 🖼️\n│ • Videos 🎥\n│ • Audio 🔊\n│ • Stickers 🏷️\n│ • Text 📝\n│\n├─⧭ *Note:*\n│ • Admins only\n│ • Shows in group info\n│ • All members can see\n│\n└─⧭🦊`},{quoted:n});const{textAfterCommand:f}=function(e){const t=e.match(/^[.!#/]?(togstatus|swgc|groupstatus|tosgroup|gs|gstatus)\s*/i);if(t){const s=e.slice(t[0].length).trim();return{command:t[0].trim(),textAfterCommand:s}}return{command:null,textAfterCommand:e}}(c);let y=null,l=String.fromCharCode(84,101,120,116);const M=await e.sendMessage(o,{text:"┌─⧭ *PROCESSING* 🔄 ⧭─┐\n│\n│ Creating group status update...\n│\n└─⧭🦊"},{quoted:n});if(p?(l=function(e){return e?e.videoMessage?String.fromCharCode(86,105,100,101,111):e.imageMessage?String.fromCharCode(73,109,97,103,101):e.audioMessage?String.fromCharCode(65,117,100,105,111):e.stickerMessage?String.fromCharCode(83,116,105,99,107,101,114):String.fromCharCode(84,101,120,116):String.fromCharCode(84,101,120,116)}(p),y=await async function(e){if(e.videoMessage)return{video:await d(e.videoMessage,String.fromCharCode(118,105,100,101,111)),caption:e.videoMessage.caption||"",gifPlayback:e.videoMessage.gifPlayback||!1,mimetype:e.videoMessage.mimetype||"video/mp4"};if(e.imageMessage)return{image:await d(e.imageMessage,String.fromCharCode(105,109,97,103,101)),caption:e.imageMessage.caption||""};if(e.audioMessage){const t=await d(e.audioMessage,String.fromCharCode(97,117,100,105,111));if(!e.audioMessage.ptt)return{audio:t,mimetype:e.audioMessage.mimetype||"audio/mpeg",ptt:!1};try{return{audio:await async function(e){return new Promise((t,s)=>{try{import(String.fromCharCode(102,108,117,101,110,116,45,102,102,109,112,101,103)).then(a=>{const n=new r;n.end(e);const o=new r,i=[];a.default(n).noVideo().audioCodec(String.fromCharCode(108,105,98,111,112,117,115)).format(String.fromCharCode(111,103,103)).audioBitrate("48k").audioChannels(1).audioFrequency(48e3).on(String.fromCharCode(101,114,114,111,114),s).on(String.fromCharCode(101,110,100),()=>t(Buffer.concat(i))).pipe(o,{end:!0}),o.on(String.fromCharCode(100,97,116,97),e=>i.push(e))}).catch(()=>{t(e)})}catch{t(e)}})}(t),mimetype:"audio/ogg; codecs=opus",ptt:!0}}catch{return{audio:t,mimetype:e.audioMessage.mimetype||"audio/mpeg",ptt:!0}}}else{if(e.stickerMessage)return{sticker:await d(e.stickerMessage,String.fromCharCode(115,116,105,99,107,101,114)),mimetype:e.stickerMessage.mimetype||"image/webp"};if(e.conversation||e.extendedTextMessage?.text)return{text:e.conversation||e.extendedTextMessage?.text||""}}return null}(p),f&&y&&(y.video||y.image)&&(y.caption=f),String.fromCharCode(84,101,120,116)===l&&y?.text&&f&&(y.text=y.text+"\n\n"+f)):c.trim()&&f&&(y={text:f}),!y)return e.sendMessage(o,{text:"┌─⧭ *ERROR* ❌ ⧭─┐\n│\n├─⧭ Could not process the message.\n│\n└─⧭🦊"},{quoted:n});await async function(e,n,o){const i=await t(o,{upload:e.waUploadToServer}),r=a.randomBytes(32),u=s(n,{messageContextInfo:{messageSecret:r},groupStatusMessageV2:{message:{...i,messageContextInfo:{messageSecret:r}}}},{});return await e.relayMessage(n,u.message,{messageId:u.key.id}),u}(e,o,y),await e.sendMessage(o,{delete:M.key});const x={Video:"🎥",Image:"🖼️",Audio:"🔊",Sticker:"🏷️",Text:"📝"}[l]||"📢";await e.sendMessage(o,{text:`┌─⧭ *✅ STATUS SENT* ⧭─┐\n│\n├─⧭ *Type:* ${x} ${l}\n├─⧭ *Sent by:* ${n.bc||String.fromCharCode(65,100,109,105,110)}\n│\n│ Group status updated!\n│ Check group info to see it.\n│\n└─⧭🦊`},{quoted:n})}catch(t){console.error("[TogStatus] Error:",t),await e.sendMessage(n.key.remoteJid,{text:`┌─⧭ *ERROR* ❌ ⧭─┐\n│\n├─⧭ ${t.message}\n│\n├─⧭ *Possible reasons:*\n│ • Media too large\n│ • Unsupported format\n│ • Network issue\n│\n└─⧭🦊`},{quoted:n})}}};
+import { downloadContentFromMessage, generateWAMessageContent, generateWAMessageFromContent } from '@whiskeysockets/baileys';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { PassThrough } from 'stream';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 📌 Convert audio to voice note (if ffmpeg available)
+async function toVN(inputBuffer) {
+    return new Promise((resolve, reject) => {
+        try {
+            import('fluent-ffmpeg').then(ffmpeg => {
+                const inStream = new PassThrough();
+                inStream.end(inputBuffer);
+                const outStream = new PassThrough();
+                const chunks = [];
+
+                ffmpeg.default(inStream)
+                    .noVideo()
+                    .audioCodec("libopus")
+                    .format("ogg")
+                    .audioBitrate("48k")
+                    .audioChannels(1)
+                    .audioFrequency(48000)
+                    .on("error", reject)
+                    .on("end", () => resolve(Buffer.concat(chunks)))
+                    .pipe(outStream, { end: true });
+
+                outStream.on("data", chunk => chunks.push(chunk));
+            }).catch(() => {
+                resolve(inputBuffer);
+            });
+        } catch {
+            resolve(inputBuffer);
+        }
+    });
+}
+
+// 📌 Download message content to buffer
+async function downloadToBuffer(message, type) {
+    const stream = await downloadContentFromMessage(message, type);
+    let buffer = Buffer.from([]);
+    for await (const chunk of stream) {
+        buffer = Buffer.concat([buffer, chunk]);
+    }
+    return buffer;
+}
+
+// 📌 Build payload from quoted message
+async function buildPayloadFromQuoted(quotedMessage) {
+    // Handle video message
+    if (quotedMessage.videoMessage) {
+        const buffer = await downloadToBuffer(quotedMessage.videoMessage, 'video');
+        return { 
+            video: buffer, 
+            caption: quotedMessage.videoMessage.caption || '',
+            gifPlayback: quotedMessage.videoMessage.gifPlayback || false,
+            mimetype: quotedMessage.videoMessage.mimetype || 'video/mp4'
+        };
+    }
+    // Handle image message
+    else if (quotedMessage.imageMessage) {
+        const buffer = await downloadToBuffer(quotedMessage.imageMessage, 'image');
+        return { 
+            image: buffer, 
+            caption: quotedMessage.imageMessage.caption || ''
+        };
+    }
+    // Handle audio message
+    else if (quotedMessage.audioMessage) {
+        const buffer = await downloadToBuffer(quotedMessage.audioMessage, 'audio');
+        
+        // Check if it's voice note (ptt) or regular audio
+        if (quotedMessage.audioMessage.ptt) {
+            try {
+                const audioVn = await toVN(buffer);
+                return { 
+                    audio: audioVn, 
+                    mimetype: "audio/ogg; codecs=opus", 
+                    ptt: true 
+                };
+            } catch {
+                return { 
+                    audio: buffer, 
+                    mimetype: quotedMessage.audioMessage.mimetype || 'audio/mpeg',
+                    ptt: true 
+                };
+            }
+        } else {
+            return { 
+                audio: buffer, 
+                mimetype: quotedMessage.audioMessage.mimetype || 'audio/mpeg',
+                ptt: false 
+            };
+        }
+    }
+    // Handle sticker message
+    else if (quotedMessage.stickerMessage) {
+        const buffer = await downloadToBuffer(quotedMessage.stickerMessage, 'sticker');
+        return { 
+            sticker: buffer,
+            mimetype: quotedMessage.stickerMessage.mimetype || 'image/webp'
+        };
+    }
+    // Handle text message
+    else if (quotedMessage.conversation || quotedMessage.extendedTextMessage?.text) {
+        const textContent = quotedMessage.conversation || quotedMessage.extendedTextMessage?.text || '';
+        return { text: textContent };
+    }
+    return null;
+}
+
+// 📌 Detect media type
+function detectMediaType(quotedMessage) {
+    if (!quotedMessage) return 'Text';
+    if (quotedMessage.videoMessage) return 'Video';
+    if (quotedMessage.imageMessage) return 'Image';
+    if (quotedMessage.audioMessage) return 'Audio';
+    if (quotedMessage.stickerMessage) return 'Sticker';
+    return 'Text';
+}
+
+// 📌 Send group status
+async function sendGroupStatus(conn, jid, content) {
+    const inside = await generateWAMessageContent(content, { upload: conn.waUploadToServer });
+    const messageSecret = crypto.randomBytes(32);
+
+    const m = generateWAMessageFromContent(jid, {
+        messageContextInfo: { messageSecret },
+        groupStatusMessageV2: { message: { ...inside, messageContextInfo: { messageSecret } } }
+    }, {});
+
+    await conn.relayMessage(jid, m.message, { messageId: m.key.id });
+    return m;
+}
+
+// 📌 Parse command and text
+function parseCommand(messageText) {
+    const commandRegex = /^[.!#/]?(togstatus|swgc|groupstatus|tosgroup|gs|gstatus)\s*/i;
+    const match = messageText.match(commandRegex);
+    
+    if (match) {
+        const textAfterCommand = messageText.slice(match[0].length).trim();
+        return { command: match[0].trim(), textAfterCommand };
+    }
+    
+    return { command: null, textAfterCommand: messageText };
+}
+
+// 📌 Main command
+export default {
+    name: 'togstatus',
+    alias: ['swgc', 'groupstatus', 'tosgroup', 'gs', 'gstatus', 'gstatus'],
+    description: 'Send group status updates 📢',
+    category: 'group',
+    adminOnly: true,
+    ownerOnly: false,
+
+    async execute(sock, m, args, PREFIX, extra) {
+        try {
+            const jid = m.key.remoteJid;
+            const sender = m.key.participant || m.key.remoteJid;
+            const { jidManager } = extra;
+            
+            // Check if in group
+            if (!jid.endsWith('@g.us')) {
+                return sock.sendMessage(jid, { 
+                    text: `┌─⧭ *GROUP ONLY* 👥 ⧭─┐
+│
+├─⧭ This command only works in groups!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check admin status
+            try {
+                const groupMetadata = await sock.groupMetadata(jid);
+                const participant = groupMetadata.participants.find(p => p.id === sender);
+                const isAdmin = participant && (participant.admin === 'admin' || participant.admin === 'superadmin');
+                
+                if (!isAdmin && !m.key.fromMe) {
+                    return sock.sendMessage(jid, { 
+                        text: `┌─⧭ *ADMIN ONLY* 👑 ⧭─┐
+│
+├─⧭ Only group admins can use this command!
+│
+└─⧭🦊`
+                    }, { quoted: m });
+                }
+            } catch {
+                return sock.sendMessage(jid, { 
+                    text: `┌─⧭ *ERROR* ❌ ⧭─┐
+│
+├─⧭ Could not verify admin status.
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Get message content
+            const messageText = m.message?.conversation || 
+                               m.message?.extendedTextMessage?.text || 
+                               '';
+            const quotedMessage = m.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+            
+            // Show help if no content
+            if (!quotedMessage && !messageText.trim()) {
+                return sock.sendMessage(jid, { 
+                    text: `┌─⧭ *GROUP STATUS* 📢 ⧭─┐
+│
+├─⧭ *What it does:*
+│ Send updates that appear in group info
+│
+├─⧭ *Usage:*
+│ • Reply to any message: ${PREFIX}togstatus
+│ • Add text: ${PREFIX}togstatus Your message
+│ • Works with images, videos, audio
+│
+├─⧭ *Examples:*
+│ • Reply to image → ${PREFIX}togstatus
+│ • ${PREFIX}togstatus New group rules!
+│ • Reply to video + "Check this out"
+│
+├─⧭ *Supported media:*
+│ • Images 🖼️
+│ • Videos 🎥
+│ • Audio 🔊
+│ • Stickers 🏷️
+│ • Text 📝
+│
+├─⧭ *Note:*
+│ • Admins only
+│ • Shows in group info
+│ • All members can see
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Parse command
+            const { textAfterCommand } = parseCommand(messageText);
+            
+            let payload = null;
+            let mediaType = 'Text';
+            
+            // Send processing message
+            const processingMsg = await sock.sendMessage(jid, {
+                text: `┌─⧭ *PROCESSING* 🔄 ⧭─┐
+│
+│ Creating group status update...
+│
+└─⧭🦊`
+            }, { quoted: m });
+            
+            // Process quoted message
+            if (quotedMessage) {
+                mediaType = detectMediaType(quotedMessage);
+                payload = await buildPayloadFromQuoted(quotedMessage);
+                
+                // Add caption for videos/images
+                if (textAfterCommand && payload && (payload.video || payload.image)) {
+                    payload.caption = textAfterCommand;
+                }
+                
+                // Combine text if quoted text
+                if (mediaType === 'Text' && payload?.text && textAfterCommand) {
+                    payload.text = payload.text + '\n\n' + textAfterCommand;
+                }
+            } 
+            // Process text-only command
+            else if (messageText.trim() && textAfterCommand) {
+                payload = { text: textAfterCommand };
+            }
+            
+            if (!payload) {
+                return sock.sendMessage(jid, { 
+                    text: `┌─⧭ *ERROR* ❌ ⧭─┐
+│
+├─⧭ Could not process the message.
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Send group status
+            await sendGroupStatus(sock, jid, payload);
+            
+            // Delete processing message
+            await sock.sendMessage(jid, {
+                delete: processingMsg.key
+            });
+            
+            // Get media type emoji
+            const typeEmoji = {
+                'Video': '🎥',
+                'Image': '🖼️',
+                'Audio': '🔊',
+                'Sticker': '🏷️',
+                'Text': '📝'
+            }[mediaType] || '📢';
+            
+            // Send success message
+            await sock.sendMessage(jid, { 
+                text: `┌─⧭ *✅ STATUS SENT* ⧭─┐
+│
+├─⧭ *Type:* ${typeEmoji} ${mediaType}
+├─⧭ *Sent by:* ${m.pushName || 'Admin'}
+│
+│ Group status updated!
+│ Check group info to see it.
+│
+└─⧭🦊`
+            }, { quoted: m });
+            
+        } catch (error) {
+            console.error('[TogStatus] Error:', error);
+            
+            await sock.sendMessage(m.key.remoteJid, { 
+                text: `┌─⧭ *ERROR* ❌ ⧭─┐
+│
+├─⧭ ${error.message}
+│
+├─⧭ *Possible reasons:*
+│ • Media too large
+│ • Unsupported format
+│ • Network issue
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+    }
+};

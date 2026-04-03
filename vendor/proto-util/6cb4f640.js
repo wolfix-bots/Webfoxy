@@ -1,2 +1,191 @@
-/* @module 0x5b1772ab812b4b104a6973c24c79dfb9 */
-/* deedd8d35d0ab3e38a08e41fe3134d1493a3e2c4 */ import a fromString.fromCharCode(97,120,105,111,115);export default{name:String.fromCharCode(113,117,114,97,110),alias:[String.fromCharCode(113,117,114,97,110,118,101,114,115,101),String.fromCharCode(107,111,114,97,110),String.fromCharCode(105,115,108,97,109),"🕋"],category:String.fromCharCode(103,101,110,101,114,97,108),description:"Get Quran verses and scripture 🕋",async execute(e,t,n,r){const i=t.key.remoteJid;if(String.fromCharCode(104,101,108,112)===n[0]?.toLowerCase())return e.sendMessage(i,{text:`┌─⧭ *FOXY QURAN* 🕋 ⧭─┐\n│\n├─⧭ *Usage:*\n│ • ${r}quran random\n│ • ${r}quran 1:1\n│ • ${r}quran 36\n│ • ${r}quran Al-Fatiha\n│\n├─⧭ *Examples:*\n│ • ${r}quran random\n│ • ${r}quran 1:1\n│ • ${r}quran 36:1-5\n│ • ${r}quran Al-Ikhlas\n│\n├─⧭ *Translations:*\n│ • English (default)\n│ • Arabic (add -ar)\n│\n└─⧭🦊 *Holy Quran*`},{quoted:t});try{const r=n.includes("-ar")||n.includes(String.fromCharCode(97,114,97,98,105,99)),s=n.filter(a=>"-ar"!==a&&String.fromCharCode(97,114,97,98,105,99)!==a);let h="",o="",l="";if(String.fromCharCode(114,97,110,100,111,109)===s[0]?.toLowerCase()||0===s.length){const e=Math.floor(114*Math.random())+1,t=(await a.get(`http://api.alquran.cloud/v1/surah/${e}`,{timeout:8e3})).data.data,n=Math.floor(Math.random()*t.numberOfAyahs)+1,r=await a.get(`http://api.alquran.cloud/v1/ayah/${e}:${n}/en.sahih`,{timeout:8e3});h=t.englishName,o=`${t.number}:${n}`,l=r.data.data.text}else{const e=s.join(" ").replace(/\s+/g,"");let t="";if(e.includes(":"))t=`http://api.alquran.cloud/v1/ayah/${e}/en.sahih`;else if(isNaN(e)){const t=(await a.get(`http://api.alquran.cloud/v1/surah/${encodeURIComponent(e)}`,{timeout:8e3})).data.data,n=await a.get(`http://api.alquran.cloud/v1/ayah/${t.number}:1/en.sahih`,{timeout:8e3});h=t.englishName,o=`${t.number}:1`,l=n.data.data.text}else{const t=parseInt(e),n=(await a.get(`http://api.alquran.cloud/v1/surah/${t}`,{timeout:8e3})).data.data,r=await a.get(`http://api.alquran.cloud/v1/ayah/${t}:1/en.sahih`,{timeout:8e3});h=n.englishName,o=`${t}:1`,l=r.data.data.text}if(t){const e=(await a.get(t,{timeout:8e3})).data.data;h=e.surah.englishName,o=`${e.surah.number}:${e.numberInSurah}`,l=e.text}}let u="";if(r)try{u=(await a.get(`http://api.alquran.cloud/v1/ayah/${o}/ar`,{timeout:5e3})).data.data.text}catch(a){}let d=`┌─⧭ *FOXY QURAN* 🕋 ⧭─┐\n│\n├─⧭ *Surah ${h}*\n├─⧭ *Ayah ${o}*\n│\n├─⧭ "${l}"\n│\n├─⧭ *Translation:* Sahih International\n│\n└─⧭🦊 *Bismillah*`;u&&(d=`┌─⧭ *FOXY QURAN* 🕋 ⧭─┐\n│\n├─⧭ *سورة ${h}*\n├─⧭ *آية ${o}*\n│\n├─⧭ *Arabic:*\n│ ${u}\n│\n├─⧭ *Translation:*\n│ "${l}"\n│\n├─⧭ *Translation:* Sahih International\n│\n└─⧭🦊 *بسم الله*`),await e.sendMessage(i,{text:d},{quoted:t}),await e.sendMessage(i,{react:{text:"🕋",key:t.key}})}catch(a){console.error("Quran error:",a.message);const n=[{surah:String.fromCharCode(65,108,45,70,97,116,105,104,97),ayah:"1:1",text:"In the name of Allah, the Entirely Merciful, the Especially Merciful."},{surah:String.fromCharCode(65,108,45,73,107,104,108,97,115),ayah:"112:1-4",text:'Say, "He is Allah, [who is] One, Allah, the Eternal Refuge. He neither begets nor is born, Nor is there to Him any equivalent."'},{surah:"Ayat al-Kursi",ayah:"2:255",text:"Allah! There is no deity except Him, the Ever-Living, the Sustainer of existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth."},{surah:String.fromCharCode(65,108,45,65,115,114),ayah:"103:1-3",text:"By time, Indeed, mankind is in loss, Except for those who have believed and done righteous deeds and advised each other to truth and advised each other to patience."}],r=n[Math.floor(Math.random()*n.length)];await e.sendMessage(i,{text:`┌─⧭ *FOXY QURAN* 🕋 ⧭─┐\n│\n├─⧭ *Surah ${r.surah}*\n├─⧭ *Ayah ${r.ayah}*\n│\n├─⧭ "${r.text}"\n│\n└─⧭🦊 *Bismillah*`},{quoted:t}),await e.sendMessage(i,{react:{text:"🕋",key:t.key}})}}};
+import axios from 'axios';
+
+export default {
+    name: 'quran',
+    alias: ['quranverse', 'koran', 'islam', '🕋'],
+    category: 'general',
+    description: 'Get Quran verses and scripture 🕋',
+    
+    async execute(sock, msg, args, PREFIX) {
+        const chatId = msg.key.remoteJid;
+        
+        // Show help
+        if (args[0]?.toLowerCase() === 'help') {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *FOXY QURAN* 🕋 ⧭─┐
+│
+├─⧭ *Usage:*
+│ • ${PREFIX}quran random
+│ • ${PREFIX}quran 1:1
+│ • ${PREFIX}quran 36
+│ • ${PREFIX}quran Al-Fatiha
+│
+├─⧭ *Examples:*
+│ • ${PREFIX}quran random
+│ • ${PREFIX}quran 1:1
+│ • ${PREFIX}quran 36:1-5
+│ • ${PREFIX}quran Al-Ikhlas
+│
+├─⧭ *Translations:*
+│ • English (default)
+│ • Arabic (add -ar)
+│
+└─⧭🦊 *Holy Quran*`
+            }, { quoted: msg });
+        }
+        
+        try {
+            // Check for Arabic option
+            const isArabic = args.includes('-ar') || args.includes('arabic');
+            const cleanArgs = args.filter(arg => arg !== '-ar' && arg !== 'arabic');
+            
+            let surah = '';
+            let ayah = '';
+            let translation = '';
+            
+            // Random verse
+            if (cleanArgs[0]?.toLowerCase() === 'random' || cleanArgs.length === 0) {
+                const randomSurah = Math.floor(Math.random() * 114) + 1;
+                const response = await axios.get(`http://api.alquran.cloud/v1/surah/${randomSurah}`, {
+                    timeout: 8000
+                });
+                
+                const surahData = response.data.data;
+                const randomAyah = Math.floor(Math.random() * surahData.numberOfAyahs) + 1;
+                
+                const ayahResponse = await axios.get(`http://api.alquran.cloud/v1/ayah/${randomSurah}:${randomAyah}/en.sahih`, {
+                    timeout: 8000
+                });
+                
+                surah = surahData.englishName;
+                ayah = `${surahData.number}:${randomAyah}`;
+                translation = ayahResponse.data.data.text;
+            }
+            // Specific surah/ayah
+            else {
+                const query = cleanArgs.join(' ').replace(/\s+/g, '');
+                
+                // Handle format like "1:1" or "36" or "Al-Fatiha"
+                let apiUrl = '';
+                if (query.includes(':')) {
+                    // Specific verse
+                    apiUrl = `http://api.alquran.cloud/v1/ayah/${query}/en.sahih`;
+                } else if (!isNaN(query)) {
+                    // Just surah number
+                    const surahNum = parseInt(query);
+                    const response = await axios.get(`http://api.alquran.cloud/v1/surah/${surahNum}`, {
+                        timeout: 8000
+                    });
+                    
+                    const surahData = response.data.data;
+                    const firstAyah = await axios.get(`http://api.alquran.cloud/v1/ayah/${surahNum}:1/en.sahih`, {
+                        timeout: 8000
+                    });
+                    
+                    surah = surahData.englishName;
+                    ayah = `${surahNum}:1`;
+                    translation = firstAyah.data.data.text;
+                } else {
+                    // Surah name
+                    const response = await axios.get(`http://api.alquran.cloud/v1/surah/${encodeURIComponent(query)}`, {
+                        timeout: 8000
+                    });
+                    
+                    const surahData = response.data.data;
+                    const firstAyah = await axios.get(`http://api.alquran.cloud/v1/ayah/${surahData.number}:1/en.sahih`, {
+                        timeout: 8000
+                    });
+                    
+                    surah = surahData.englishName;
+                    ayah = `${surahData.number}:1`;
+                    translation = firstAyah.data.data.text;
+                }
+                
+                if (apiUrl) {
+                    const response = await axios.get(apiUrl, { timeout: 8000 });
+                    const data = response.data.data;
+                    
+                    surah = data.surah.englishName;
+                    ayah = `${data.surah.number}:${data.numberInSurah}`;
+                    translation = data.text;
+                }
+            }
+            
+            // Get Arabic if requested
+            let arabicText = '';
+            if (isArabic) {
+                try {
+                    const arabicResponse = await axios.get(`http://api.alquran.cloud/v1/ayah/${ayah}/ar`, {
+                        timeout: 5000
+                    });
+                    arabicText = arabicResponse.data.data.text;
+                } catch (e) {}
+            }
+            
+            // Build message
+            let message = `┌─⧭ *FOXY QURAN* 🕋 ⧭─┐
+│
+├─⧭ *Surah ${surah}*
+├─⧭ *Ayah ${ayah}*
+│
+├─⧭ "${translation}"
+│
+├─⧭ *Translation:* Sahih International
+│
+└─⧭🦊 *Bismillah*`;
+            
+            if (arabicText) {
+                message = `┌─⧭ *FOXY QURAN* 🕋 ⧭─┐
+│
+├─⧭ *سورة ${surah}*
+├─⧭ *آية ${ayah}*
+│
+├─⧭ *Arabic:*
+│ ${arabicText}
+│
+├─⧭ *Translation:*
+│ "${translation}"
+│
+├─⧭ *Translation:* Sahih International
+│
+└─⧭🦊 *بسم الله*`;
+            }
+            
+            await sock.sendMessage(chatId, {
+                text: message
+            }, { quoted: msg });
+            
+            await sock.sendMessage(chatId, {
+                react: { text: "🕋", key: msg.key }
+            });
+            
+        } catch (error) {
+            console.error('Quran error:', error.message);
+            
+            // Fallback verses
+            const fallbackVerses = [
+                { surah: 'Al-Fatiha', ayah: '1:1', text: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.' },
+                { surah: 'Al-Ikhlas', ayah: '112:1-4', text: 'Say, "He is Allah, [who is] One, Allah, the Eternal Refuge. He neither begets nor is born, Nor is there to Him any equivalent."' },
+                { surah: 'Ayat al-Kursi', ayah: '2:255', text: 'Allah! There is no deity except Him, the Ever-Living, the Sustainer of existence. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth.' },
+                { surah: 'Al-Asr', ayah: '103:1-3', text: 'By time, Indeed, mankind is in loss, Except for those who have believed and done righteous deeds and advised each other to truth and advised each other to patience.' }
+            ];
+            
+            const random = fallbackVerses[Math.floor(Math.random() * fallbackVerses.length)];
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *FOXY QURAN* 🕋 ⧭─┐
+│
+├─⧭ *Surah ${random.surah}*
+├─⧭ *Ayah ${random.ayah}*
+│
+├─⧭ "${random.text}"
+│
+└─⧭🦊 *Bismillah*`
+            }, { quoted: msg });
+            
+            await sock.sendMessage(chatId, {
+                react: { text: "🕋", key: msg.key }
+            });
+        }
+    }
+};

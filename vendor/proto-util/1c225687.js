@@ -1,2 +1,114 @@
-/* @module 0x42614f8fbf51de35165e96556dd6537b */
-/* 8dc29061dd761d6843018b210f5c6cc311c885c4 */ import e fromString.fromCharCode(97,120,105,111,115);export default{name:String.fromCharCode(114,111,111,109),alias:[String.fromCharCode(105,110,116,101,114,105,111,114),String.fromCharCode(100,101,115,105,103,110,114,111,111,109),String.fromCharCode(114,111,111,109,100,101,115,105,103,110),String.fromCharCode(102,111,120,114,111,111,109)],category:"ai",description:"Generate AI-powered room interior designs 🏠",async execute(o,n,r,i){const t=n.key.remoteJid;if(!r.length)return o.sendMessage(t,{text:`┌─⧭ *FOXY ROOM DESIGNER* 🏠 ⧭─┐\n│\n├─⧭ *What I do:*\n│ Generate AI-powered room interior designs!\n│\n├─⧭ *Usage:*\n│ ${i}room <room description>\n│\n├─⧭ *Examples:*\n│ • ${i}room modern living room\n│ • ${i}room cozy bedroom with plants\n│ • ${i}room gaming room rgb lights\n│ • ${i}room minimalist kitchen white\n│\n├─⧭ *Popular Room Ideas:`});const a=r.join(" "),s=`interior design of ${a}, realistic, architectural visualization, high quality, 4k, photorealistic, professional photography, modern interior, well lit, magazine quality`;try{await o.sendMessage(t,{text:`┌─⧭ *FOXY DESIGNER* 🎨 ⧭─┐\n│\n├─⧭ *Creating:* ${a}\n│\n│ 🏠 Generating your dream room...\n│ ⏳ This may take a few seconds\n│\n└─⧭🦊`});const n=`https://api.giftedtech.co.ke/api/ai/magicstudio?apikey=gifted&prompt=${encodeURIComponent(s)}`,sn=await e.get(n,{timeout:3e4});if(!sn.data.success||!sn.data.result)throw new Error("Failed to generate room design");{const e=sn.data.result.imageUrl||sn.data.result;await o.sendMessage(t,{image:{url:e},caption:`┌─⧭ *🦊 FOXY ROOM DESIGN* ⧭─┐\n│\n├─⧭ *Room:* ${a}\n│\n├─⧭ *Inspiration:*\n│ • Perfect for your next makeover\n│ • AI-generated visualization\n│ • Realistic 4K quality\n│\n├─⧭ *Try another:*\n│ ${i}room ${r[0]||String.fromCharCode(98,101,100,114,111,111,109)}\n│ ${i}room ${r[0]||"living room"} modern\n│\n└─⧭🦊 *Dream room created!*`})}}catch(e){console.error("Room design error:",e),await o.sendMessage(t,{text:`┌─⧭ *DESIGN FAILED* ❌ ⧭─┐\n│\n├─⧭ *Error:* ${e.message}\n│\n├─⧭ *Try:*\n│ • Simpler description\n│ • ${i}room bedroom\n│ • ${i}room living room\n│ • ${i}room kitchen\n│\n└─⧭🦊 *Even foxes have bad design days!*`})}}};
+import axios from 'axios';
+
+export default {
+    name: "room",
+    alias: ["interior", "designroom", "roomdesign", "foxroom"],
+    category: "ai",
+    description: "Generate AI-powered room interior designs 🏠",
+    
+    async execute(sock, m, args, prefix) {
+        const jid = m.key.remoteJid;
+        
+        const roomTypes = [
+            "🏠 modern living room",
+            "🛏️ cozy bedroom",
+            "🍳 minimalist kitchen",
+            "🎮 gaming room setup",
+            "💻 home office workspace",
+            "🛁 luxury bathroom",
+            "🏢 studio apartment",
+            "📚 library with bookshelves",
+            "🍽️ mansion dining room",
+            "🌿 balcony garden view",
+            "🏗️ loft style bedroom",
+            "❄️ scandinavian living room",
+            "🏭 industrial style kitchen",
+            "🕰️ vintage bedroom",
+            "🌴 tropical patio"
+        ];
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY ROOM DESIGNER* 🏠 ⧭─┐
+│
+├─⧭ *What I do:*
+│ Generate AI-powered room interior designs!
+│
+├─⧭ *Usage:*
+│ ${prefix}room <room description>
+│
+├─⧭ *Examples:*
+│ • ${prefix}room modern living room
+│ • ${prefix}room cozy bedroom with plants
+│ • ${prefix}room gaming room rgb lights
+│ • ${prefix}room minimalist kitchen white
+│
+├─⧭ *Popular Room Ideas:`
+            });
+        }
+        
+        const roomDesc = args.join(' ');
+        
+        // Enhanced prompt for better room visualization
+        const prompt = `interior design of ${roomDesc}, realistic, architectural visualization, high quality, 4k, photorealistic, professional photography, modern interior, well lit, magazine quality`;
+        
+        try {
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY DESIGNER* 🎨 ⧭─┐
+│
+├─⧭ *Creating:* ${roomDesc}
+│
+│ 🏠 Generating your dream room...
+│ ⏳ This may take a few seconds
+│
+└─⧭🦊`
+            });
+            
+            // USING GIFTEDTECH MAGICSTUDIO API
+            const apiUrl = `https://api.giftedtech.co.ke/api/ai/magicstudio?apikey=gifted&prompt=${encodeURIComponent(prompt)}`;
+            
+            const response = await axios.get(apiUrl, { timeout: 30000 });
+            
+            if (response.data.success && response.data.result) {
+                const imageUrl = response.data.result.imageUrl || response.data.result;
+                
+                await sock.sendMessage(jid, {
+                    image: { url: imageUrl },
+                    caption: `┌─⧭ *🦊 FOXY ROOM DESIGN* ⧭─┐
+│
+├─⧭ *Room:* ${roomDesc}
+│
+├─⧭ *Inspiration:*
+│ • Perfect for your next makeover
+│ • AI-generated visualization
+│ • Realistic 4K quality
+│
+├─⧭ *Try another:*
+│ ${prefix}room ${args[0] || 'bedroom'}
+│ ${prefix}room ${args[0] || 'living room'} modern
+│
+└─⧭🦊 *Dream room created!*`
+                });
+            } else {
+                throw new Error('Failed to generate room design');
+            }
+            
+        } catch (error) {
+            console.error('Room design error:', error);
+            
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *DESIGN FAILED* ❌ ⧭─┐
+│
+├─⧭ *Error:* ${error.message}
+│
+├─⧭ *Try:*
+│ • Simpler description
+│ • ${prefix}room bedroom
+│ • ${prefix}room living room
+│ • ${prefix}room kitchen
+│
+└─⧭🦊 *Even foxes have bad design days!*`
+            });
+        }
+    }
+};

@@ -1,2 +1,67 @@
-/* @module 0xac6b6a72f968a6d7aa1c6ec8e253baa4 */
-/* 125452b817cbca394be455733be9f0dffed45ca8 */ export default { name: String.fromCharCode(115,116,105,99,107,101,114), alias: ["s", String.fromCharCode(115,116,105,99,107,101,114,105,122,101), String.fromCharCode(115,116,105,107)], description: "Convert images/videos to stickers ✂️", category: String.fromCharCode(109,101,100,105,97), ownerOnly: false, async execute(ls, dr, rv, ry, zy) { const em = dr.key.remoteJid; const isQuotedImage = dr.quoted && dr.quoted.message && dr.quoted.message.imageMessage; const isQuotedVideo = dr.quoted && dr.quoted.message && dr.quoted.message.videoMessage; if (!isQuotedImage && !isQuotedVideo && !dr.message?.imageMessage) { return ls.sendMessage(em, { text: `✂️ *FOXY STICKER MAKER*\n\n` + `*Usage:*\n` + `• Send/reply to an image with: ${ry}sticker\n` + `• Send/reply to a video with: ${ry}sticker\n` + `• Add text: ${ry}sticker Foxy\n\n` + `*Options:*\n` + `${ry}sticker crop - Crop sticker\n` + `${ry}sticker circle - Circular sticker\n` + `${ry}sticker removebg - Remove background` }, { quoted: dr }); } try { await ls.sendMessage(em, { text: `🦊 *Creating sticker...*` }, { quoted: dr }); let buffer; if (dr.quoted) { buffer = await ls.downloadMediaMessage(dr.quoted); } else if (dr.message?.imageMessage) { buffer = await ls.downloadMediaMessage(dr); } if (!buffer) { throw new Error("Failed to download media"); } const packName = rv[0] || 'Foxy Bot'; const authorName = rv[1] || 'Foxy Sticker'; await ls.sendMessage(em, { sticker: buffer, stickerName: packName, stickerAuthor: authorName, stickerCategories: ['foxy', 'sticker'] }, { quoted: dr }); } catch (error) { console.error("Sticker error:", error); await ls.sendMessage(em, { text: `❌ *Failed to create sticker!*\n\n` + `Make sure:\n` + `• Image/video is not too large\n` + `• Media is supported format\n` + `• Try with a different image` }, { quoted: dr }); } } };
+// commands/media/sticker.js
+export default {
+  name: "sticker",
+  alias: ["s", "stickerize", "stik"],
+  description: "Convert images/videos to stickers ✂️",
+  category: "media",
+  ownerOnly: false,
+
+  async execute(sock, m, args, PREFIX, extra) {
+    const jid = m.key.remoteJid;
+    const isQuotedImage = m.quoted && m.quoted.message && m.quoted.message.imageMessage;
+    const isQuotedVideo = m.quoted && m.quoted.message && m.quoted.message.videoMessage;
+    
+    if (!isQuotedImage && !isQuotedVideo && !m.message?.imageMessage) {
+      return sock.sendMessage(jid, {
+        text: `✂️ *FOXY STICKER MAKER*\n\n` +
+              `*Usage:*\n` +
+              `• Send/reply to an image with: ${PREFIX}sticker\n` +
+              `• Send/reply to a video with: ${PREFIX}sticker\n` +
+              `• Add text: ${PREFIX}sticker Foxy\n\n` +
+              `*Options:*\n` +
+              `${PREFIX}sticker crop - Crop sticker\n` +
+              `${PREFIX}sticker circle - Circular sticker\n` +
+              `${PREFIX}sticker removebg - Remove background`
+      }, { quoted: m });
+    }
+    
+    try {
+      await sock.sendMessage(jid, {
+        text: `🦊 *Creating sticker...*`
+      }, { quoted: m });
+      
+      let buffer;
+      
+      if (m.quoted) {
+        buffer = await sock.downloadMediaMessage(m.quoted);
+      } else if (m.message?.imageMessage) {
+        buffer = await sock.downloadMediaMessage(m);
+      }
+      
+      if (!buffer) {
+        throw new Error("Failed to download media");
+      }
+      
+      // Get pack and author name
+      const packName = args[0] || 'Foxy Bot';
+      const authorName = args[1] || 'Foxy Sticker';
+      
+      await sock.sendMessage(jid, {
+        sticker: buffer,
+        stickerName: packName,
+        stickerAuthor: authorName,
+        stickerCategories: ['foxy', 'sticker']
+      }, { quoted: m });
+      
+    } catch (error) {
+      console.error("Sticker error:", error);
+      await sock.sendMessage(jid, {
+        text: `❌ *Failed to create sticker!*\n\n` +
+              `Make sure:\n` +
+              `• Image/video is not too large\n` +
+              `• Media is supported format\n` +
+              `• Try with a different image`
+      }, { quoted: m });
+    }
+  }
+};

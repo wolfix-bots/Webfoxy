@@ -1,2 +1,40 @@
-/* @module 0x78ad19840e9f2e6515b305c49e85c1f8 */
-/* 6f984ed428fe0441f68c5662ac934706d228e4c8 */ export default{name:String.fromCharCode(103,112,116,52),alias:[String.fromCharCode(103,112,116),String.fromCharCode(99,104,97,116,103,112,116),String.fromCharCode(111,112,101,110,97,105)],category:"ai",async execute(e,t,a,n,s){const i=t.key.remoteJid;if(!a.length)return e.sendMessage(i,{text:`┌─⧭ *GPT-4 AI*\n│ OpenAI's advanced AI\n│\n│ Usage: ${n}gpt4 <question>\n│ Example: ${n}gpt4 Explain quantum physics\n└─⧭`},{quoted:t});const o=a.join(" ");await e.sendMessage(i,{text:"┌─⧭ *GPT-4 thinking...*\n└─⧭"},{quoted:t});try{const a=(await import(String.fromCharCode(97,120,105,111,115))).default,n=`https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent("You are GPT-4, OpenAI's advanced AI. Be precise.\nUser: "+o)}`,s=await a.get(n,{timeout:3e4}),d=s.data?.result||s.data?.response||"I don't know";await e.sendMessage(i,{text:`┌─⧭ *GPT-4*\n│\n\`\`\`\n${d}\n\`\`\`\n└─⧭`},{quoted:t})}catch(a){await e.sendMessage(i,{text:"┌─⧭ *Error*\n│ GPT-4 unavailable\n└─⧭"},{quoted:t})}}};
+export default {
+    name: "gpt4",
+    alias: ["gpt", "chatgpt", "openai"],
+    category: "ai",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *GPT-4 AI*\n\u2502 OpenAI's advanced AI\n\u2502\n\u2502 Usage: ${PREFIX}gpt4 <question>\n\u2502 Example: ${PREFIX}gpt4 Explain quantum physics\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+        
+        const question = args.join(' ');
+        
+        await sock.sendMessage(jid, {
+            text: `\u250C\u2500\u29ED *GPT-4 thinking...*\n\u2514\u2500\u29ED`
+        }, { quoted: m });
+        
+        try {
+            const axios = (await import('axios')).default;
+            
+            const prompt = `You are GPT-4, OpenAI's advanced AI. Be precise.`;
+            const url = `https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent(prompt + '\nUser: ' + question)}`;
+            
+            const response = await axios.get(url, { timeout: 30000 });
+            const answer = response.data?.result || response.data?.response || "I don't know";
+            
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *GPT-4*\n\u2502\n\`\`\`\n${answer}\n\`\`\`\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+            
+        } catch (error) {
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Error*\n\u2502 GPT-4 unavailable\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+    }
+};

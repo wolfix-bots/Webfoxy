@@ -1,2 +1,141 @@
-/* @module 0x756621676a2dbb4b9d2e750061b7cba1 */
-/* 8731b9a130dcd1c1a2a974393742019cd9eb4865 */ import e fromString.fromCharCode(97,120,105,111,115);import o fromString.fromCharCode(121,116,100,108,45,99,111,114,101);import t from"fs";import a fromString.fromCharCode(112,97,116,104);export default{name:String.fromCharCode(112,108,97,121),alias:["p",String.fromCharCode(115,111,110,103),String.fromCharCode(97,117,100,105,111),String.fromCharCode(121,116,109,112,51)],desc:"Download and play audio from YouTube or search",category:String.fromCharCode(100,111,119,110,108,111,97,100,101,114),usage:".play [song name or YouTube URL]",async execute(t,a,n){try{const s=a.key.remoteJid,i=n.join(" ");if(!i)return void await t.sendMessage(s,{text:"🎵 *Please provide a song name or YouTube URL!*\n\nExample: `.play Ordinary Alex Warren`\nExample: `.play https://youtu.be/xxxx`"});const l=await t.sendMessage(s,{text:"🔍 *Searching for audio...* Please wait."});let u=null,d=null,ld=null,c=null;const p=i.match(/(youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/);if(p)try{const e=p[2],t=await o.getInfo(e);d=t.videoDetails.title,ld=t.videoDetails.thumbnails[0]?.url,c=t.videoDetails.lengthSeconds,u=o(e,{quality:String.fromCharCode(104,105,103,104,101,115,116,97,117,100,105,111),filter:String.fromCharCode(97,117,100,105,111,111,110,108,121)})}catch(e){throw new Error("Invalid YouTube URL")}else{const o=`https://apis.xwolf.space/download/mp3?q=${encodeURIComponent(i)}`,t=await e.get(o);if(!t.data?.success)throw new Error("No results found");const a=t.data;if(d=a.title||a.searchResult?.title,ld=a.thumbnail||a.thumbnailMq,c=a.searchResult?.duration,a.downloadUrl){const o=await e.get(a.downloadUrl,{responseType:String.fromCharCode(97,114,114,97,121,98,117,102,102,101,114),timeout:6e4});u=Buffer.from(o.data)}else{if(!a.proxyUrl)throw new Error("No download URL found");{const o=await e.get(a.proxyUrl,{responseType:String.fromCharCode(97,114,114,97,121,98,117,102,102,101,114),timeout:6e4});u=Buffer.from(o.data)}}}const f=c?(r=c)?`${Math.floor(r/60)}:${(r%60).toString().padStart(2,"0")}`:String.fromCharCode(85,110,107,110,111,119,110):String.fromCharCode(85,110,107,110,111,119,110);await t.sendMessage(s,{audio:u,mimetype:"audio/mpeg",fileName:`${d}.mp3`,caption:`🎵 *Now Playing:*\n📌 *Title:* ${d}\n⏱️ *Duration:* ${f}\n\n🎧 *Enjoy the music!*`,ptt:!1},{quoted:a}),await t.sendMessage(s,{delete:l.key})}catch(e){console.error("🎵 Error in play command:",e);let o="❌ *Failed to play audio!*\n\n";"No results found"===e.message?o+="No audio found for your search. Please try a different song name.":String.fromCharCode(69,67,79,78,78,65,66,79,82,84,69,68)===e.code||String.fromCharCode(69,84,73,77,69,68,79,85,84)===e.code?o+="⏱️ Download timeout! The audio might be too large or the server is slow.":404===e.response?.status?o+="Audio not found. The link might be broken or removed.":o+=`Could not process your request. Please try again later.\n\n🔍 *Debug:* ${e.message.substring(0,100)}`,o+="\n\n💡 *Tips:*\n",o+="• Use more specific song names\n",o+="• Try with artist name\n",o+="• Use YouTube URL for better results",await t.sendMessage(chatId,{text:o})}var r}};
+import axios from "axios";
+import ytdl from "ytdl-core";
+import fs from "fs";
+import path from "path";
+
+export default {
+  name: "play",
+  alias: ["p", "song", "audio", "ytmp3"],
+  desc: "Download and play audio from YouTube or search",
+  category: "downloader",
+  usage: ".play [song name or YouTube URL]",
+
+  async execute(sock, m, args) {
+    try {
+      const chatId = m.key.remoteJid;
+      const query = args.join(" ");
+      
+      if (!query) {
+        await sock.sendMessage(chatId, {
+          text: "🎵 *Please provide a song name or YouTube URL!*\n\nExample: `.play Ordinary Alex Warren`\nExample: `.play https://youtu.be/xxxx`",
+        });
+        return;
+      }
+
+      // Send initial status
+      const statusMsg = await sock.sendMessage(chatId, { 
+        text: "🔍 *Searching for audio...* Please wait." 
+      });
+
+      let audioUrl = null;
+      let title = null;
+      let thumbnail = null;
+      let duration = null;
+
+      // Check if input is a YouTube URL
+      const isUrl = query.match(/(youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/);
+      
+      if (isUrl) {
+        // Direct YouTube URL
+        try {
+          const videoId = isUrl[2];
+          const info = await ytdl.getInfo(videoId);
+          title = info.videoDetails.title;
+          thumbnail = info.videoDetails.thumbnails[0]?.url;
+          duration = info.videoDetails.lengthSeconds;
+          
+          // Get audio stream
+          audioUrl = ytdl(videoId, {
+            quality: 'highestaudio',
+            filter: 'audioonly'
+          });
+          
+        } catch (err) {
+          throw new Error("Invalid YouTube URL");
+        }
+      } 
+      else {
+        // Search using API
+        const searchUrl = `https://apis.xwolf.space/download/mp3?q=${encodeURIComponent(query)}`;
+        const response = await axios.get(searchUrl);
+        
+        if (!response.data?.success) {
+          throw new Error("No results found");
+        }
+        
+        const data = response.data;
+        title = data.title || data.searchResult?.title;
+        thumbnail = data.thumbnail || data.thumbnailMq;
+        duration = data.searchResult?.duration;
+        
+        // Get download URL
+        if (data.downloadUrl) {
+          // Download the file first
+          const audioResponse = await axios.get(data.downloadUrl, {
+            responseType: 'arraybuffer',
+            timeout: 60000
+          });
+          audioUrl = Buffer.from(audioResponse.data);
+        } else if (data.proxyUrl) {
+          const audioResponse = await axios.get(data.proxyUrl, {
+            responseType: 'arraybuffer',
+            timeout: 60000
+          });
+          audioUrl = Buffer.from(audioResponse.data);
+        } else {
+          throw new Error("No download URL found");
+        }
+      }
+
+      // Format duration
+      const durationText = duration ? formatDuration(duration) : "Unknown";
+
+      // Send audio with metadata
+      await sock.sendMessage(chatId, {
+        audio: audioUrl,
+        mimetype: 'audio/mpeg',
+        fileName: `${title}.mp3`,
+        caption: `🎵 *Now Playing:*\n📌 *Title:* ${title}\n⏱️ *Duration:* ${durationText}\n\n🎧 *Enjoy the music!*`,
+        ptt: false, // Set to true for voice note style
+      }, {
+        quoted: m
+      });
+
+      // Delete status message
+      await sock.sendMessage(chatId, { delete: statusMsg.key });
+
+    } catch (error) {
+      console.error("🎵 Error in play command:", error);
+      
+      let errorMessage = "❌ *Failed to play audio!*\n\n";
+      
+      if (error.message === "No results found") {
+        errorMessage += "No audio found for your search. Please try a different song name.";
+      } 
+      else if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
+        errorMessage += "⏱️ Download timeout! The audio might be too large or the server is slow.";
+      }
+      else if (error.response?.status === 404) {
+        errorMessage += "Audio not found. The link might be broken or removed.";
+      }
+      else {
+        errorMessage += `Could not process your request. Please try again later.\n\n🔍 *Debug:* ${error.message.substring(0, 100)}`;
+      }
+      
+      errorMessage += "\n\n💡 *Tips:*\n";
+      errorMessage += "• Use more specific song names\n";
+      errorMessage += "• Try with artist name\n";
+      errorMessage += "• Use YouTube URL for better results";
+      
+      await sock.sendMessage(chatId, { text: errorMessage });
+    }
+  },
+};
+
+// Helper function to format duration
+function formatDuration(seconds) {
+  if (!seconds) return "Unknown";
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}

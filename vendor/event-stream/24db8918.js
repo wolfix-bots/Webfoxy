@@ -1,2 +1,119 @@
-/* @module 0x09b427fe0349d1f8b8e8963fce7f9354 */
-/* 6c2f3ddae064c432e82f67e521569cee42522823 */ export default{name:String.fromCharCode(97,100,100),alias:[String.fromCharCode(97,100,100,117,115,101,114),String.fromCharCode(105,110,118,105,116,101)],category:String.fromCharCode(103,114,111,117,112),description:"Add users to group (via reply or number)",async execute(e,n,t,a,s){const d=n.key.remoteJid,i=d.endsWith("@g.us"),{jidManager:r}=s;if(!i)return e.sendMessage(d,{text:"┌─⧭ *GROUP ONLY* 👥 ⧭─┐\n│\n├─⧭ This command only works in groups!\n│\n└─⧭🦊"},{quoted:n});try{const s=(await e.groupMetadata(d)).participants;if(String.fromCharCode(97,100,109,105,110)!==s.find(n=>n.id===e.user.id)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==s.find(n=>n.id===e.user.id)?.admin)return e.sendMessage(d,{text:"┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐\n│\n├─⧭ I need to be an admin to add people!\n│\n└─⧭🦊"},{quoted:n});let i=null;const o=n.message?.extendedTextMessage?.contextInfo?.participant;if(t[0]&&t[0].match(/^\d+$/)&&(i=t[0]+"@s.whatsapp.net"),i=o||i,!i)return e.sendMessage(d,{text:`┌─⧭ *ADD USER* 👥 ⧭─┐\n│\n├─⧭ *Usage:*\n│ • ${a}add <number>\n│ • Reply to their message with ${a}add\n│\n├─⧭ *Examples:*\n│ • ${a}add 1234567890\n│ • Reply to message → ${a}add\n│\n└─⧭🦊`},{quoted:n});await e.groupParticipantsUpdate(d,[i],String.fromCharCode(97,100,100));const u=r.cleanJid(i);await e.sendMessage(d,{text:`┌─⧭ *✅ USER ADDED* ⧭─┐\n│\n├─⧭ *User:* @${u.cleanNumber}\n├─⧭ *Added by:* ${n.ah||String.fromCharCode(65,100,109,105,110)}\n│\n│ Welcome to the group! 👋\n│\n└─⧭🦊`,mentions:[i]},{quoted:n})}catch(t){console.error("Add error:",t);let a=`┌─⧭ *ADD FAILED* ❌ ⧭─┐\n│\n├─⧭ ${t.message}\n│\n├─⧭ *Possible reasons:*\n│ • Invalid number\n│ • User already in group\n│ • User privacy settings\n│ • Bot not admin\n│\n└─⧭🦊`;t.message.includes("403")&&(a="┌─⧭ *PRIVACY RESTRICTED* 🔒 ⧭─┐\n│\n├─⧭ User has privacy settings that\n├─⧭ prevent being added to groups.\n│\n│ They need to change their settings.\n│\n└─⧭🦊"),await e.sendMessage(d,{text:a},{quoted:n})}}};
+export default {
+    name: "add",
+    alias: ["adduser", "invite"],
+    category: "group",
+    description: "Add users to group (via reply or number)",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const chatId = m.key.remoteJid;
+        const isGroup = chatId.endsWith('@g.us');
+        const { jidManager } = extra;
+        
+        // Check if in group
+        if (!isGroup) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *GROUP ONLY* 👥 ⧭─┐
+│
+├─⧭ This command only works in groups!
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        try {
+            // Get group metadata
+            const groupMetadata = await sock.groupMetadata(chatId);
+            const participants = groupMetadata.participants;
+            
+            // Check if bot is admin
+            const isBotAdmin = participants.find(p => p.id === sock.user.id)?.admin === 'admin' || 
+                              participants.find(p => p.id === sock.user.id)?.admin === 'superadmin';
+            
+            if (!isBotAdmin) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐
+│
+├─⧭ I need to be an admin to add people!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Get target user
+            let target = null;
+            
+            // Check quoted message
+            const quoted = m.message?.extendedTextMessage?.contextInfo?.participant;
+            
+            // Check if args contain number
+            if (args[0] && args[0].match(/^\d+$/)) {
+                target = args[0] + '@s.whatsapp.net';
+            }
+            
+            target = quoted || target;
+            
+            if (!target) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *ADD USER* 👥 ⧭─┐
+│
+├─⧭ *Usage:*
+│ • ${PREFIX}add <number>
+│ • Reply to their message with ${PREFIX}add
+│
+├─⧭ *Examples:*
+│ • ${PREFIX}add 1234567890
+│ • Reply to message → ${PREFIX}add
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Add user to group
+            await sock.groupParticipantsUpdate(chatId, [target], 'add');
+            
+            const cleaned = jidManager.cleanJid(target);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *✅ USER ADDED* ⧭─┐
+│
+├─⧭ *User:* @${cleaned.cleanNumber}
+├─⧭ *Added by:* ${m.pushName || 'Admin'}
+│
+│ Welcome to the group! 👋
+│
+└─⧭🦊`,
+                mentions: [target]
+            }, { quoted: m });
+            
+        } catch (error) {
+            console.error('Add error:', error);
+            
+            let errorMsg = `┌─⧭ *ADD FAILED* ❌ ⧭─┐
+│
+├─⧭ ${error.message}
+│
+├─⧭ *Possible reasons:*
+│ • Invalid number
+│ • User already in group
+│ • User privacy settings
+│ • Bot not admin
+│
+└─⧭🦊`;
+            
+            if (error.message.includes('403')) {
+                errorMsg = `┌─⧭ *PRIVACY RESTRICTED* 🔒 ⧭─┐
+│
+├─⧭ User has privacy settings that
+├─⧭ prevent being added to groups.
+│
+│ They need to change their settings.
+│
+└─⧭🦊`;
+            }
+            
+            await sock.sendMessage(chatId, {
+                text: errorMsg
+            }, { quoted: m });
+        }
+    }
+};

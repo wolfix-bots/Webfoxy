@@ -1,2 +1,320 @@
-/* @module 0x0fb6b88a254247df9bac8b808e9591a3 */
-/* d962d7a02dc3b58ae236b6eefcc4cf97a857f8ca */ import e from"fs";import n fromString.fromCharCode(112,97,116,104);import t fromString.fromCharCode(97,120,105,111,115);import{downloadContentFromMessage as a}from"@whiskeysockets/baileys";import{fileURLToPath as o}fromString.fromCharCode(117,114,108);const i=o(import.meta.url),r=(n.dirname(i),n.join(process.cwd(),String.fromCharCode(116,109,112),String.fromCharCode(115,101,116,112,112)));e.existsSync(r)||e.mkdirSync(r,{recursive:!0}),setInterval(()=>{try{const t=e.readdirSync(r),a=Date.now(),o=6e5;for(const i of t){const t=n.join(r,i);a-e.statSync(t).mtimeMs>o&&(e.unlinkSync(t),console.log(`🧹 Cleaned setpp temp: ${i}`))}}catch(e){}},3e5);export default{name:String.fromCharCode(115,101,116,112,112),alias:[String.fromCharCode(115,101,116,112,114,111,102,105,108,101,112,105,99),String.fromCharCode(102,111,120,112,112),String.fromCharCode(115,101,116,112,102,112),String.fromCharCode(112,114,111,102,105,108,101,112,105,99),String.fromCharCode(115,101,116,97,118,97,116,97,114),String.fromCharCode(102,111,120,97,118,97,116,97,114)],desc:"Change bot profile picture 🦊",category:String.fromCharCode(111,119,110,101,114),usage:".setpp [reply to image] or .setpp [image URL]",async execute(o,i,s,l,p){const c=i.key.remoteJid,yr=i.aa||String.fromCharCode(70,114,105,101,110,100);let g=null;try{if(!i.key.fromMe)return await o.sendMessage(c,{text:"┌─⧭ *FOX DENIED* 🦊 ⧭─┐\n│\n├─⧭ Only the Alpha Fox (Owner)\n├─⧭ can change my profile picture!\n│\n│ 🦊 This is an owner-only command.\n│\n└─⧭🦊"});const p=async(e,n=null)=>{const t={quoted:i};return n&&(t.edit=n),await o.sendMessage(c,{text:e},t)};if(0===s.length&&!i.message?.extendedTextMessage?.contextInfo?.quotedMessage)return await p(`┌─⧭ *FOXY PROFILE* 🦊 ⧭─┐\n│\n├─⧭ *What I do:*\n│ Change my profile picture!\n│\n├─⧭ *How to use:*\n│ • Reply to image: \`${l}setpp\`\n│ • URL method: \`${l}setpp [url]\`\n│\n├─⧭ *Examples:*\n│ • Reply to image → \`.setpp\`\n│ • \`.setpp https://example.com/fox.jpg\`\n│\n├─⧭ *Requirements:*\n│ • Square image (1:1 ratio)\n│ • Max size: 5MB\n│ • Formats: JPG, PNG, WebP\n│ • Owner only\n│\n├─⧭ *Quick tip:*\n│ Use a cute fox picture! 🦊\n│\n└─⧭🦊 *Foxy needs a new look!*`);if(s[0]&&s[0].startsWith(String.fromCharCode(104,116,116,112))){const a=s[0];g=await p("┌─⧭ *FOXY UPDATER* 🦊 ⧭─┐\n│\n├─⧭ *Step 1/3:* 📥 Downloading from URL...\n│\n│ Foxy is fetching your image!\n│\n└─⧭");const i=n.join(r,`foxpp_url_${Date.now()}.jpg`);try{const n=await t.get(a,{responseType:String.fromCharCode(97,114,114,97,121,98,117,102,102,101,114),timeout:1e4});e.writeFileSync(i,Buffer.from(n.data));const r=e.statSync(i).size/1048576;if(r>5)return e.unlinkSync(i),await p(`┌─⧭ *FILE TOO LARGE* ⚠️ ⧭─┐\n│\n├─⧭ *Size:* ${r.toFixed(2)} MB\n├─⧭ *Limit:* 5 MB\n│\n│ Please use a smaller image!\n│\n└─⧭🦊`,g.key);await p("┌─⧭ *FOXY UPDATER* 🦊 ⧭─┐\n│\n├─⧭ *Step 2/3:* 🔄 Applying new look...\n│\n│ Making Foxy beautiful!\n│\n└─⧭",g.key),await o.updateProfilePicture(o.user.id,{url:i}),await p(`┌─⧭ *✅ PROFILE UPDATED!* 🦊 ⧭─┐\n│\n├─⧭ *Method:* URL\n├─⧭ *Size:* ${r.toFixed(2)} MB\n├─⧭ *Updated by:* ${yr}\n│\n│ Foxy looks amazing! 🦊\n│\n└─⧭🦊`,g.key),e.unlinkSync(i)}catch(n){throw e.unlinkSync(i).catch(()=>{}),new Error(`URL download failed: ${n.message}`)}return}const u=i.message?.extendedTextMessage?.contextInfo?.quotedMessage;if(!u)return await p(`┌─⧭ *NO IMAGE* ❌ ⧭─┐\n│\n├─⧭ Please reply to an image\n├─⧭ or provide a URL!\n│\n│ Usage: \`${l}setpp\` (reply to image)\n│\n└─⧭🦊`);const y=u.imageMessage||u.stickerMessage;if(!y)return await p("┌─⧭ *INVALID MEDIA* ❌ ⧭─┐\n│\n├─⧭ The replied message must contain:\n│ • Image (JPG/PNG)\n│ • Sticker (will be converted)\n│\n└─⧭🦊");g=await p("┌─⧭ *FOXY UPDATER* 🦊 ⧭─┐\n│\n├─⧭ *Step 1/3:* 📥 Downloading image...\n│\n│ Foxy is getting your picture!\n│\n└─⧭");const d=await a(y,String.fromCharCode(105,109,97,103,101));let f=Buffer.alloc(0);for await(const e of d)f=Buffer.concat([f,e]);const w=f.length/1048576;if(w>5)return await p(`┌─⧭ *FILE TOO LARGE* ⚠️ ⧭─┐\n│\n├─⧭ *Size:* ${w.toFixed(2)} MB\n├─⧭ *Limit:* 5 MB\n│\n│ Please use a smaller image!\n│\n└─⧭🦊`,g.key);const x=n.join(r,`foxpp_reply_${Date.now()}.jpg`);e.writeFileSync(x,f),await p(`┌─⧭ *FOXY UPDATER* 🦊 ⧭─┐\n│\n├─⧭ *Step 2/3:* 🔄 Applying new look...\n├─⧭ *Size:* ${w.toFixed(2)} MB\n│\n│ Making Foxy beautiful!\n│\n└─⧭`,g.key),await o.updateProfilePicture(o.user.id,{url:x}),e.unlinkSync(x),await p(`┌─⧭ *✅ PROFILE UPDATED!* 🦊 ⧭─┐\n│\n├─⧭ *Method:* Image Reply\n├─⧭ *Size:* ${w.toFixed(2)} MB\n├─⧭ *Updated by:* ${yr}\n│\n│ 🦊 *Foxy looks amazing!*\n│\n├─⧭ *What's new?*\n│ • Fresh new look\n│ • Ready to serve\n│ • More fox energy!\n│\n└─⧭🦊 *Foxy is beautiful!*`,g.key);try{await o.sendMessage(c,{image:f,caption:"🦊 *New Profile Picture!*\n\nFoxy got a makeover!"})}catch(e){}}catch(e){if(console.error("🦊 SetPP Error:",e),g)try{await o.sendMessage(c,{delete:g.key})}catch(e){}await o.sendMessage(c,{text:`┌─⧭ *UPDATE FAILED* ❌ ⧭─┐\n│\n├─⧭ *Error:* ${e.message.substring(0,100)}\n│\n├─⧭ *Possible reasons:*\n│ • Image too large (>5MB)\n│ • Invalid image format\n│ • Corrupted image\n│ • Network issue\n│\n├─⧭ *Try:*\n│ • Different image\n│ • Use square image\n│ • Reply directly to image\n│ • Use URL method\n│\n└─⧭🦊 *Even foxes have bad hair days!*`})}}};console.log("🦊 SetPP module loaded - Fox Profile Picture Updater"),console.log(`📁 Temp folder: ${r}`);
+import fs from "fs";
+import path from "path";
+import axios from "axios";
+import { downloadContentFromMessage } from "@whiskeysockets/baileys";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Temp directory for processing
+const TMP_DIR = path.join(process.cwd(), "tmp", "setpp");
+if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
+
+// Auto-cleanup old files (older than 10 minutes)
+setInterval(() => {
+    try {
+        const files = fs.readdirSync(TMP_DIR);
+        const now = Date.now();
+        const tenMinutes = 10 * 60 * 1000;
+        
+        for (const file of files) {
+            const filePath = path.join(TMP_DIR, file);
+            const stats = fs.statSync(filePath);
+            if (now - stats.mtimeMs > tenMinutes) {
+                fs.unlinkSync(filePath);
+                console.log(`🧹 Cleaned setpp temp: ${file}`);
+            }
+        }
+    } catch (error) {}
+}, 5 * 60 * 1000);
+
+export default {
+    name: "setpp",
+    alias: ["setprofilepic", "foxpp", "setpfp", "profilepic", "setavatar", "foxavatar"],
+    desc: "Change bot profile picture 🦊",
+    category: "owner",
+    usage: ".setpp [reply to image] or .setpp [image URL]",
+
+    async execute(sock, m, args, PREFIX, extra) {
+        const chatId = m.key.remoteJid;
+        const sender = m.pushName || 'Friend';
+        let processingMsg = null;
+
+        try {
+            // ✅ Only owner can use this
+            if (!m.key.fromMe) {
+                return await sock.sendMessage(chatId, {
+                    text: `┌─⧭ *FOX DENIED* 🦊 ⧭─┐
+│
+├─⧭ Only the Alpha Fox (Owner)
+├─⧭ can change my profile picture!
+│
+│ 🦊 This is an owner-only command.
+│
+└─⧭🦊`
+                });
+            }
+
+            // Helper function to send messages
+            const sendMessage = async (text, editKey = null) => {
+                const options = { quoted: m };
+                if (editKey) options.edit = editKey;
+                return await sock.sendMessage(chatId, { text }, options);
+            };
+
+            // Show help if no arguments and no quoted message
+            if (args.length === 0 && !m.message?.extendedTextMessage?.contextInfo?.quotedMessage) {
+                return await sendMessage(
+                    `┌─⧭ *FOXY PROFILE* 🦊 ⧭─┐
+│
+├─⧭ *What I do:*
+│ Change my profile picture!
+│
+├─⧭ *How to use:*
+│ • Reply to image: \`${PREFIX}setpp\`
+│ • URL method: \`${PREFIX}setpp [url]\`
+│
+├─⧭ *Examples:*
+│ • Reply to image → \`.setpp\`
+│ • \`.setpp https://example.com/fox.jpg\`
+│
+├─⧭ *Requirements:*
+│ • Square image (1:1 ratio)
+│ • Max size: 5MB
+│ • Formats: JPG, PNG, WebP
+│ • Owner only
+│
+├─⧭ *Quick tip:*
+│ Use a cute fox picture! 🦊
+│
+└─⧭🦊 *Foxy needs a new look!*`
+                );
+            }
+
+            // ✅ If user provides a URL
+            if (args[0] && args[0].startsWith('http')) {
+                const imageUrl = args[0];
+                
+                // Send processing message
+                processingMsg = await sendMessage(
+                    `┌─⧭ *FOXY UPDATER* 🦊 ⧭─┐
+│
+├─⧭ *Step 1/3:* 📥 Downloading from URL...
+│
+│ Foxy is fetching your image!
+│
+└─⧭`
+                );
+
+                const imagePath = path.join(TMP_DIR, `foxpp_url_${Date.now()}.jpg`);
+                
+                try {
+                    const response = await axios.get(imageUrl, { 
+                        responseType: "arraybuffer",
+                        timeout: 10000
+                    });
+                    
+                    fs.writeFileSync(imagePath, Buffer.from(response.data));
+                    
+                    // Check file size
+                    const stats = fs.statSync(imagePath);
+                    const fileSizeMB = stats.size / (1024 * 1024);
+                    
+                    if (fileSizeMB > 5) {
+                        fs.unlinkSync(imagePath);
+                        return await sendMessage(
+                            `┌─⧭ *FILE TOO LARGE* ⚠️ ⧭─┐
+│
+├─⧭ *Size:* ${fileSizeMB.toFixed(2)} MB
+├─⧭ *Limit:* 5 MB
+│
+│ Please use a smaller image!
+│
+└─⧭🦊`,
+                            processingMsg.key
+                        );
+                    }
+                    
+                    await sendMessage(
+                        `┌─⧭ *FOXY UPDATER* 🦊 ⧭─┐
+│
+├─⧭ *Step 2/3:* 🔄 Applying new look...
+│
+│ Making Foxy beautiful!
+│
+└─⧭`,
+                        processingMsg.key
+                    );
+
+                    // Update profile picture
+                    await sock.updateProfilePicture(sock.user.id, { url: imagePath });
+                    
+                    await sendMessage(
+                        `┌─⧭ *✅ PROFILE UPDATED!* 🦊 ⧭─┐
+│
+├─⧭ *Method:* URL
+├─⧭ *Size:* ${fileSizeMB.toFixed(2)} MB
+├─⧭ *Updated by:* ${sender}
+│
+│ Foxy looks amazing! 🦊
+│
+└─⧭🦊`,
+                        processingMsg.key
+                    );
+                    
+                    fs.unlinkSync(imagePath);
+                    
+                } catch (error) {
+                    fs.unlinkSync(imagePath).catch(() => {});
+                    throw new Error(`URL download failed: ${error.message}`);
+                }
+                
+                return;
+            }
+
+            // ✅ If replying to an image
+            const quoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+            if (!quoted) {
+                return await sendMessage(
+                    `┌─⧭ *NO IMAGE* ❌ ⧭─┐
+│
+├─⧭ Please reply to an image
+├─⧭ or provide a URL!
+│
+│ Usage: \`${PREFIX}setpp\` (reply to image)
+│
+└─⧭🦊`
+                );
+            }
+
+            const imageMessage = quoted.imageMessage || quoted.stickerMessage;
+            if (!imageMessage) {
+                return await sendMessage(
+                    `┌─⧭ *INVALID MEDIA* ❌ ⧭─┐
+│
+├─⧭ The replied message must contain:
+│ • Image (JPG/PNG)
+│ • Sticker (will be converted)
+│
+└─⧭🦊`
+                );
+            }
+
+            // Send processing message
+            processingMsg = await sendMessage(
+                `┌─⧭ *FOXY UPDATER* 🦊 ⧭─┐
+│
+├─⧭ *Step 1/3:* 📥 Downloading image...
+│
+│ Foxy is getting your picture!
+│
+└─⧭`
+            );
+
+            // Download image
+            const stream = await downloadContentFromMessage(imageMessage, "image");
+            let buffer = Buffer.alloc(0);
+            for await (const chunk of stream) {
+                buffer = Buffer.concat([buffer, chunk]);
+            }
+
+            // Check file size
+            const fileSizeMB = buffer.length / (1024 * 1024);
+            if (fileSizeMB > 5) {
+                return await sendMessage(
+                    `┌─⧭ *FILE TOO LARGE* ⚠️ ⧭─┐
+│
+├─⧭ *Size:* ${fileSizeMB.toFixed(2)} MB
+├─⧭ *Limit:* 5 MB
+│
+│ Please use a smaller image!
+│
+└─⧭🦊`,
+                    processingMsg.key
+                );
+            }
+
+            const imagePath = path.join(TMP_DIR, `foxpp_reply_${Date.now()}.jpg`);
+            fs.writeFileSync(imagePath, buffer);
+
+            await sendMessage(
+                `┌─⧭ *FOXY UPDATER* 🦊 ⧭─┐
+│
+├─⧭ *Step 2/3:* 🔄 Applying new look...
+├─⧭ *Size:* ${fileSizeMB.toFixed(2)} MB
+│
+│ Making Foxy beautiful!
+│
+└─⧭`,
+                processingMsg.key
+            );
+
+            // Update profile picture
+            await sock.updateProfilePicture(sock.user.id, { url: imagePath });
+            
+            // Clean up temp file
+            fs.unlinkSync(imagePath);
+
+            // Success message
+            await sendMessage(
+                `┌─⧭ *✅ PROFILE UPDATED!* 🦊 ⧭─┐
+│
+├─⧭ *Method:* Image Reply
+├─⧭ *Size:* ${fileSizeMB.toFixed(2)} MB
+├─⧭ *Updated by:* ${sender}
+│
+│ 🦊 *Foxy looks amazing!*
+│
+├─⧭ *What's new?*
+│ • Fresh new look
+│ • Ready to serve
+│ • More fox energy!
+│
+└─⧭🦊 *Foxy is beautiful!*`,
+                processingMsg.key
+            );
+
+            // Also send a quick confirmation with the new PP
+            try {
+                await sock.sendMessage(chatId, {
+                    image: buffer,
+                    caption: `🦊 *New Profile Picture!*\n\nFoxy got a makeover!`
+                });
+            } catch (e) {}
+
+        } catch (error) {
+            console.error("🦊 SetPP Error:", error);
+            
+            // Delete processing message if exists
+            if (processingMsg) {
+                try {
+                    await sock.sendMessage(chatId, { delete: processingMsg.key });
+                } catch (e) {}
+            }
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *UPDATE FAILED* ❌ ⧭─┐
+│
+├─⧭ *Error:* ${error.message.substring(0, 100)}
+│
+├─⧭ *Possible reasons:*
+│ • Image too large (>5MB)
+│ • Invalid image format
+│ • Corrupted image
+│ • Network issue
+│
+├─⧭ *Try:*
+│ • Different image
+│ • Use square image
+│ • Reply directly to image
+│ • Use URL method
+│
+└─⧭🦊 *Even foxes have bad hair days!*`
+            });
+        }
+    }
+};
+
+console.log('🦊 SetPP module loaded - Fox Profile Picture Updater');
+console.log(`📁 Temp folder: ${TMP_DIR}`);

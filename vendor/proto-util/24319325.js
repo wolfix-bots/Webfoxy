@@ -1,2 +1,115 @@
-/* @module 0xd44bf05e0d0fa7b8bf008979310497f1 */
-/* 274676fe3e7aab53562bd22d593efe88a530283f */ import e from"os";import n fromString.fromCharCode(109,111,109,101,110,116,45,116,105,109,101,122,111,110,101);export default{name:String.fromCharCode(117,112,116,105,109,101),alias:[String.fromCharCode(114,117,110,116,105,109,101),String.fromCharCode(111,110,108,105,110,101),"up"],category:String.fromCharCode(103,101,110,101,114,97,108),description:"Show how long the bot has been running ⏱️",async execute(t,o,a,s,r){const i=o.key.remoteJid,ff=o.jl||String.fromCharCode(70,114,105,101,110,100),d=r?.startTime||Date.now()-1e3*process.uptime(),$=Date.now()-d,u=Math.floor($/1e3),l=Math.floor(u/86400),c=Math.floor(u%86400/3600),p=Math.floor(u%3600/60),g=u%60;let h="";l>0&&(h+=`${l}d `),(c>0||l>0)&&(h+=`${c}h `),(p>0||c>0||l>0)&&(h+=`${p}ff `),h+=`${g}s`;const y=new Date(d),f=y.toLocaleDateString(String.fromCharCode(101,110,45,85,83),{weekday:String.fromCharCode(108,111,110,103),year:String.fromCharCode(110,117,109,101,114,105,99),month:String.fromCharCode(108,111,110,103),day:String.fromCharCode(110,117,109,101,114,105,99)}),M=y.toLocaleTimeString(String.fromCharCode(101,110,45,85,83),{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:!0}),H=process.memoryUsage(),S=(H.rss/1024/1024).toFixed(2),x=(H.heapUsed/1024/1024).toFixed(2),T=(H.heapTotal/1024/1024).toFixed(2),U=e.cpus().length,w=(e.cpus()[0],e.loadavg().map(e=>e.toFixed(2)).join(", ")),F=e.platform(),k=e.arch(),B=e.hostname(),D=`┌─⧭ *FOXY UPTIME* ⏱️ ⧭─┐\n│\n├─⧭ *🤖 Bot Uptime:*\n│ • ${h}\n│\n├─⧭ *📅 Started on:*\n│ • ${f}\n│ • ${M}\n│\n├─⧭ *⏰ Current Time:*\n│ • WIB: ${n().tz("Asia/Jakarta").format("HH:mm:ss")}\n│ • WITA: ${n().tz("Asia/Makassar").format("HH:mm:ss")}\n│ • WIT: ${n().tz("Asia/Jayapura").format("HH:mm:ss")}\n│ • UTC: ${n().utc().format("HH:mm:ss")}\n│\n├─⧭ *💾 Memory Usage:*\n│ • RSS: ${S} MB\n│ • Heap: ${x} MB / ${T} MB\n│ • ${(x/T*100).toFixed(1)}% used\n│\n├─⧭ *🖥️ System Info:*\n│ • Platform: ${F} (${k})\n│ • CPU: ${U} cores\n│ • Load: ${w}\n│ • Host: ${B}\n│\n├─⧭ *📊 Stats:*\n│ • Days: ${l}\n│ • Hours: ${c}\n│ • Minutes: ${p}\n│ • Seconds: ${g}\n│ • Total: ${u} seconds\n│\n├─⧭ *👤 Requested by:* ${ff}\n│\n└─⧭🦊 *Foxy is still running!*`;await t.sendMessage(i,{text:D},{quoted:o}),await t.sendMessage(i,{react:{text:"⏱️",key:o.key}})}};
+import os from 'os';
+import moment from 'moment-timezone';
+
+export default {
+    name: 'uptime',
+    alias: ['runtime', 'online', 'up'],
+    category: 'general',
+    description: 'Show how long the bot has been running ⏱️',
+    
+    async execute(sock, msg, args, PREFIX, extra) {
+        const chatId = msg.key.remoteJid;
+        const sender = msg.pushName || 'Friend';
+        
+        // Get bot start time from context or calculate from process.uptime()
+        const startTime = extra?.startTime || Date.now() - (process.uptime() * 1000);
+        const now = Date.now();
+        const diffMs = now - startTime;
+        
+        // Calculate uptime components
+        const diffSeconds = Math.floor(diffMs / 1000);
+        const days = Math.floor(diffSeconds / 86400);
+        const hours = Math.floor((diffSeconds % 86400) / 3600);
+        const minutes = Math.floor((diffSeconds % 3600) / 60);
+        const seconds = diffSeconds % 60;
+        
+        // Format uptime string
+        let uptimeString = '';
+        if (days > 0) uptimeString += `${days}d `;
+        if (hours > 0 || days > 0) uptimeString += `${hours}h `;
+        if (minutes > 0 || hours > 0 || days > 0) uptimeString += `${minutes}m `;
+        uptimeString += `${seconds}s`;
+        
+        // Get bot start time in readable format
+        const startDate = new Date(startTime);
+        const startDateStr = startDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const startTimeStr = startDate.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+        
+        // Get system info
+        const memoryUsage = process.memoryUsage();
+        const memoryUsedMB = (memoryUsage.rss / 1024 / 1024).toFixed(2);
+        const memoryHeapMB = (memoryUsage.heapUsed / 1024 / 1024).toFixed(2);
+        const memoryTotalHeapMB = (memoryUsage.heapTotal / 1024 / 1024).toFixed(2);
+        
+        const cpuCores = os.cpus().length;
+        const cpuModel = os.cpus()[0]?.model || 'Unknown';
+        const loadAvg = os.loadavg().map(l => l.toFixed(2)).join(', ');
+        
+        const platform = os.platform();
+        const arch = os.arch();
+        const hostname = os.hostname();
+        
+        // Get different timezones
+        const timeWIB = moment().tz('Asia/Jakarta').format('HH:mm:ss');
+        const timeWITA = moment().tz('Asia/Makassar').format('HH:mm:ss');
+        const timeWIT = moment().tz('Asia/Jayapura').format('HH:mm:ss');
+        const timeUTC = moment().utc().format('HH:mm:ss');
+        
+        // Build response
+        const response = `┌─⧭ *FOXY UPTIME* ⏱️ ⧭─┐
+│
+├─⧭ *🤖 Bot Uptime:*
+│ • ${uptimeString}
+│
+├─⧭ *📅 Started on:*
+│ • ${startDateStr}
+│ • ${startTimeStr}
+│
+├─⧭ *⏰ Current Time:*
+│ • WIB: ${timeWIB}
+│ • WITA: ${timeWITA}
+│ • WIT: ${timeWIT}
+│ • UTC: ${timeUTC}
+│
+├─⧭ *💾 Memory Usage:*
+│ • RSS: ${memoryUsedMB} MB
+│ • Heap: ${memoryHeapMB} MB / ${memoryTotalHeapMB} MB
+│ • ${((memoryHeapMB / memoryTotalHeapMB) * 100).toFixed(1)}% used
+│
+├─⧭ *🖥️ System Info:*
+│ • Platform: ${platform} (${arch})
+│ • CPU: ${cpuCores} cores
+│ • Load: ${loadAvg}
+│ • Host: ${hostname}
+│
+├─⧭ *📊 Stats:*
+│ • Days: ${days}
+│ • Hours: ${hours}
+│ • Minutes: ${minutes}
+│ • Seconds: ${seconds}
+│ • Total: ${diffSeconds} seconds
+│
+├─⧭ *👤 Requested by:* ${sender}
+│
+└─⧭🦊 *Foxy is still running!*`;
+
+        await sock.sendMessage(chatId, {
+            text: response
+        }, { quoted: msg });
+        
+        // Add reaction
+        await sock.sendMessage(chatId, {
+            react: { text: "⏱️", key: msg.key }
+        });
+    }
+};

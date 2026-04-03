@@ -1,2 +1,157 @@
-/* @module 0xe1872dd859dd0e7ae99001e133e24af6 */
-/* 160488a8604504c49e61c3f210415e0c10fa1d71 */ export default{name:String.fromCharCode(104,97,110,103,109,97,110),alias:[String.fromCharCode(104,97,110,103),"hm"],category:String.fromCharCode(103,97,109,101,115),description:"Play hangman word guessing game 🪢",async execute(e,n,t,s,a){const d=n.key.remoteJid,o=n.pu||String.fromCharCode(70,114,105,101,110,100);global.hangmanGames||(global.hangmanGames=new Map);const g=global.hangmanGames.get(d),r=[String.fromCharCode(70,79,88,89),String.fromCharCode(66,79,84),String.fromCharCode(87,72,65,84,83,65,80,80),String.fromCharCode(71,65,77,69),String.fromCharCode(72,65,78,71,77,65,78),String.fromCharCode(70,79,88),String.fromCharCode(80,89,84,72,79,78),String.fromCharCode(67,79,68,73,78,71),String.fromCharCode(70,85,78),String.fromCharCode(87,73,78),String.fromCharCode(83,77,65,82,84),String.fromCharCode(67,85,84,69),String.fromCharCode(70,65,83,84),String.fromCharCode(67,76,69,86,69,82),String.fromCharCode(81,85,73,67,75)];if(String.fromCharCode(115,116,97,114,116)===t[0]?.toLowerCase()||!g){const t=r[Math.floor(Math.random()*r.length)],a={word:t,guessed:[],attempts:6,status:String.fromCharCode(112,108,97,121,105,110,103),player:o,startTime:Date.now()};global.hangmanGames.set(d,a);const g=t.split("").map(e=>a.guessed.includes(e)?e:"⬜").join(" ");return void await e.sendMessage(d,{text:`┌─⧭ *HANGMAN GAME* 🪢 ⧭─┐\n│\n├─⧭ *Word:* ${g}\n├─⧭ *Attempts left:* ${a.attempts}\n├─⧭ *Guessed:* ${a.guessed.join(", ")||String.fromCharCode(78,111,110,101)}\n│\n├─⧭ *Guess a letter:*\n│ ${s}hangman <letter>\n│\n└─⧭🦊 *Game started!*`},{quoted:n})}const u=g;if(!u)return e.sendMessage(d,{text:`┌─⧭ *HANGMAN* 🪢 ⧭─┐\n│\n├─⧭ No active game!\n│\n├─⧭ *Start a game:*\n│ ${s}hangman start\n│\n└─⧭🦊`},{quoted:n});const l=t[0]?.toUpperCase();if(!l||1!==l.length||!/[A-Z]/.test(l))return e.sendMessage(d,{text:"┌─⧭ *INVALID GUESS* ❌ ⧭─┐\n│\n├─⧭ Please guess a single letter A-Z.\n│\n└─⧭🦊"},{quoted:n});if(u.guessed.includes(l))return e.sendMessage(d,{text:`┌─⧭ *ALREADY GUESSED* 🔁 ⧭─┐\n│\n├─⧭ You already guessed "${l}"!\n│\n└─⧭🦊`},{quoted:n});u.guessed.push(l),u.word.includes(l)||u.attempts--;const vl=u.word.split("").map(e=>u.guessed.includes(e)?e:"⬜").join(" ");vl.includes("⬜")?u.attempts<=0?(await e.sendMessage(d,{text:`┌─⧭ *💀 GAME OVER* ⧭─┐\n│\n├─⧭ *Word was:* ${u.word}\n├─⧭ *Guessed:* ${u.guessed.join(", ")}\n│\n│ Better luck next time!\n│\n└─⧭🦊`},{quoted:n}),global.hangmanGames.delete(d)):await e.sendMessage(d,{text:`┌─⧭ *HANGMAN GAME* 🪢 ⧭─┐\n│\n├─⧭ *Word:* ${vl}\n├─⧭ *Attempts left:* ${u.attempts}\n├─⧭ *Guessed:* ${u.guessed.join(", ")}\n│\n├─⧭ *Guess another letter:*\n│ ${s}hangman <letter>\n│\n└─⧭🦊`},{quoted:n}):(await e.sendMessage(d,{text:`┌─⧭ *🎉 YOU WIN!* ⧭─┐\n│\n├─⧭ *Word:* ${u.word}\n├─⧭ *Guessed:* ${u.guessed.join(", ")}\n│\n│ Congratulations ${o}! 🏆\n│\n└─⧭🦊`},{quoted:n}),global.hangmanGames.delete(d)),await e.sendMessage(d,{react:{text:"🪢",key:n.key}})}};
+export default {
+    name: 'hangman',
+    alias: ['hang', 'hm'],
+    category: 'games',
+    description: 'Play hangman word guessing game 🪢',
+    
+    async execute(sock, msg, args, PREFIX, extra) {
+        const chatId = msg.key.remoteJid;
+        const sender = msg.pushName || 'Friend';
+        
+        // Check if game is already running
+        if (!global.hangmanGames) global.hangmanGames = new Map();
+        
+        const existingGame = global.hangmanGames.get(chatId);
+        
+        // Word list
+        const words = [
+            'FOXY', 'BOT', 'WHATSAPP', 'GAME', 'HANGMAN',
+            'FOX', 'PYTHON', 'CODING', 'FUN', 'WIN',
+            'SMART', 'CUTE', 'FAST', 'CLEVER', 'QUICK'
+        ];
+        
+        // If starting a new game
+        if (args[0]?.toLowerCase() === 'start' || !existingGame) {
+            const word = words[Math.floor(Math.random() * words.length)];
+            const game = {
+                word: word,
+                guessed: [],
+                attempts: 6,
+                status: 'playing',
+                player: sender,
+                startTime: Date.now()
+            };
+            
+            global.hangmanGames.set(chatId, game);
+            
+            const display = word.split('').map(l => game.guessed.includes(l) ? l : '⬜').join(' ');
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *HANGMAN GAME* 🪢 ⧭─┐
+│
+├─⧭ *Word:* ${display}
+├─⧭ *Attempts left:* ${game.attempts}
+├─⧭ *Guessed:* ${game.guessed.join(', ') || 'None'}
+│
+├─⧭ *Guess a letter:*
+│ ${PREFIX}hangman <letter>
+│
+└─⧭🦊 *Game started!*`
+            }, { quoted: msg });
+            
+            return;
+        }
+        
+        const game = existingGame;
+        if (!game) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *HANGMAN* 🪢 ⧭─┐
+│
+├─⧭ No active game!
+│
+├─⧭ *Start a game:*
+│ ${PREFIX}hangman start
+│
+└─⧭🦊`
+            }, { quoted: msg });
+        }
+        
+        // Process guess
+        const guess = args[0]?.toUpperCase();
+        if (!guess || guess.length !== 1 || !/[A-Z]/.test(guess)) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *INVALID GUESS* ❌ ⧭─┐
+│
+├─⧭ Please guess a single letter A-Z.
+│
+└─⧭🦊`
+            }, { quoted: msg });
+        }
+        
+        if (game.guessed.includes(guess)) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *ALREADY GUESSED* 🔁 ⧭─┐
+│
+├─⧭ You already guessed "${guess}"!
+│
+└─⧭🦊`
+            }, { quoted: msg });
+        }
+        
+        game.guessed.push(guess);
+        
+        if (!game.word.includes(guess)) {
+            game.attempts--;
+        }
+        
+        const display = game.word.split('').map(l => game.guessed.includes(l) ? l : '⬜').join(' ');
+        const won = !display.includes('⬜');
+        
+        // Hangman stages
+        const stages = [
+            '⬜⬜⬜⬜⬜',
+            '⬜⬜⬜⬜⬜',
+            '⬜⬜⬜⬜⬜',
+            '⬜⬜⬜⬜⬜',
+            '⬜⬜⬜⬜⬜',
+            '⬜⬜⬜⬜⬜'
+        ];
+        
+        if (won) {
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *🎉 YOU WIN!* ⧭─┐
+│
+├─⧭ *Word:* ${game.word}
+├─⧭ *Guessed:* ${game.guessed.join(', ')}
+│
+│ Congratulations ${sender}! 🏆
+│
+└─⧭🦊`
+            }, { quoted: msg });
+            
+            global.hangmanGames.delete(chatId);
+            
+        } else if (game.attempts <= 0) {
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *💀 GAME OVER* ⧭─┐
+│
+├─⧭ *Word was:* ${game.word}
+├─⧭ *Guessed:* ${game.guessed.join(', ')}
+│
+│ Better luck next time!
+│
+└─⧭🦊`
+            }, { quoted: msg });
+            
+            global.hangmanGames.delete(chatId);
+            
+        } else {
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *HANGMAN GAME* 🪢 ⧭─┐
+│
+├─⧭ *Word:* ${display}
+├─⧭ *Attempts left:* ${game.attempts}
+├─⧭ *Guessed:* ${game.guessed.join(', ')}
+│
+├─⧭ *Guess another letter:*
+│ ${PREFIX}hangman <letter>
+│
+└─⧭🦊`
+            }, { quoted: msg });
+        }
+        
+        await sock.sendMessage(chatId, {
+            react: { text: "🪢", key: msg.key }
+        });
+    }
+};

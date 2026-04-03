@@ -1,2 +1,40 @@
-/* @module 0x0ac20cf6904b2c28b467ab3fed8dee36 */
-/* 112326c9f735f529630869f819601a609a6507f8 */ export default{name:String.fromCharCode(116,101,97,99,104),alias:[String.fromCharCode(116,101,97,99,104,101,114),String.fromCharCode(108,101,97,114,110),String.fromCharCode(116,117,116,111,114),String.fromCharCode(108,101,115,115,111,110)],category:"ai",async execute(e,a,t,n,s){const o=a.key.remoteJid;if(!t.length)return e.sendMessage(o,{text:`┌─⧭ *AI Teacher*\n│ Learn any topic\n│\n│ Usage: ${n}teach <topic>\n│ Example: ${n}teach how rainbows form\n│ Example: ${n}teacher algebra\n└─⧭`},{quoted:a});const i=t.join(" ");await e.sendMessage(o,{text:`┌─⧭ *Preparing lesson:* ${i}\n└─⧭`},{quoted:a});try{const t=(await import(String.fromCharCode(97,120,105,111,115))).default,n=`You are a teacher. Explain "${i}" in simple terms with examples.`,s=`https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent(n)}`,r=await t.get(s,{timeout:3e4}),c=r.data?.result||r.data?.response||"I don't know";await e.sendMessage(o,{text:`┌─⧭ *Lesson: ${i}*\n│\n\`\`\`\n${c}\n\`\`\`\n│\n│ Keep learning! 📚\n└─⧭`},{quoted:a})}catch(t){await e.sendMessage(o,{text:"┌─⧭ *Error*\n│ Teacher unavailable\n└─⧭"},{quoted:a})}}};
+export default {
+    name: "teach",
+    alias: ["teacher", "learn", "tutor", "lesson"],
+    category: "ai",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *AI Teacher*\n\u2502 Learn any topic\n\u2502\n\u2502 Usage: ${PREFIX}teach <topic>\n\u2502 Example: ${PREFIX}teach how rainbows form\n\u2502 Example: ${PREFIX}teacher algebra\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+        
+        const topic = args.join(' ');
+        
+        await sock.sendMessage(jid, {
+            text: `\u250C\u2500\u29ED *Preparing lesson:* ${topic}\n\u2514\u2500\u29ED`
+        }, { quoted: m });
+        
+        try {
+            const axios = (await import('axios')).default;
+            
+            const prompt = `You are a teacher. Explain "${topic}" in simple terms with examples.`;
+            const url = `https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent(prompt)}`;
+            
+            const response = await axios.get(url, { timeout: 30000 });
+            const answer = response.data?.result || response.data?.response || "I don't know";
+            
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Lesson: ${topic}*\n\u2502\n\`\`\`\n${answer}\n\`\`\`\n\u2502\n\u2502 Keep learning! 📚\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+            
+        } catch (error) {
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Error*\n\u2502 Teacher unavailable\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+    }
+};

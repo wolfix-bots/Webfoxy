@@ -1,2 +1,210 @@
-/* @module 0x91ed74ff1ce28e7847898f57d1abc967 */
-/* be3fdf06baf6bb690b396083f18b54cbf403ddfa */ import e from"fs";import t fromString.fromCharCode(112,97,116,104);import{fileURLToPath as s}fromString.fromCharCode(117,114,108);import o fromString.fromCharCode(97,120,105,111,115);const n=s(import.meta.url),a=t.dirname(n);export default{name:String.fromCharCode(114,101,115,116,111,114,101,109,101,110,117,105,109,97,103,101),description:"Restore default menu image or from backup",async execute(s,n,i){const r=n.key.remoteJid;if(n.of!==global.owner&&n.of!==process.env.OWNER_NUMBER)return void await s.sendMessage(r,{text:"❌ Owner only!"},{quoted:n});let d;try{const c=t.join(a,String.fromCharCode(109,101,100,105,97)),u=t.join(c,String.fromCharCode(98,97,99,107,117,112,115)),l=t.join(c,"wolfbot.jpg"),g="https://i.ibb.co/SDWKT5nx/0b3fef5fc5e9.jpg";if(0===i.length){d=await s.sendMessage(r,{text:"🔄 Downloading default image..."},{quoted:n});try{const n=await o({method:String.fromCharCode(71,69,84),url:g,responseType:String.fromCharCode(97,114,114,97,121,98,117,102,102,101,114),timeout:2e4,headers:{String.fromCharCode(85,115,101,114,45,65,103,101,110,116):"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}});await s.sendMessage(r,{text:"🔄 Downloading default image... ✅\n💾 Saving...",edit:d.key});const a=Buffer.from(n.data);if(e.existsSync(c)||e.mkdirSync(c,{recursive:!0}),e.existsSync(u)||e.mkdirSync(u,{recursive:!0}),e.existsSync(l)){const s=(new Date).toISOString().replace(/[:.]/g,"-").slice(0,-5),o=t.join(u,`wolfbot-backup-before-reset-${s}.jpg`);try{e.copyFileSync(l,o),console.log(`💾 Backup created: ${o}`)}catch(e){console.log("⚠️ Could not create backup")}}e.writeFileSync(l,a),console.log("✅ Default menu image restored from URL");const i=e.readFileSync(l);await s.sendMessage(r,{image:i,caption:`✅ *Default Menu Restored!*\n\nUse ${global.prefix}menu to see it.`,edit:d.key})}catch(e){return void await s.sendMessage(r,{text:"❌ Failed to download default image",edit:d.key})}return}if(String.fromCharCode(108,105,115,116)===i[0]||String.fromCharCode(98,97,99,107,117,112,115)===i[0]){if(!e.existsSync(u))return void await s.sendMessage(r,{text:"❌ No backups found!"},{quoted:n});const o=e.readdirSync(u).filter(e=>e.startsWith(String.fromCharCode(119,111,108,102,98,111,116,45,98,97,99,107,117,112,45))&&(e.endsWith(".jpg")||e.endsWith(".png")||e.endsWith(".webp"))).sort().reverse().slice(0,10);if(0===o.length)return void await s.sendMessage(r,{text:"📁 No backups found!"},{quoted:n});let a=`📁 *Backups* (${o.length})\n\n`;return o.forEach((s,o)=>{const n=t.join(u,s),i=(e.statSync(n).size/1024/1024).toFixed(2);a+=`${o+1}. ${s}\n`,a+=` 📏 ${i}MB\n\n`}),a+=`💡 ${global.prefix}restoremenuimage <number>`,void await s.sendMessage(r,{text:a},{quoted:n})}const f=parseInt(i[0])-1;if(!e.existsSync(u))return void await s.sendMessage(r,{text:"❌ No backups found!"},{quoted:n});const p=e.readdirSync(u).filter(e=>e.startsWith(String.fromCharCode(119,111,108,102,98,111,116,45,98,97,99,107,117,112,45))&&(e.endsWith(".jpg")||e.endsWith(".png")||e.endsWith(".webp"))).sort().reverse();if(0===p.length)return void await s.sendMessage(r,{text:"❌ No backups found!"},{quoted:n});if(isNaN(f)||f<0||f>=p.length)return void await s.sendMessage(r,{text:`❌ Invalid! Use 1-${p.length}`},{quoted:n});const or=p[f],b=t.join(u,or);d=await s.sendMessage(r,{text:"🔄 Restoring backup..."},{quoted:n}),e.copyFileSync(b,l),console.log(`✅ Menu image restored from backup: ${or}`);const w=e.readFileSync(l);await s.sendMessage(r,{image:w,caption:`✅ *Backup Restored!*\n\nUse ${global.prefix}menu to see it.`,edit:d.key})}catch(e){console.error("❌ [RESTOREMENUIMAGE] ERROR:",e),d?await s.sendMessage(r,{text:"❌ Restore failed",edit:d.key}):await s.sendMessage(r,{text:"❌ Restore failed"},{quoted:n})}}};
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import axios from "axios";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export default {
+  name: "restoremenuimage",
+  description: "Restore default menu image or from backup",
+  async execute(sock, m, args) {
+    const jid = m.key.remoteJid;
+    
+    // Check if user is bot owner
+    const isOwner = m.sender === global.owner || m.sender === process.env.OWNER_NUMBER;
+    if (!isOwner) {
+      await sock.sendMessage(jid, { 
+        text: "❌ Owner only!" 
+      }, { quoted: m });
+      return;
+    }
+
+    let statusMsg;
+
+    try {
+      const mediaDir = path.join(__dirname, "media");
+      const backupDir = path.join(mediaDir, "backups");
+      const wolfbotPath = path.join(mediaDir, "wolfbot.jpg");
+      
+      // Your default menu image URL
+      const defaultImageUrl = "https://i.ibb.co/SDWKT5nx/0b3fef5fc5e9.jpg";
+
+      // If no arguments, restore to default image from URL
+      if (args.length === 0) {
+        statusMsg = await sock.sendMessage(jid, { 
+          text: "🔄 Downloading default image..." 
+        }, { quoted: m });
+
+        try {
+          // Download default image from URL
+          const response = await axios({
+            method: 'GET',
+            url: defaultImageUrl,
+            responseType: 'arraybuffer',
+            timeout: 20000,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+          });
+
+          await sock.sendMessage(jid, { 
+            text: "🔄 Downloading default image... ✅\n💾 Saving...",
+            edit: statusMsg.key 
+          });
+
+          const imageBuffer = Buffer.from(response.data);
+
+          // Create directories if they don't exist
+          if (!fs.existsSync(mediaDir)) {
+            fs.mkdirSync(mediaDir, { recursive: true });
+          }
+          if (!fs.existsSync(backupDir)) {
+            fs.mkdirSync(backupDir, { recursive: true });
+          }
+
+          // Create backup of current image if it exists
+          if (fs.existsSync(wolfbotPath)) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const backupPath = path.join(backupDir, `wolfbot-backup-before-reset-${timestamp}.jpg`);
+            try {
+              fs.copyFileSync(wolfbotPath, backupPath);
+              console.log(`💾 Backup created: ${backupPath}`);
+            } catch (backupError) {
+              console.log("⚠️ Could not create backup");
+            }
+          }
+
+          // Save the default image
+          fs.writeFileSync(wolfbotPath, imageBuffer);
+          
+          console.log(`✅ Default menu image restored from URL`);
+
+          // Get the restored image for preview
+          const restoredImageBuffer = fs.readFileSync(wolfbotPath);
+          
+          // Edit with final success message
+          await sock.sendMessage(jid, { 
+            image: restoredImageBuffer,
+            caption: `✅ *Default Menu Restored!*\n\nUse ${global.prefix}menu to see it.`,
+            edit: statusMsg.key 
+          });
+
+        } catch (downloadError) {
+          await sock.sendMessage(jid, { 
+            text: "❌ Failed to download default image",
+            edit: statusMsg.key 
+          });
+          return;
+        }
+        return;
+      }
+
+      // If argument is "list" or "backups", show available backups
+      if (args[0] === 'list' || args[0] === 'backups') {
+        if (!fs.existsSync(backupDir)) {
+          await sock.sendMessage(jid, { 
+            text: "❌ No backups found!" 
+          }, { quoted: m });
+          return;
+        }
+
+        const backupFiles = fs.readdirSync(backupDir)
+          .filter(file => file.startsWith('wolfbot-backup-') && (file.endsWith('.jpg') || file.endsWith('.png') || file.endsWith('.webp')))
+          .sort()
+          .reverse()
+          .slice(0, 10);
+
+        if (backupFiles.length === 0) {
+          await sock.sendMessage(jid, { 
+            text: "📁 No backups found!" 
+          }, { quoted: m });
+          return;
+        }
+
+        let backupList = `📁 *Backups* (${backupFiles.length})\n\n`;
+        
+        backupFiles.forEach((file, index) => {
+          const filePath = path.join(backupDir, file);
+          const stats = fs.statSync(filePath);
+          const size = (stats.size / 1024 / 1024).toFixed(2);
+          
+          backupList += `${index + 1}. ${file}\n`;
+          backupList += `   📏 ${size}MB\n\n`;
+        });
+
+        backupList += `💡 ${global.prefix}restoremenuimage <number>`;
+
+        await sock.sendMessage(jid, { text: backupList }, { quoted: m });
+        return;
+      }
+
+      // If specific backup number is provided
+      const index = parseInt(args[0]) - 1;
+      
+      // Check if backup directory exists
+      if (!fs.existsSync(backupDir)) {
+        await sock.sendMessage(jid, { 
+          text: "❌ No backups found!" 
+        }, { quoted: m });
+        return;
+      }
+
+      const backupFiles = fs.readdirSync(backupDir)
+        .filter(file => file.startsWith('wolfbot-backup-') && (file.endsWith('.jpg') || file.endsWith('.png') || file.endsWith('.webp')))
+        .sort()
+        .reverse();
+
+      if (backupFiles.length === 0) {
+        await sock.sendMessage(jid, { 
+          text: "❌ No backups found!" 
+        }, { quoted: m });
+        return;
+      }
+
+      if (isNaN(index) || index < 0 || index >= backupFiles.length) {
+        await sock.sendMessage(jid, { 
+          text: `❌ Invalid! Use 1-${backupFiles.length}` 
+        }, { quoted: m });
+        return;
+      }
+
+      const backupToRestore = backupFiles[index];
+      const backupPath = path.join(backupDir, backupToRestore);
+      
+      statusMsg = await sock.sendMessage(jid, { 
+        text: `🔄 Restoring backup...` 
+      }, { quoted: m });
+
+      // Restore the backup
+      fs.copyFileSync(backupPath, wolfbotPath);
+      
+      console.log(`✅ Menu image restored from backup: ${backupToRestore}`);
+
+      // Get the restored image for preview
+      const restoredImageBuffer = fs.readFileSync(wolfbotPath);
+      
+      // Edit with final success message
+      await sock.sendMessage(jid, { 
+        image: restoredImageBuffer,
+        caption: `✅ *Backup Restored!*\n\nUse ${global.prefix}menu to see it.`,
+        edit: statusMsg.key 
+      });
+
+    } catch (error) {
+      console.error("❌ [RESTOREMENUIMAGE] ERROR:", error);
+      
+      if (statusMsg) {
+        await sock.sendMessage(jid, { 
+          text: "❌ Restore failed",
+          edit: statusMsg.key 
+        });
+      } else {
+        await sock.sendMessage(jid, { 
+          text: "❌ Restore failed" 
+        }, { quoted: m });
+      }
+    }
+  },
+};

@@ -1,2 +1,176 @@
-/* @module 0x7083d0b9c6b05a3f3a74ab41ee12068e */
-import axios from 'axios'; export default { name: "weather", alias: ["wetter", "clima", "cuaca", "tempo"], category: "tools", description: "Get current weather information for any city 🌤️", async execute(sock, m, args, prefix) { const jid = m.key.remoteJid; if (!args.length) { return sock.sendMessage(jid, { text: `┌─⧭ *FOXY WEATHER* 🌤️ ⧭─┐ │ ├─⧭ *What I do:* │ Get current weather for any city! │ ├─⧭ *Usage:* │ ${prefix}weather <city name> │ ${prefix}weather <city, country> │ ├─⧭ *Examples:* │ • ${prefix}weather London │ • ${prefix}weather Tokyo │ • ${prefix}weather New York │ • ${prefix}weather Paris, France │ • ${prefix}weather Jakarta │ ├─⧭ *Features:* │ • Temperature (°C/°F) │ • Humidity │ • Wind speed │ • Weather description │ • Sunrise/sunset │ └─⧭🦊 *Check the forecast!*` }); } const city = args.join(' '); try { await sock.sendMessage(jid, { text: `┌─⧭ *FOXY WEATHER* 🌤️ ⧭─┐ │ ├─⧭ *City:* ${city} │ │ 🔍 Searching for weather data... │ └─⧭🦊` }); const API_KEY = 'bd5e378503939ddaee76f12ad7a97608'; // Public test key - rate limited const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`; const response = await axios.get(url, { timeout: 10000 }); const data = response.data; const temp = Math.round(data.main.temp); const feelsLike = Math.round(data.main.feels_like); const humidity = data.main.humidity; const pressure = data.main.pressure; const description = data.weather[0].description; const icon = data.weather[0].icon; const windSpeed = data.wind.speed; const windDeg = data.wind.deg; const clouds = data.clouds.all; const country = data.sys.country; const cityName = data.name; const windDirections = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']; const windDir = windDirections[Math.round(windDeg / 22.5) % 16]; const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); const weatherEmoji = { '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️', '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️', '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️', '11d': '⛈️', '11n': '⛈️', '13d': '🌨️', '13n': '🌨️', '50d': '🌫️', '50n': '🌫️' }[icon] || '🌡️'; const weatherMsg = `┌─⧭ *🦊 FOXY WEATHER* ⧭─┐ │ ├─⧭ *Location:* ${cityName}, ${country} ├─⧭ ${weatherEmoji} *${description.toUpperCase()}* │ ├─⧭ *🌡️ Temperature:* │ • Current: ${temp}°C │ • Feels like: ${feelsLike}°C │ • Humidity: ${humidity}% │ • Pressure: ${pressure} hPa │ ├─⧭ *💨 Wind:* │ • Speed: ${windSpeed} m/s │ • Direction: ${windDir} (${windDeg}°) │ ├─⧭ *☁️ Clouds:* ${clouds}% │ ├─⧭ *⏰ Sun:* │ • Sunrise: ${sunrise} │ • Sunset: ${sunset} │ ├─⧭ *Requested by:* ${m.pushName || 'Friend'} │ ├─⧭ *Try another city:* │ ${prefix}weather ${city.split(' ')[0]} │ └─⧭🦊 *Foxy weather report!*`; await sock.sendMessage(jid, { text: weatherMsg }); } catch (error) { console.error('Weather error:', error); let errorMsg = `┌─⧭ *WEATHER FAILED* ❌ ⧭─┐ │ ├─⧭ *City:* ${city} │ ├─⧭ *Possible reasons:* │ • City not found │ • Spelling error │ • API limit reached │ • Network issue │ ├─⧭ *Try:* │ • ${prefix}weather London │ • ${prefix}weather Tokyo │ • ${prefix}weather Paris │ • Check spelling │ └─⧭🦊 *Even foxes can't control the weather!*`; if (error.response?.status === 404) { errorMsg = `┌─⧭ *CITY NOT FOUND* ❌ ⧭─┐ │ ├─⧭ "${city}" not found! │ ├─⧭ *Try:* │ • ${prefix}weather London │ • ${prefix}weather New York │ • Check spelling │ • Add country: Paris, France │ └─⧭🦊`; } else if (error.response?.status === 401) { errorMsg = `┌─⧭ *API ERROR* ❌ ⧭─┐ │ ├─⧭ Weather service unavailable │ ├─⧭ *Try again later* │ └─⧭🦊`; } await sock.sendMessage(jid, { text: errorMsg }); } } };
+import axios from 'axios';
+
+export default {
+    name: "weather",
+    alias: ["wetter", "clima", "cuaca", "tempo"],
+    category: "tools",
+    description: "Get current weather information for any city 🌤️",
+    
+    async execute(sock, m, args, prefix) {
+        const jid = m.key.remoteJid;
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY WEATHER* 🌤️ ⧭─┐
+│
+├─⧭ *What I do:*
+│ Get current weather for any city!
+│
+├─⧭ *Usage:*
+│ ${prefix}weather <city name>
+│ ${prefix}weather <city, country>
+│
+├─⧭ *Examples:*
+│ • ${prefix}weather London
+│ • ${prefix}weather Tokyo
+│ • ${prefix}weather New York
+│ • ${prefix}weather Paris, France
+│ • ${prefix}weather Jakarta
+│
+├─⧭ *Features:*
+│ • Temperature (°C/°F)
+│ • Humidity
+│ • Wind speed
+│ • Weather description
+│ • Sunrise/sunset
+│
+└─⧭🦊 *Check the forecast!*`
+            });
+        }
+        
+        const city = args.join(' ');
+        
+        try {
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY WEATHER* 🌤️ ⧭─┐
+│
+├─⧭ *City:* ${city}
+│
+│ 🔍 Searching for weather data...
+│
+└─⧭🦊`
+            });
+            
+            // Using OpenWeatherMap API (free tier)
+            const API_KEY = 'bd5e378503939ddaee76f12ad7a97608'; // Public test key - rate limited
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+            
+            const response = await axios.get(url, { timeout: 10000 });
+            const data = response.data;
+            
+            // Extract weather info
+            const temp = Math.round(data.main.temp);
+            const feelsLike = Math.round(data.main.feels_like);
+            const humidity = data.main.humidity;
+            const pressure = data.main.pressure;
+            const description = data.weather[0].description;
+            const icon = data.weather[0].icon;
+            const windSpeed = data.wind.speed;
+            const windDeg = data.wind.deg;
+            const clouds = data.clouds.all;
+            const country = data.sys.country;
+            const cityName = data.name;
+            
+            // Get wind direction
+            const windDirections = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+            const windDir = windDirections[Math.round(windDeg / 22.5) % 16];
+            
+            // Convert sunrise/sunset
+            const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            // Weather emoji based on icon
+            const weatherEmoji = {
+                '01d': '☀️', '01n': '🌙',
+                '02d': '⛅', '02n': '☁️',
+                '03d': '☁️', '03n': '☁️',
+                '04d': '☁️', '04n': '☁️',
+                '09d': '🌧️', '09n': '🌧️',
+                '10d': '🌦️', '10n': '🌧️',
+                '11d': '⛈️', '11n': '⛈️',
+                '13d': '🌨️', '13n': '🌨️',
+                '50d': '🌫️', '50n': '🌫️'
+            }[icon] || '🌡️';
+            
+            // Build message
+            const weatherMsg = `┌─⧭ *🦊 FOXY WEATHER* ⧭─┐
+│
+├─⧭ *Location:* ${cityName}, ${country}
+├─⧭ ${weatherEmoji} *${description.toUpperCase()}*
+│
+├─⧭ *🌡️ Temperature:*
+│ • Current: ${temp}°C
+│ • Feels like: ${feelsLike}°C
+│ • Humidity: ${humidity}%
+│ • Pressure: ${pressure} hPa
+│
+├─⧭ *💨 Wind:*
+│ • Speed: ${windSpeed} m/s
+│ • Direction: ${windDir} (${windDeg}°)
+│
+├─⧭ *☁️ Clouds:* ${clouds}%
+│
+├─⧭ *⏰ Sun:*
+│ • Sunrise: ${sunrise}
+│ • Sunset: ${sunset}
+│
+├─⧭ *Requested by:* ${m.pushName || 'Friend'}
+│
+├─⧭ *Try another city:*
+│ ${prefix}weather ${city.split(' ')[0]}
+│
+└─⧭🦊 *Foxy weather report!*`;
+            
+            await sock.sendMessage(jid, {
+                text: weatherMsg
+            });
+            
+        } catch (error) {
+            console.error('Weather error:', error);
+            
+            let errorMsg = `┌─⧭ *WEATHER FAILED* ❌ ⧭─┐
+│
+├─⧭ *City:* ${city}
+│
+├─⧭ *Possible reasons:*
+│ • City not found
+│ • Spelling error
+│ • API limit reached
+│ • Network issue
+│
+├─⧭ *Try:*
+│ • ${prefix}weather London
+│ • ${prefix}weather Tokyo
+│ • ${prefix}weather Paris
+│ • Check spelling
+│
+└─⧭🦊 *Even foxes can't control the weather!*`;
+            
+            if (error.response?.status === 404) {
+                errorMsg = `┌─⧭ *CITY NOT FOUND* ❌ ⧭─┐
+│
+├─⧭ "${city}" not found!
+│
+├─⧭ *Try:*
+│ • ${prefix}weather London
+│ • ${prefix}weather New York
+│ • Check spelling
+│ • Add country: Paris, France
+│
+└─⧭🦊`;
+            } else if (error.response?.status === 401) {
+                errorMsg = `┌─⧭ *API ERROR* ❌ ⧭─┐
+│
+├─⧭ Weather service unavailable
+│
+├─⧭ *Try again later*
+│
+└─⧭🦊`;
+            }
+            
+            await sock.sendMessage(jid, {
+                text: errorMsg
+            });
+        }
+    }
+};

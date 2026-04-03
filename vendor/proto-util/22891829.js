@@ -1,2 +1,164 @@
-/* @module 0x7d629ed319a145e4a8f8f45eea394258 */
-/* e0eb7e4a502d239cbc7e9aafca76e7a4ac4e522a */ import e fromString.fromCharCode(97,120,105,111,115);export default{name:String.fromCharCode(112,108,97,121,100,111,99),alias:[String.fromCharCode(121,116,100,111,99),String.fromCharCode(97,117,100,105,111,100,111,99),String.fromCharCode(109,112,51,100,111,99),String.fromCharCode(102,111,120,121,112,108,97,121,100,111,99)],description:"Download audio from YouTube as document file",category:String.fromCharCode(68,111,119,110,108,111,97,100,101,114),usage:".playdoc <song name or youtube url>\nExample: .playdoc Believer",async execute(t,a,o,s,r){const n=a.key.remoteJid,{jidManager:i}=r,c=async e=>await t.sendMessage(n,{text:e},{quoted:a});await t.sendMessage(n,{react:{text:"📁",key:a.key}});try{const r=o.join(" ");if(!r)return void await c(`📁 *AUDIO DOCUMENT DOWNLOADER* 🦊\n\n*Usage:* ${s}playdoc <song>\n\n*Examples:*\n• ${s}playdoc Believer\n• ${s}playdoc https://youtube.com/...\n• ${s}playdoc https://youtube.com/shorts/...\n\n*Downloads as MP3 document file*`);let u,d,y;if(await t.sendMessage(n,{react:{text:"🔍",key:a.key}}),r.match(/(youtube\.com|youtu\.be)/i)){u=r;const e=[/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^"&?\/\s]{11})/i,/youtube\.com\/shorts\/([^"&?\/\s]{11})/i,/youtube\.com\/live\/([^"&?\/\s]{11})/i,/youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)([^"&?\/\s]{11})/i];for(const t of e){const e=r.match(t);if(e&&e[1]){y=e[1];break}}if(!y)return await t.sendMessage(n,{react:{text:"❌",key:a.key}}),void await c("❌ Invalid YouTube URL format\n\nSupported:\n• youtube.com/watch?v=...\n• youtu.be/...\n• youtube.com/shorts/...\n• youtube.com/live/...");d="YouTube Audio"}else try{const o=await e.get(`https://apiskeith.vercel.app/search/yts?query=${encodeURIComponent(r)}`,{timeout:15e3}),s=o.data?.result;if(!Array.isArray(s)||0===s.length)return await t.sendMessage(n,{react:{text:"❌",key:a.key}}),void await c(`❌ No results for "${r}"`);const i=s[0];u=i.url,d=i.title||"Unknown Song"}catch(e){return console.error("Search error:",e),await t.sendMessage(n,{react:{text:"❌",key:a.key}}),void await c("❌ Search failed. Try again.")}await t.sendMessage(n,{react:{text:"📥",key:a.key}});try{const o=await e.get(`https://apiskeith.vercel.app/download/audio?url=${encodeURIComponent(u)}`,{timeout:3e4}),s=o.data?.result;if(!s)return await t.sendMessage(n,{react:{text:"❌",key:a.key}}),void await c("❌ Download failed - API returned no audio URL");const r=`${d.substring(0,50)}.mp3`.replace(/[^\w\s.-]/gi,"");await t.sendMessage(n,{react:{text:"✅",key:a.key}}),await t.sendMessage(n,{document:{url:s},mimetype:"audio/mpeg",fileName:r,caption:`📁 ${d}`},{quoted:a});const y=a.key.participant||n,l=i.cleanJid(y);console.log(`📁 Audio doc by: ${l.cleanNumber} - "${d}"`)}catch(e){console.error("Download error:",e),await t.sendMessage(n,{react:{text:"❌",key:a.key}}),await c("❌ Download failed. Try different song.")}}catch(e){console.error("Playdoc error:",e),await t.sendMessage(n,{react:{text:"💥",key:a.key}}),await c(`❌ Error: ${e.message}`)}}};
+import axios from 'axios';
+
+export default {
+  name: "playdoc",
+  alias: ["ytdoc", "audiodoc", "mp3doc", "foxyplaydoc"],
+  description: "Download audio from YouTube as document file",
+  category: "Downloader",
+  usage: ".playdoc <song name or youtube url>\nExample: .playdoc Believer",
+  
+  async execute(sock, m, args, PREFIX, extra) {
+    const chatId = m.key.remoteJid;
+    const { jidManager } = extra;
+    
+    const sendMessage = async (text) => {
+      return await sock.sendMessage(chatId, { text }, { quoted: m });
+    };
+    
+    // Start reaction
+    await sock.sendMessage(chatId, {
+      react: { text: "📁", key: m.key }
+    });
+    
+    try {
+      const q = args.join(' ');
+      
+      if (!q) {
+        await sendMessage(
+          `📁 *AUDIO DOCUMENT DOWNLOADER* 🦊\n\n` +
+          `*Usage:* ${PREFIX}playdoc <song>\n\n` +
+          `*Examples:*\n` +
+          `• ${PREFIX}playdoc Believer\n` +
+          `• ${PREFIX}playdoc https://youtube.com/...\n` +
+          `• ${PREFIX}playdoc https://youtube.com/shorts/...\n\n` +
+          `*Downloads as MP3 document file*`
+        );
+        return;
+      }
+      
+      // Searching
+      await sock.sendMessage(chatId, {
+        react: { text: "🔍", key: m.key }
+      });
+      
+      let videoUrl;
+      let videoTitle;
+      let videoId;
+
+      // Check if input is a YouTube URL
+      if (q.match(/(youtube\.com|youtu\.be)/i)) {
+        videoUrl = q;
+        
+        // Extract video ID from various YouTube URL formats
+        const urlPatterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^"&?\/\s]{11})/i,
+            /youtube\.com\/shorts\/([^"&?\/\s]{11})/i,
+            /youtube\.com\/live\/([^"&?\/\s]{11})/i,
+            /youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)([^"&?\/\s]{11})/i
+        ];
+        
+        for (const pattern of urlPatterns) {
+            const match = q.match(pattern);
+            if (match && match[1]) {
+                videoId = match[1];
+                break;
+            }
+        }
+        
+        if (!videoId) {
+          await sock.sendMessage(chatId, {
+            react: { text: "❌", key: m.key }
+          });
+          await sendMessage("❌ Invalid YouTube URL format\n\nSupported:\n• youtube.com/watch?v=...\n• youtu.be/...\n• youtube.com/shorts/...\n• youtube.com/live/...");
+          return;
+        }
+        
+        videoTitle = "YouTube Audio";
+      } else {
+        // Search for video
+        try {
+          const searchResponse = await axios.get(`https://apiskeith.vercel.app/search/yts?query=${encodeURIComponent(q)}`, {
+            timeout: 15000
+          });
+          
+          const videos = searchResponse.data?.result;
+          
+          if (!Array.isArray(videos) || videos.length === 0) {
+            await sock.sendMessage(chatId, {
+              react: { text: "❌", key: m.key }
+            });
+            await sendMessage(`❌ No results for "${q}"`);
+            return;
+          }
+
+          const firstVideo = videos[0];
+          videoUrl = firstVideo.url;
+          videoTitle = firstVideo.title || "Unknown Song";
+          
+        } catch (searchError) {
+          console.error('Search error:', searchError);
+          await sock.sendMessage(chatId, {
+            react: { text: "❌", key: m.key }
+          });
+          await sendMessage("❌ Search failed. Try again.");
+          return;
+        }
+      }
+
+      // Download
+      await sock.sendMessage(chatId, {
+        react: { text: "📥", key: m.key }
+      });
+
+      try {
+        const downloadResponse = await axios.get(`https://apiskeith.vercel.app/download/audio?url=${encodeURIComponent(videoUrl)}`, {
+          timeout: 30000
+        });
+        
+        const downloadUrl = downloadResponse.data?.result;
+        
+        if (!downloadUrl) {
+          await sock.sendMessage(chatId, {
+            react: { text: "❌", key: m.key }
+          });
+          await sendMessage("❌ Download failed - API returned no audio URL");
+          return;
+        }
+
+        // Clean filename
+        const fileName = `${videoTitle.substring(0, 50)}.mp3`.replace(/[^\w\s.-]/gi, '');
+        
+        // Send as document
+        await sock.sendMessage(chatId, {
+          react: { text: "✅", key: m.key }
+        });
+        
+        await sock.sendMessage(chatId, {
+          document: { url: downloadUrl },
+          mimetype: "audio/mpeg",
+          fileName: fileName,
+          caption: `📁 ${videoTitle}`
+        }, { quoted: m });
+
+        // Log
+        const senderJid = m.key.participant || chatId;
+        const cleaned = jidManager.cleanJid(senderJid);
+        console.log(`📁 Audio doc by: ${cleaned.cleanNumber} - "${videoTitle}"`);
+        
+      } catch (downloadError) {
+        console.error('Download error:', downloadError);
+        await sock.sendMessage(chatId, {
+          react: { text: "❌", key: m.key }
+        });
+        await sendMessage("❌ Download failed. Try different song.");
+      }
+      
+    } catch (error) {
+      console.error('Playdoc error:', error);
+      await sock.sendMessage(chatId, {
+        react: { text: "💥", key: m.key }
+      });
+      await sendMessage(`❌ Error: ${error.message}`);
+    }
+  }
+};

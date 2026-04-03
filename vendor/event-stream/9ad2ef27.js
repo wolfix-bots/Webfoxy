@@ -1,2 +1,40 @@
-/* @module 0x0ee376941a3d341219298576db53a9a9 */
-/* 2c678ad15733313352c4a164cead30de1a7b6374 */ export default{name:String.fromCharCode(108,108,97,109,97),alias:[String.fromCharCode(109,101,116,97),String.fromCharCode(108,108,97,109,97,51)],category:"ai",async execute(e,a,t,n,s){const i=a.key.remoteJid;if(!t.length)return e.sendMessage(i,{text:`┌─⧭ *LLaMA AI*\n│ Meta's AI assistant\n│\n│ Usage: ${n}llama <question>\n│ Example: ${n}llama Tell a story\n└─⧭`},{quoted:a});const o=t.join(" ");await e.sendMessage(i,{text:"┌─⧭ *LLaMA thinking...*\n└─⧭"},{quoted:a});try{const t=(await import(String.fromCharCode(97,120,105,111,115))).default,n=`https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent("You are LLaMA, Meta's AI. Be friendly.\nUser: "+o)}`,s=await t.get(n,{timeout:3e4}),l=s.data?.result||s.data?.response||"I don't know";await e.sendMessage(i,{text:`┌─⧭ *LLaMA*\n│\n\`\`\`\n${l}\n\`\`\`\n└─⧭`},{quoted:a})}catch(t){await e.sendMessage(i,{text:"┌─⧭ *Error*\n│ LLaMA unavailable\n└─⧭"},{quoted:a})}}};
+export default {
+    name: "llama",
+    alias: ["meta", "llama3"],
+    category: "ai",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *LLaMA AI*\n\u2502 Meta's AI assistant\n\u2502\n\u2502 Usage: ${PREFIX}llama <question>\n\u2502 Example: ${PREFIX}llama Tell a story\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+        
+        const question = args.join(' ');
+        
+        await sock.sendMessage(jid, {
+            text: `\u250C\u2500\u29ED *LLaMA thinking...*\n\u2514\u2500\u29ED`
+        }, { quoted: m });
+        
+        try {
+            const axios = (await import('axios')).default;
+            
+            const prompt = `You are LLaMA, Meta's AI. Be friendly.`;
+            const url = `https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent(prompt + '\nUser: ' + question)}`;
+            
+            const response = await axios.get(url, { timeout: 30000 });
+            const answer = response.data?.result || response.data?.response || "I don't know";
+            
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *LLaMA*\n\u2502\n\`\`\`\n${answer}\n\`\`\`\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+            
+        } catch (error) {
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Error*\n\u2502 LLaMA unavailable\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+    }
+};

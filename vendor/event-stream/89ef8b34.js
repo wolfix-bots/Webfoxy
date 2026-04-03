@@ -1,2 +1,36 @@
-/* @module 0x8c8cf9cb430849c1e06941810d8447d0 */
-/* 7151197cd08a4155ff658f73e7a214ce42c7be6e */ const e=["Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly good to eat.","Octopuses have three hearts. Two pump blood to the gills, while the third pumps it to the rest of the body.","A day on Venus is longer than a year on Venus. It takes Venus 243 Earth days to rotate once, but only 225 Earth days to orbit the Sun.","The shortest war in history was between Britain and Zanzibar on August 27, 1896. Zanzibar surrendered after 38 minutes.","Bananas are berries, but strawberries aren't. In botanical terms, berries are defined by having seeds inside.","The inventor of the microwave Percy Spencer got the idea when a chocolate bar melted in his pocket from radar waves.","There are more possible iterations of a game of chess than there are atoms in the known universe.","A group of flamingos is called a 'flamboyance'.","The first computer virus was created in 1983 and was called the 'Elk Cloner'.","The total weight of all the ants on Earth is about the same as the total weight of all the humans.","WhatsApp was founded in 2009 by Jan Koum and Brian Acton, both former Yahoo employees.","The first message ever sent over the internet was 'LO' – an attempt to send 'LOGIN' that crashed the system."];export default{name:String.fromCharCode(102,97,99,116),alias:[String.fromCharCode(102,111,120,102,97,99,116),String.fromCharCode(100,105,100,121,111,117,107,110,111,119)],description:"Get a random interesting fact",category:String.fromCharCode(103,97,109,101,115),ownerOnly:!1,async execute(t,a,o,n,s){const r=a.key.remoteJid,i=`📚 *DID YOU KNOW?*\n\n${e[Math.floor(Math.random()*e.length)]}\n\n💡 Another fact? Use ${n}fact again!`;return t.sendMessage(r,{text:i},{quoted:a})}};
+const FACTS = [
+  "Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly good to eat.",
+  "Octopuses have three hearts. Two pump blood to the gills, while the third pumps it to the rest of the body.",
+  "A day on Venus is longer than a year on Venus. It takes Venus 243 Earth days to rotate once, but only 225 Earth days to orbit the Sun.",
+  "The shortest war in history was between Britain and Zanzibar on August 27, 1896. Zanzibar surrendered after 38 minutes.",
+  "Bananas are berries, but strawberries aren't. In botanical terms, berries are defined by having seeds inside.",
+  "The inventor of the microwave Percy Spencer got the idea when a chocolate bar melted in his pocket from radar waves.",
+  "There are more possible iterations of a game of chess than there are atoms in the known universe.",
+  "A group of flamingos is called a 'flamboyance'.",
+  "The first computer virus was created in 1983 and was called the 'Elk Cloner'.",
+  "The total weight of all the ants on Earth is about the same as the total weight of all the humans.",
+  "WhatsApp was founded in 2009 by Jan Koum and Brian Acton, both former Yahoo employees.",
+  "The first message ever sent over the internet was 'LO' – an attempt to send 'LOGIN' that crashed the system."
+];
+
+export default {
+  name: "fact",
+  alias: ["foxfact", "didyouknow"],
+  description: "Get a random interesting fact",
+  category: "games",
+  ownerOnly: false,
+
+  async execute(sock, m, args, PREFIX, extra) {
+    const jid = m.key.remoteJid;
+    
+    const fact = FACTS[Math.floor(Math.random() * FACTS.length)];
+    
+    const factMsg = `📚 *DID YOU KNOW?*\n\n` +
+                   `${fact}\n\n` +
+                   `💡 Another fact? Use ${PREFIX}fact again!`;
+    
+    return sock.sendMessage(jid, {
+      text: factMsg
+    }, { quoted: m });
+  }
+};

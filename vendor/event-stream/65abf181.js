@@ -1,2 +1,157 @@
-/* @module 0x54703b25b5726f863b979453eb181586 */
-/* a223276baf56aa23a2b173142635ef55a03a77b7 */ export default{name:String.fromCharCode(116,111,115,116,105,99,107,101,114),alias:[String.fromCharCode(115,116,105,99,107,101,114,50),"s",String.fromCharCode(115,116,105,99,107)],category:String.fromCharCode(116,111,111,108,115),async execute(e,t,a,s,i){const o=t.key.remoteJid;try{let i=null;if(t.message?.extendedTextMessage?.contextInfo?.quotedMessage){const e=t.message.extendedTextMessage.contextInfo.quotedMessage;e.imageMessage?i=e.imageMessage:e.documentMessage?.mimetype?.startsWith("image/")&&(i=e.documentMessage)}if(!i&&t.message?.imageMessage&&(i=t.message.imageMessage),!i&&t.message?.documentMessage?.mimetype?.startsWith("image/")&&(i=t.message.documentMessage),!i)return void await e.sendMessage(o,{text:`🎨 *Image to Sticker*\n\nUsage:\n• Reply to image with \`${s}tosticker\`\n• Or send image with caption \`${s}tosticker\``},{quoted:t});const r=a[0]||"🤖",n=String.fromCharCode(102,111,120,121,98,111,116),c=t.rt||String.fromCharCode(85,115,101,114),{downloadContentFromMessage:jj}=await import("@whiskeysockets/baileys"),g=i.mimetype?.startsWith("image/")||i.jpegThumbnail?String.fromCharCode(105,109,97,103,101):String.fromCharCode(100,111,99,117,109,101,110,116),u=await jj(i,g);let d=Buffer.from([]);for await(const e of u)d=Buffer.concat([d,e]);if(d.length>3145728)return void await e.sendMessage(o,{text:`⚠️ *Image too large*\nMax size: 3MB\nYour image: ${(d.length/1024/1024).toFixed(2)}MB`},{quoted:t});try{const a=(await import(String.fromCharCode(115,104,97,114,112))).default;let s=a(d).rotate();const i=await a(d).metadata().catch(()=>({width:0,height:0})),jj=512;(i.width>jj||i.height>jj)&&(s=s.resize(jj,jj,{fit:String.fromCharCode(105,110,115,105,100,101),withoutEnlargement:!0,background:{r:0,g:0,b:0,alpha:0}}));const g=await s.webp({quality:80}).toBuffer();let u=g;try{const{Image:e}=(await import(String.fromCharCode(110,111,100,101,45,119,101,98,112,109,117,120))).default,t=await import(String.fromCharCode(99,114,121,112,116,111));u=await async function(e,t,a,s){try{const{packName:i,authorName:o,emoji:r}=t,n=new a;await n.load(e);const c={String.fromCharCode(115,116,105,99,107,101,114,45,112,97,99,107,45,105,100):s.randomBytes(32).toString(String.fromCharCode(104,101,120)),String.fromCharCode(115,116,105,99,107,101,114,45,112,97,99,107,45,110,97,109,101):i,String.fromCharCode(115,116,105,99,107,101,114,45,112,97,99,107,45,112,117,98,108,105,115,104,101,114):o,emojis:[r]},jj=Buffer.from([73,73,42,0,8,0,0,0,1,0,65,87,7,0,0,0,0,0,22,0,0,0]),g=Buffer.from(JSON.stringify(c),String.fromCharCode(117,116,102,56)),u=Buffer.concat([jj,g]);return u.writeUIntLE(g.length,14,4),n.exif=u,await n.save(null)}catch{return e}}(g,{packName:n,authorName:c,emoji:r},e,t)}catch(e){}await e.sendMessage(o,{sticker:u},{quoted:t})}catch(a){await e.sendMessage(o,{sticker:d},{quoted:t})}}catch(e){console.error("Sticker error:",e)}}};
+// commands/tools/tosticker.js - CLEAN VERSION (No extra messages!)
+
+export default {
+    name: "tosticker",
+    alias: ["sticker2", "s", "stick"],
+    category: "tools",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        
+        try {
+            // Check for image in different ways
+            let imageMessage = null;
+            
+            // Method 1: Check if message is a reply to an image
+            if (m.message?.extendedTextMessage?.contextInfo?.quotedMessage) {
+                const quoted = m.message.extendedTextMessage.contextInfo.quotedMessage;
+                if (quoted.imageMessage) {
+                    imageMessage = quoted.imageMessage;
+                } else if (quoted.documentMessage?.mimetype?.startsWith('image/')) {
+                    imageMessage = quoted.documentMessage;
+                }
+            }
+            
+            // Method 2: Check if message itself contains an image
+            if (!imageMessage && m.message?.imageMessage) {
+                imageMessage = m.message.imageMessage;
+            }
+            
+            // Method 3: Check if message contains image document
+            if (!imageMessage && m.message?.documentMessage?.mimetype?.startsWith('image/')) {
+                imageMessage = m.message.documentMessage;
+            }
+            
+            if (!imageMessage) {
+                await sock.sendMessage(jid, { 
+                    text: `🎨 *Image to Sticker*\n\nUsage:\n• Reply to image with \`${PREFIX}tosticker\`\n• Or send image with caption \`${PREFIX}tosticker\``
+                }, { quoted: m });
+                return;
+            }
+
+            // Get emoji from args (first arg) or use default
+            const emoji = args[0] || '🤖';
+            const packName = 'foxybot';
+            const authorName = m.pushName || 'User';
+            
+            // Download image
+            const { downloadContentFromMessage } = await import('@whiskeysockets/baileys');
+            
+            const downloadType = imageMessage.mimetype?.startsWith('image/') ? 'image' : 
+                                (imageMessage.jpegThumbnail ? 'image' : 'document');
+            
+            const stream = await downloadContentFromMessage(imageMessage, downloadType);
+            
+            let buffer = Buffer.from([]);
+            for await (const chunk of stream) {
+                buffer = Buffer.concat([buffer, chunk]);
+            }
+            
+            // Check size limit (3MB)
+            if (buffer.length > 1024 * 1024 * 3) {
+                await sock.sendMessage(jid, { 
+                    text: `⚠️ *Image too large*\nMax size: 3MB\nYour image: ${(buffer.length / 1024 / 1024).toFixed(2)}MB`
+                }, { quoted: m });
+                return;
+            }
+            
+            try {
+                // Convert to WebP using sharp
+                const sharp = (await import('sharp')).default;
+                
+                // Process image
+                let processedImage = sharp(buffer).rotate();
+                
+                // Get metadata
+                const metadata = await sharp(buffer).metadata().catch(() => ({ width: 0, height: 0 }));
+                
+                // Resize to max 512x512 for stickers
+                const maxSize = 512;
+                if (metadata.width > maxSize || metadata.height > maxSize) {
+                    processedImage = processedImage.resize(maxSize, maxSize, {
+                        fit: 'inside',
+                        withoutEnlargement: true,
+                        background: { r: 0, g: 0, b: 0, alpha: 0 }
+                    });
+                }
+                
+                // Convert to WebP
+                const webpBuffer = await processedImage
+                    .webp({ quality: 80 })
+                    .toBuffer();
+                
+                // Try to add metadata if available
+                let finalSticker = webpBuffer;
+                
+                try {
+                    const { Image } = (await import('node-webpmux')).default;
+                    const crypto = await import('crypto');
+                    
+                    finalSticker = await addStickerMetadata(webpBuffer, {
+                        packName, authorName, emoji
+                    }, Image, crypto);
+                } catch (e) {
+                    // Ignore metadata errors
+                }
+                
+                // Send ONLY the sticker (no extra message!)
+                await sock.sendMessage(jid, {
+                    sticker: finalSticker
+                }, { quoted: m });
+                
+            } catch (sharpError) {
+                // Fallback: send as sticker without processing
+                await sock.sendMessage(jid, {
+                    sticker: buffer
+                }, { quoted: m });
+            }
+
+        } catch (error) {
+            // Silent fail - don't send error message
+            console.error('Sticker error:', error);
+        }
+    }
+};
+
+// Helper function for metadata (silent fail if not working)
+async function addStickerMetadata(webpBuffer, metadata, Image, crypto) {
+    try {
+        const { packName, authorName, emoji } = metadata;
+        
+        const img = new Image();
+        await img.load(webpBuffer);
+        
+        const json = {
+            'sticker-pack-id': crypto.randomBytes(32).toString('hex'),
+            'sticker-pack-name': packName,
+            'sticker-pack-publisher': authorName,
+            'emojis': [emoji]
+        };
+        
+        const exifAttr = Buffer.from([
+            0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00,
+            0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x16, 0x00, 0x00, 0x00
+        ]);
+        
+        const jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
+        const exif = Buffer.concat([exifAttr, jsonBuffer]);
+        exif.writeUIntLE(jsonBuffer.length, 14, 4);
+        
+        img.exif = exif;
+        
+        return await img.save(null);
+    } catch {
+        return webpBuffer; // Return original on error
+    }
+}

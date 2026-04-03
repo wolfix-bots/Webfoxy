@@ -1,2 +1,152 @@
-/* @module 0x601211f3f038b9c3fefc327045bf6621 */
-/* 1af4c7815d00160ef223f3a65cc28db2e14f236f */ import{createCanvas as t}fromString.fromCharCode(99,97,110,118,97,115);export default{name:String.fromCharCode(103,108,105,116,99,104,116,101,120,116),alias:[String.fromCharCode(103,108,105,116,99,104),String.fromCharCode(103,108,105,116,99,104,108,111,103,111)],description:"Create glitch/distortion effect text logos",async execute(e,a,l){const o=a.key.remoteJid;try{if(0===l.length)return void await e.sendMessage(o,{text:"🌀 *Glitch Text*\n\nUsage: glitchtext <text>\n\n*Examples:*\n• glitchtext ERROR\n• glitchtext GLITCH\n• glitchtext SYSTEM"},{quoted:a});const n=l.join(" ");if(n.length>20)return void await e.sendMessage(o,{text:`⚠️ Text too long! Max 20 characters.\n(Currently: ${n.length})`},{quoted:a});await e.sendMessage(o,{text:`🌀 Generating glitch effect for: "${n}"...`},{quoted:a});const i=await async function(e){const a=t(800,400),l=a.getContext("2d");return l.fillStyle="#0a0a0f",l.fillRect(0,0,800,400),function(t){t.fillStyle="rgba(0, 255, 0, 0.05)",t.font="12px monospace";for(let e=0;e<100;e++){const e=800*Math.random(),a=400*Math.random(),l=Math.random()>.5?"1":"0";t.fillText(l,e,a)}}(l),function(t,e){t.textAlign=String.fromCharCode(99,101,110,116,101,114),t.textBaseline=String.fromCharCode(109,105,100,100,108,101),t.font='bold 90px "Courier New"';const a=["#00FF00","#FF00FF","#00FFFF","#FFFF00"];t.fillStyle="#00FF00",t.fillText(e.toUpperCase(),400,200);for(let l=0;l<5;l++){const l=15*(Math.random()-.5),o=10*(Math.random()-.5),n=a[Math.floor(Math.random()*a.length)];t.fillStyle=n,t.globalAlpha=.3,t.fillText(e.toUpperCase(),400+l,200+o)}t.globalAlpha=1,t.fillStyle="#0a0a0f";for(let a=0;a<10;a++){const a=400-t.measureText(e).width/2+Math.random()*t.measureText(e).width,l=160,o=30*Math.random()+5,n=90;t.fillRect(a,l,o,n)}}(l,e),function(t,e,a){t.strokeStyle="rgba(0, 255, 0, 0.1)",t.lineWidth=1;for(let l=0;l<a;l+=4)t.beginPath(),t.moveTo(0,l),t.lineTo(e,l),t.stroke();t.fillStyle="rgba(255, 255, 255, 0.05)";for(let l=0;l<500;l++){const l=Math.random()*e,o=Math.random()*a,n=2*Math.random();t.fillRect(l,o,n,n)}t.globalAlpha=.2;for(let l=0;l<3;l++){const o=Math.random()*a,n=30*Math.random()+10;t.fillStyle=l%2==0?"#FF00FF":"#00FFFF",t.fillRect(0,o,e,n)}t.globalAlpha=1}(l,800,400),a.toBuffer("image/png")}(n);await e.sendMessage(o,{image:i,caption:`🌀 *Glitch Text Generated!*\nText: ${n}`},{quoted:a})}catch(t){console.error("❌ [GLITCHTEXT] ERROR:",t),await e.sendMessage(o,{text:`❌ Error: ${t.message}`},{quoted:a})}}};
+import { createCanvas } from 'canvas';
+
+export default {
+  name: "glitchtext",
+  alias: ["glitch", "glitchlogo"],
+  description: "Create glitch/distortion effect text logos",
+  async execute(sock, m, args) {
+    const jid = m.key.remoteJid;
+
+    try {
+      if (args.length === 0) {
+        await sock.sendMessage(jid, { 
+          text: `🌀 *Glitch Text*\n\nUsage: glitchtext <text>\n\n*Examples:*\n• glitchtext ERROR\n• glitchtext GLITCH\n• glitchtext SYSTEM` 
+        }, { quoted: m });
+        return;
+      }
+
+      const text = args.join(" ");
+      
+      if (text.length > 20) {
+        await sock.sendMessage(jid, { 
+          text: `⚠️ Text too long! Max 20 characters.\n(Currently: ${text.length})` 
+        }, { quoted: m });
+        return;
+      }
+
+      await sock.sendMessage(jid, { 
+        text: `🌀 Generating glitch effect for: "${text}"...` 
+      }, { quoted: m });
+
+      const logoBuffer = await generateGlitchText(text);
+      
+      await sock.sendMessage(jid, {
+        image: logoBuffer,
+        caption: `🌀 *Glitch Text Generated!*\nText: ${text}`
+      }, { quoted: m });
+
+    } catch (error) {
+      console.error("❌ [GLITCHTEXT] ERROR:", error);
+      await sock.sendMessage(jid, { 
+        text: `❌ Error: ${error.message}` 
+      }, { quoted: m });
+    }
+  },
+};
+
+async function generateGlitchText(text) {
+  const width = 800;
+  const height = 400;
+  
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Dark tech background
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, width, height);
+
+  // Add binary code background
+  drawBinaryBackground(ctx, width, height);
+
+  // Main glitch text
+  drawGlitchEffect(ctx, text, width, height);
+
+  // Add scanlines and noise
+  addGlitchArtifacts(ctx, width, height);
+
+  return canvas.toBuffer('image/png');
+}
+
+function drawBinaryBackground(ctx, width, height) {
+  ctx.fillStyle = 'rgba(0, 255, 0, 0.05)';
+  ctx.font = '12px monospace';
+  
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const binary = Math.random() > 0.5 ? '1' : '0';
+    
+    ctx.fillText(binary, x, y);
+  }
+}
+
+function drawGlitchEffect(ctx, text, width, height) {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 90px "Courier New"';
+  
+  // Create multiple offset layers for glitch effect
+  const colors = ['#00FF00', '#FF00FF', '#00FFFF', '#FFFF00'];
+  
+  // Base text (green)
+  ctx.fillStyle = '#00FF00';
+  ctx.fillText(text.toUpperCase(), width / 2, height / 2);
+  
+  // Glitch offset layers
+  for (let i = 0; i < 5; i++) {
+    const offsetX = (Math.random() - 0.5) * 15;
+    const offsetY = (Math.random() - 0.5) * 10;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.3;
+    ctx.fillText(text.toUpperCase(), width / 2 + offsetX, height / 2 + offsetY);
+  }
+  
+  ctx.globalAlpha = 1.0;
+  
+  // Add "corrupted" effect with missing parts
+  ctx.fillStyle = '#0a0a0f';
+  for (let i = 0; i < 10; i++) {
+    const x = width / 2 - ctx.measureText(text).width / 2 + Math.random() * ctx.measureText(text).width;
+    const y = height / 2 - 40;
+    const w = Math.random() * 30 + 5;
+    const h = 90;
+    
+    ctx.fillRect(x, y, w, h);
+  }
+}
+
+function addGlitchArtifacts(ctx, width, height) {
+  // Scanlines
+  ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
+  ctx.lineWidth = 1;
+  
+  for (let y = 0; y < height; y += 4) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+  
+  // Random noise pixels
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+  for (let i = 0; i < 500; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 2;
+    
+    ctx.fillRect(x, y, size, size);
+  }
+  
+  // Glitch bars
+  ctx.globalAlpha = 0.2;
+  for (let i = 0; i < 3; i++) {
+    const y = Math.random() * height;
+    const h = Math.random() * 30 + 10;
+    
+    ctx.fillStyle = i % 2 === 0 ? '#FF00FF' : '#00FFFF';
+    ctx.fillRect(0, y, width, h);
+  }
+  ctx.globalAlpha = 1.0;
+}

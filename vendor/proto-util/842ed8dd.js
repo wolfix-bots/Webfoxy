@@ -1,2 +1,188 @@
-/* @module 0xeb65d093dabe51f9829763eaccc50219 */
-/* e9af9207121d93b2b723cbbbc4d0e11c15272f6a */ import e fromString.fromCharCode(97,120,105,111,115);export default{name:String.fromCharCode(116,114,97,105,108,101,114),alias:[String.fromCharCode(109,111,118,105,101,45,116,114,97,105,108,101,114),String.fromCharCode(115,104,111,119,116,114,97,105,108,101,114),String.fromCharCode(102,111,120,121,116,114,97,105,108,101,114),String.fromCharCode(112,114,101,118,105,101,119)],category:String.fromCharCode(109,101,100,105,97),async execute(t,a,o,s,r){const i=a.key.remoteJid;if(a.key.id,await t.sendMessage(i,{react:{text:"🔍",key:a.key}}),!o.length)return await t.sendMessage(i,{react:{text:"❓",key:a.key}}),void setTimeout(()=>{t.sendMessage(i,{text:`${s}trailer <movie name>\nExample: ${s}trailer spykids`},{quoted:a})},300);const d=o.join(" ");try{const o=await e.get(`https://apiskeith.vercel.app/api/youtube/search?q=${encodeURIComponent(d+" trailer")}`,{timeout:15e3,headers:{String.fromCharCode(85,115,101,114,45,65,103,101,110,116):"Mozilla/5.0"}});console.log("Search response:",o.data);let s=[];if(o.data?.videos?s=o.data.videos:o.data?.result?s=o.data.result:Array.isArray(o.data)&&(s=o.data),!s||0===s.length){const t=await e.get(`https://apiskeith.vercel.app/youtube/search?query=${encodeURIComponent(d)}`,{timeout:1e4});s=t.data?.videos||t.data||[]}if(0===s.length)return await t.sendMessage(i,{react:{text:"❌",key:a.key}}),void setTimeout(()=>{t.sendMessage(i,{text:`No results for "${d}"`},{quoted:a})},300);await t.sendMessage(i,{react:{text:"📥",key:a.key}});const r=s.find(e=>e.title?.toLowerCase().includes(String.fromCharCode(116,114,97,105,108,101,114))||e.title?.toLowerCase().includes(String.fromCharCode(111,102,102,105,99,105,97,108)))||s[0],n=r.url||`https://youtube.com/watch?v=${r.id}`,l=r.title||`${d} Trailer`;console.log("Selected video:",l,n);const c=(await e.get(`https://apiskeith.vercel.app/api/youtube/download?url=${encodeURIComponent(n)}`,{timeout:35e3,headers:{Accept:"application/json"}})).data;console.log("Download response:",c);const u=c?.url||c?.result||c?.downloadUrl||c?.videoUrl;if(!u)throw new Error("No download URL received");await t.sendMessage(i,{react:{text:"🎬",key:a.key}}),setTimeout(async()=>{try{await t.sendMessage(i,{video:{url:u,mimetype:"video/mp4"},caption:`🎬 ${l}`,fileName:`${l.substring(0,40)}.mp4`.replace(/[<>:"/\\|?*]/g,""),gifPlayback:!1},{quoted:a}),setTimeout(()=>{t.sendMessage(i,{react:{text:"✅",key:a.key}})},1e3)}catch(e){console.error("Send error:",e),await t.sendMessage(i,{react:{text:"😞",key:a.key}}),t.sendMessage(i,{text:`Downloaded but failed to send: ${l}`},{quoted:a})}},800)}catch(e){console.error("Trailer command error:",e.message),console.error("Error stack:",e.stack);let o="❌",s=`Failed: "${d}"`;String.fromCharCode(69,67,79,78,78,82,69,70,85,83,69,68)===e.code?(o="🔌",s="API is down"):e.message.includes(String.fromCharCode(116,105,109,101,111,117,116))?(o="⏰",s="Took too long"):e.message.includes("404")&&(o="🔍",s="Not found"),await t.sendMessage(i,{react:{text:o,key:a.key}}),setTimeout(()=>{t.sendMessage(i,{text:s},{quoted:a})},300)}}};
+// commands/media/trailer.js
+import axios from 'axios';
+
+export default {
+    name: "trailer",
+    alias: ["movie-trailer", "showtrailer", "foxytrailer", "preview"],
+    category: "media",
+    
+    async execute(sock, m, args, prefix, extra) {
+        const jid = m.key.remoteJid;
+        const msgId = m.key.id;
+        
+        // React with 🔍 immediately
+        await sock.sendMessage(jid, {
+            react: { text: "🔍", key: m.key }
+        });
+        
+        if (!args.length) {
+            await sock.sendMessage(jid, {
+                react: { text: "❓", key: m.key }
+            });
+            
+            setTimeout(() => {
+                sock.sendMessage(jid, {
+                    text: `${prefix}trailer <movie name>\nExample: ${prefix}trailer spykids`
+                }, { quoted: m });
+            }, 300);
+            return;
+        }
+        
+        const query = args.join(' ');
+        
+        try {
+            // **FIXED API CALL** - Using correct endpoint
+            const searchResponse = await axios.get(
+                `https://apiskeith.vercel.app/api/youtube/search?q=${encodeURIComponent(query + " trailer")}`,
+                { 
+                    timeout: 15000,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0'
+                    }
+                }
+            );
+            
+            // Debug log
+            console.log("Search response:", searchResponse.data);
+            
+            let videos = [];
+            
+            // Try different response structures
+            if (searchResponse.data?.videos) {
+                videos = searchResponse.data.videos;
+            } else if (searchResponse.data?.result) {
+                videos = searchResponse.data.result;
+            } else if (Array.isArray(searchResponse.data)) {
+                videos = searchResponse.data;
+            }
+            
+            if (!videos || videos.length === 0) {
+                // Try alternative API
+                const altResponse = await axios.get(
+                    `https://apiskeith.vercel.app/youtube/search?query=${encodeURIComponent(query)}`,
+                    { timeout: 10000 }
+                );
+                
+                videos = altResponse.data?.videos || altResponse.data || [];
+            }
+            
+            if (videos.length === 0) {
+                await sock.sendMessage(jid, {
+                    react: { text: "❌", key: m.key }
+                });
+                
+                setTimeout(() => {
+                    sock.sendMessage(jid, {
+                        text: `No results for "${query}"`
+                    }, { quoted: m });
+                }, 300);
+                return;
+            }
+            
+            // Change reaction to downloading
+            await sock.sendMessage(jid, {
+                react: { text: "📥", key: m.key }
+            });
+            
+            // Find best video (prioritize trailers)
+            const trailer = videos.find(v => 
+                v.title?.toLowerCase().includes('trailer') ||
+                v.title?.toLowerCase().includes('official')
+            ) || videos[0];
+            
+            const videoUrl = trailer.url || `https://youtube.com/watch?v=${trailer.id}`;
+            const videoTitle = trailer.title || `${query} Trailer`;
+            
+            console.log("Selected video:", videoTitle, videoUrl);
+            
+            // **FIXED DOWNLOAD CALL**
+            const downloadResponse = await axios.get(
+                `https://apiskeith.vercel.app/api/youtube/download?url=${encodeURIComponent(videoUrl)}`,
+                { 
+                    timeout: 35000,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }
+            );
+            
+            const downloadData = downloadResponse.data;
+            console.log("Download response:", downloadData);
+            
+            // Try different response structures
+            const downloadUrl = downloadData?.url || 
+                               downloadData?.result || 
+                               downloadData?.downloadUrl ||
+                               downloadData?.videoUrl;
+            
+            if (!downloadUrl) {
+                throw new Error("No download URL received");
+            }
+            
+            // Final reaction before delivery
+            await sock.sendMessage(jid, {
+                react: { text: "🎬", key: m.key }
+            });
+            
+            // **FIXED: Wait a moment then send video**
+            setTimeout(async () => {
+                try {
+                    await sock.sendMessage(jid, {
+                        video: { 
+                            url: downloadUrl,
+                            mimetype: 'video/mp4'
+                        },
+                        caption: `🎬 ${videoTitle}`,
+                        fileName: `${videoTitle.substring(0, 40)}.mp4`.replace(/[<>:"/\\|?*]/g, ''),
+                        gifPlayback: false
+                    }, { quoted: m });
+                    
+                    // Success reaction
+                    setTimeout(() => {
+                        sock.sendMessage(jid, {
+                            react: { text: "✅", key: m.key }
+                        });
+                    }, 1000);
+                    
+                } catch (sendError) {
+                    console.error("Send error:", sendError);
+                    await sock.sendMessage(jid, {
+                        react: { text: "😞", key: m.key }
+                    });
+                    
+                    sock.sendMessage(jid, {
+                        text: `Downloaded but failed to send: ${videoTitle}`
+                    }, { quoted: m });
+                }
+            }, 800);
+            
+        } catch (error) {
+            console.error("Trailer command error:", error.message);
+            console.error("Error stack:", error.stack);
+            
+            let errorEmoji = "❌";
+            let errorMsg = `Failed: "${query}"`;
+            
+            if (error.code === 'ECONNREFUSED') {
+                errorEmoji = "🔌";
+                errorMsg = "API is down";
+            } else if (error.message.includes('timeout')) {
+                errorEmoji = "⏰";
+                errorMsg = "Took too long";
+            } else if (error.message.includes('404')) {
+                errorEmoji = "🔍";
+                errorMsg = "Not found";
+            }
+            
+            await sock.sendMessage(jid, {
+                react: { text: errorEmoji, key: m.key }
+            });
+            
+            setTimeout(() => {
+                sock.sendMessage(jid, {
+                    text: errorMsg
+                }, { quoted: m });
+            }, 300);
+        }
+    }
+};

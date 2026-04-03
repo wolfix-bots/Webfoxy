@@ -1,2 +1,310 @@
-/* @module 0x23901bfabd9a8f173ddce6657da389df */
-/* 361155e1f028b4c3fd5354c2c1e63bc810d4a13a */ import e fromString.fromCharCode(110,111,100,101,45,102,101,116,99,104);import n from"fs";import a fromString.fromCharCode(112,97,116,104);import{fileURLToPath as t}fromString.fromCharCode(117,114,108);const o=t(import.meta.url),s=(a.dirname(o),a.join(process.cwd(),String.fromCharCode(116,101,109,112),String.fromCharCode(116,116,115,95,99,97,99,104,101)));n.existsSync(s)||n.mkdirSync(s,{recursive:!0});const r={en:{name:String.fromCharCode(69,110,103,108,105,115,104),flag:"🇺🇸",code:"en"},id:{name:String.fromCharCode(73,110,100,111,110,101,115,105,97,110),flag:"🇮🇩",code:"id"},es:{name:String.fromCharCode(83,112,97,110,105,115,104),flag:"🇪🇸",code:"es"},fr:{name:String.fromCharCode(70,114,101,110,99,104),flag:"🇫🇷",code:"fr"},de:{name:String.fromCharCode(71,101,114,109,97,110),flag:"🇩🇪",code:"de"},it:{name:String.fromCharCode(73,116,97,108,105,97,110),flag:"🇮🇹",code:"it"},pt:{name:String.fromCharCode(80,111,114,116,117,103,117,101,115,101),flag:"🇵🇹",code:"pt"},ru:{name:String.fromCharCode(82,117,115,115,105,97,110),flag:"🇷🇺",code:"ru"},ja:{name:String.fromCharCode(74,97,112,97,110,101,115,101),flag:"🇯🇵",code:"ja"},ko:{name:String.fromCharCode(75,111,114,101,97,110),flag:"🇰🇷",code:"ko"},zh:{name:String.fromCharCode(67,104,105,110,101,115,101),flag:"🇨🇳",code:"zh"},ar:{name:String.fromCharCode(65,114,97,98,105,99),flag:"🇸🇦",code:"ar"},hi:{name:String.fromCharCode(72,105,110,100,105),flag:"🇮🇳",code:"hi"},nl:{name:String.fromCharCode(68,117,116,99,104),flag:"🇳🇱",code:"nl"},pl:{name:String.fromCharCode(80,111,108,105,115,104),flag:"🇵🇱",code:"pl"},tr:{name:String.fromCharCode(84,117,114,107,105,115,104),flag:"🇹🇷",code:"tr"},vi:{name:String.fromCharCode(86,105,101,116,110,97,109,101,115,101),flag:"🇻🇳",code:"vi"},th:{name:String.fromCharCode(84,104,97,105),flag:"🇹🇭",code:"th"},el:{name:String.fromCharCode(71,114,101,101,107),flag:"🇬🇷",code:"el"},he:{name:String.fromCharCode(72,101,98,114,101,119),flag:"🇮🇱",code:"he"},sv:{name:String.fromCharCode(83,119,101,100,105,115,104),flag:"🇸🇪",code:"sv"},da:{name:String.fromCharCode(68,97,110,105,115,104),flag:"🇩🇰",code:"da"},fi:{name:String.fromCharCode(70,105,110,110,105,115,104),flag:"🇫🇮",code:"fi"},no:{name:String.fromCharCode(78,111,114,119,101,103,105,97,110),flag:"🇳🇴",code:"no"},cs:{name:String.fromCharCode(67,122,101,99,104),flag:"🇨🇿",code:"cs"},hu:{name:String.fromCharCode(72,117,110,103,97,114,105,97,110),flag:"🇭🇺",code:"hu"},ro:{name:String.fromCharCode(82,111,109,97,110,105,97,110),flag:"🇷🇴",code:"ro"},bg:{name:String.fromCharCode(66,117,108,103,97,114,105,97,110),flag:"🇧🇬",code:"bg"},uk:{name:String.fromCharCode(85,107,114,97,105,110,105,97,110),flag:"🇺🇦",code:"uk"}};setInterval(()=>{try{const e=n.readdirSync(s),t=Date.now(),o=36e5;for(const r of e){const e=a.join(s,r);t-n.statSync(e).mtimeMs>o&&(n.unlinkSync(e),console.log(`🧹 Cleaned TTS cache: ${r}`))}}catch(e){console.error("TTS cleanup error:",e.message)}},18e5);export default{name:String.fromCharCode(116,116,115),alias:[String.fromCharCode(115,112,101,97,107),String.fromCharCode(115,97,121),String.fromCharCode(118,111,105,99,101),String.fromCharCode(116,97,108,107)],description:"Convert text to speech with multiple languages 🔊",category:String.fromCharCode(117,116,105,108,105,116,105,101,115),ownerOnly:!1,async execute(t,o,l,i,g){const c=o.key.remoteJid,d=o.fw||String.fromCharCode(70,114,105,101,110,100);if(0===l.length){const e=Object.entries(r).map(([e,n])=>`${n.flag} ${e} - ${n.name}`).slice(0,10).join("\n│ ");return t.sendMessage(c,{text:`┌─⧭ *FOX TEXT TO SPEECH* 🦊 🔊 ⧭─┐\n│\n├─⧭ *What I do:*\n│ Convert your text to spoken audio!\n│\n├─⧭ *Usage:*\n│ ${i}tts Hello world\n│ ${i}tts lang=id Halo teman\n│\n├─⧭ *Popular Languages:*\n│ ${e}\n│\n├─⧭ *All Languages:*\n│ ${i}tts languages\n│\n├─⧭ *Examples:*\n│ ${i}tts I love Foxy Bot\n│ ${i}tts lang=es Hola amigos\n│ ${i}tts lang=ja こんにちは\n│\n├─⧭ *Note:*\n│ • Max 200 characters\n│ • Audio sent as voice message\n│ • Auto-cleanup after 1 hour\n│\n└─⧭🦊 *Say it with Fox!*`},{quoted:o})}if(String.fromCharCode(108,97,110,103,117,97,103,101,115)===l[0].toLowerCase()||String.fromCharCode(108,97,110,103,115)===l[0].toLowerCase()){const e=Object.entries(r).map(([e,n])=>`${n.flag} ${e} - ${n.name}`).join("\n│ ");return t.sendMessage(c,{text:`┌─⧭ *ALL SUPPORTED LANGUAGES* 🦊 ⧭─┐\n│\n├─⧭ ${Object.keys(r).length} Languages Available:\n│\n│ ${e}\n│\n├─⧭ *Usage:*\n│ ${i}tts lang=code text\n│\n├─⧭ *Example:*\n│ ${i}tts lang=fr Bonjour\n│\n└─⧭🦊 *Fox speaks many tongues!*`},{quoted:o})}try{let g="en",vx=l.join(" ");if(l[0].startsWith("lang=")){const e=l[0].split("=")[1];if(!r[e])return t.sendMessage(c,{text:`┌─⧭ *INVALID LANGUAGE* ⧭─┐\n│\n├─⧭ "${e}" not supported\n│\n├─⧭ *Use:* ${i}tts languages\n│ to see all available languages\n│\n└─⧭🦊`},{quoted:o});g=e,vx=l.slice(1).join(" ")}if(vx=vx.trim(),0===vx.length)return t.sendMessage(c,{text:"❌ *Empty text!*\n\nPlease provide some text to speak."},{quoted:o});if(vx.length>200)return t.sendMessage(c,{text:`┌─⧭ *TEXT TOO LONG* ⧭─┐\n│\n├─⧭ *Length:* ${vx.length} chars\n├─⧭ *Max allowed:* 200 chars\n│\n│ Please shorten your text!\n│\n└─⧭🦊`},{quoted:o});const u=await t.sendMessage(c,{text:`┌─⧭ *FOX IS SPEAKING* 🎤 ⧭─┐\n│\n├─⧭ *Language:* ${r[g].flag} ${r[g].name}\n├─⧭ *Text:* ${vx.substring(0,50)}${vx.length>50?"...":""}\n│\n│ 🎵 Generating voice message...\n│ Please wait a moment\n│\n└─⧭🦊`},{quoted:o}),f=`${g}_${Buffer.from(vx).toString(String.fromCharCode(98,97,115,101,54,52)).substring(0,50)}`,h=a.join(s,`${f}.mp3`);let p;if(n.existsSync(h))p=n.readFileSync(h),console.log(`✅ TTS cache hit: ${f.substring(0,30)}...`);else{const a=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(vx)}&tl=${g}&client=tw-ob`,t=new AbortController,o=setTimeout(()=>t.abort(),1e4);try{const s=await e(a,{signal:t.signal});if(clearTimeout(o),!s.ok)throw new Error(`HTTP ${s.status}`);p=Buffer.from(await s.arrayBuffer()),n.writeFileSync(h,p),console.log(`💾 TTS cached: ${f.substring(0,30)}...`)}catch(e){throw clearTimeout(o),e}}if(!p||0===p.length)throw new Error("Empty audio response");await t.sendMessage(c,{audio:p,mimetype:"audio/mpeg",ptt:!0,fileName:`fox_tts_${g}_${Date.now()}.mp3`}),await t.sendMessage(c,{text:`┌─⧭ *TTS DELIVERED* ✅ ⧭─┐\n│\n├─⧭ *Language:* ${r[g].flag} ${r[g].name}\n├─⧭ *Text:* ${vx.substring(0,100)}${vx.length>100?"...":""}\n├─⧭ *Length:* ${vx.length} chars\n├─⧭ *Requested by:* ${d}\n│\n│ 🔊 Voice message sent!\n│\n├─⧭ *Try another:*\n│ ${i}tts <your text>\n│\n└─⧭🦊 *Fox voice activated!*`}),u?.key?.id&&await t.sendMessage(c,{delete:u.key})}catch(e){console.error("TTS error:",e);let n="• Network connection issue\n• Try again later";e.message.includes(String.fromCharCode(97,98,111,114,116))?n="• Request timeout\n• Server too slow":e.message.includes("HTTP 429")?n="• Too many requests\n• Wait a moment":e.message.includes(String.fromCharCode(69,78,79,84,70,79,85,78,68))&&(n="• No internet connection\n• Check your network"),await t.sendMessage(c,{text:`┌─⧭ *TTS FAILED* ❌ ⧭─┐\n│\n├─⧭ *Possible issues:*\n│ ${n}\n│\n├─⧭ *Tips:*\n│ • Use shorter text\n│ • Try English first\n│ • Check language code\n│\n├─⧭ *Example that works:*\n│ ${i}tts Hello world\n│\n└─⧭🦊 *Even foxes have bad voice days!*`},{quoted:o})}}};console.log("🔊 TTS Module loaded"),console.log(`📁 Cache directory: ${s}`),console.log(`🗣️ Languages: ${Object.keys(r).length} supported`);
+import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Cache directory for TTS files
+const CACHE_DIR = path.join(process.cwd(), 'temp', 'tts_cache');
+if (!fs.existsSync(CACHE_DIR)) {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+}
+
+// Language database
+const LANGUAGES = {
+    'en': { name: 'English', flag: '🇺🇸', code: 'en' },
+    'id': { name: 'Indonesian', flag: '🇮🇩', code: 'id' },
+    'es': { name: 'Spanish', flag: '🇪🇸', code: 'es' },
+    'fr': { name: 'French', flag: '🇫🇷', code: 'fr' },
+    'de': { name: 'German', flag: '🇩🇪', code: 'de' },
+    'it': { name: 'Italian', flag: '🇮🇹', code: 'it' },
+    'pt': { name: 'Portuguese', flag: '🇵🇹', code: 'pt' },
+    'ru': { name: 'Russian', flag: '🇷🇺', code: 'ru' },
+    'ja': { name: 'Japanese', flag: '🇯🇵', code: 'ja' },
+    'ko': { name: 'Korean', flag: '🇰🇷', code: 'ko' },
+    'zh': { name: 'Chinese', flag: '🇨🇳', code: 'zh' },
+    'ar': { name: 'Arabic', flag: '🇸🇦', code: 'ar' },
+    'hi': { name: 'Hindi', flag: '🇮🇳', code: 'hi' },
+    'nl': { name: 'Dutch', flag: '🇳🇱', code: 'nl' },
+    'pl': { name: 'Polish', flag: '🇵🇱', code: 'pl' },
+    'tr': { name: 'Turkish', flag: '🇹🇷', code: 'tr' },
+    'vi': { name: 'Vietnamese', flag: '🇻🇳', code: 'vi' },
+    'th': { name: 'Thai', flag: '🇹🇭', code: 'th' },
+    'el': { name: 'Greek', flag: '🇬🇷', code: 'el' },
+    'he': { name: 'Hebrew', flag: '🇮🇱', code: 'he' },
+    'sv': { name: 'Swedish', flag: '🇸🇪', code: 'sv' },
+    'da': { name: 'Danish', flag: '🇩🇰', code: 'da' },
+    'fi': { name: 'Finnish', flag: '🇫🇮', code: 'fi' },
+    'no': { name: 'Norwegian', flag: '🇳🇴', code: 'no' },
+    'cs': { name: 'Czech', flag: '🇨🇿', code: 'cs' },
+    'hu': { name: 'Hungarian', flag: '🇭🇺', code: 'hu' },
+    'ro': { name: 'Romanian', flag: '🇷🇴', code: 'ro' },
+    'bg': { name: 'Bulgarian', flag: '🇧🇬', code: 'bg' },
+    'uk': { name: 'Ukrainian', flag: '🇺🇦', code: 'uk' }
+};
+
+// Auto-cleanup old files (older than 1 hour)
+setInterval(() => {
+    try {
+        const files = fs.readdirSync(CACHE_DIR);
+        const now = Date.now();
+        const oneHour = 60 * 60 * 1000;
+        
+        for (const file of files) {
+            const filePath = path.join(CACHE_DIR, file);
+            const stats = fs.statSync(filePath);
+            if (now - stats.mtimeMs > oneHour) {
+                fs.unlinkSync(filePath);
+                console.log(`🧹 Cleaned TTS cache: ${file}`);
+            }
+        }
+    } catch (error) {
+        console.error('TTS cleanup error:', error.message);
+    }
+}, 30 * 60 * 1000); // Run every 30 minutes
+
+export default {
+    name: "tts",
+    alias: ["speak", "say", "voice", "talk"],
+    description: "Convert text to speech with multiple languages 🔊",
+    category: "utilities",
+    ownerOnly: false,
+
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        const sender = m.pushName || 'Friend';
+        
+        // No arguments - show help
+        if (args.length === 0) {
+            // Create language list for display
+            const langList = Object.entries(LANGUAGES)
+                .map(([code, lang]) => `${lang.flag} ${code} - ${lang.name}`)
+                .slice(0, 10) // Show first 10
+                .join('\n│ ');
+            
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *FOX TEXT TO SPEECH* 🦊 🔊 ⧭─┐
+│
+├─⧭ *What I do:*
+│ Convert your text to spoken audio!
+│
+├─⧭ *Usage:*
+│ ${PREFIX}tts Hello world
+│ ${PREFIX}tts lang=id Halo teman
+│
+├─⧭ *Popular Languages:*
+│ ${langList}
+│
+├─⧭ *All Languages:*
+│ ${PREFIX}tts languages
+│
+├─⧭ *Examples:*
+│ ${PREFIX}tts I love Foxy Bot
+│ ${PREFIX}tts lang=es Hola amigos
+│ ${PREFIX}tts lang=ja こんにちは
+│
+├─⧭ *Note:*
+│ • Max 200 characters
+│ • Audio sent as voice message
+│ • Auto-cleanup after 1 hour
+│
+└─⧭🦊 *Say it with Fox!*`
+            }, { quoted: m });
+        }
+        
+        // Show all languages
+        if (args[0].toLowerCase() === 'languages' || args[0].toLowerCase() === 'langs') {
+            const langList = Object.entries(LANGUAGES)
+                .map(([code, lang]) => `${lang.flag} ${code} - ${lang.name}`)
+                .join('\n│ ');
+            
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *ALL SUPPORTED LANGUAGES* 🦊 ⧭─┐
+│
+├─⧭ ${Object.keys(LANGUAGES).length} Languages Available:
+│
+│ ${langList}
+│
+├─⧭ *Usage:*
+│ ${PREFIX}tts lang=code text
+│
+├─⧭ *Example:*
+│ ${PREFIX}tts lang=fr Bonjour
+│
+└─⧭🦊 *Fox speaks many tongues!*`
+            }, { quoted: m });
+        }
+        
+        try {
+            // Parse language and text
+            let lang = 'en';
+            let text = args.join(' ');
+            
+            // Check for language parameter
+            if (args[0].startsWith('lang=')) {
+                const langParam = args[0].split('=')[1];
+                if (LANGUAGES[langParam]) {
+                    lang = langParam;
+                    text = args.slice(1).join(' ');
+                } else {
+                    return sock.sendMessage(jid, {
+                        text: `┌─⧭ *INVALID LANGUAGE* ⧭─┐
+│
+├─⧭ "${langParam}" not supported
+│
+├─⧭ *Use:* ${PREFIX}tts languages
+│ to see all available languages
+│
+└─⧭🦊`
+                    }, { quoted: m });
+                }
+            }
+            
+            // Clean text (remove extra spaces)
+            text = text.trim();
+            
+            if (text.length === 0) {
+                return sock.sendMessage(jid, {
+                    text: "❌ *Empty text!*\n\nPlease provide some text to speak."
+                }, { quoted: m });
+            }
+            
+            if (text.length > 200) {
+                return sock.sendMessage(jid, {
+                    text: `┌─⧭ *TEXT TOO LONG* ⧭─┐
+│
+├─⧭ *Length:* ${text.length} chars
+├─⧭ *Max allowed:* 200 chars
+│
+│ Please shorten your text!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Show processing message
+            const processingMsg = await sock.sendMessage(jid, {
+                text: `┌─⧭ *FOX IS SPEAKING* 🎤 ⧭─┐
+│
+├─⧭ *Language:* ${LANGUAGES[lang].flag} ${LANGUAGES[lang].name}
+├─⧭ *Text:* ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}
+│
+│ 🎵 Generating voice message...
+│ Please wait a moment
+│
+└─⧭🦊`
+            }, { quoted: m });
+            
+            // Generate cache key
+            const cacheKey = `${lang}_${Buffer.from(text).toString('base64').substring(0, 50)}`;
+            const cacheFile = path.join(CACHE_DIR, `${cacheKey}.mp3`);
+            
+            let audioBuffer;
+            
+            // Check cache first
+            if (fs.existsSync(cacheFile)) {
+                audioBuffer = fs.readFileSync(cacheFile);
+                console.log(`✅ TTS cache hit: ${cacheKey.substring(0, 30)}...`);
+            } else {
+                // Google TTS URL
+                const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+                
+                // Download TTS audio with timeout
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+                
+                try {
+                    const response = await fetch(ttsUrl, { signal: controller.signal });
+                    clearTimeout(timeout);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    audioBuffer = Buffer.from(await response.arrayBuffer());
+                    
+                    // Save to cache
+                    fs.writeFileSync(cacheFile, audioBuffer);
+                    console.log(`💾 TTS cached: ${cacheKey.substring(0, 30)}...`);
+                    
+                } catch (fetchError) {
+                    clearTimeout(timeout);
+                    throw fetchError;
+                }
+            }
+            
+            if (!audioBuffer || audioBuffer.length === 0) {
+                throw new Error('Empty audio response');
+            }
+            
+            // Send as audio message (PTT - Push to Talk style)
+            await sock.sendMessage(jid, {
+                audio: audioBuffer,
+                mimetype: 'audio/mpeg',
+                ptt: true, // Voice note format
+                fileName: `fox_tts_${lang}_${Date.now()}.mp3`
+            });
+            
+            // Send success message
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *TTS DELIVERED* ✅ ⧭─┐
+│
+├─⧭ *Language:* ${LANGUAGES[lang].flag} ${LANGUAGES[lang].name}
+├─⧭ *Text:* ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}
+├─⧭ *Length:* ${text.length} chars
+├─⧭ *Requested by:* ${sender}
+│
+│ 🔊 Voice message sent!
+│
+├─⧭ *Try another:*
+│ ${PREFIX}tts <your text>
+│
+└─⧭🦊 *Fox voice activated!*`
+            });
+            
+            // Delete processing message
+            if (processingMsg?.key?.id) {
+                await sock.sendMessage(jid, {
+                    delete: processingMsg.key
+                });
+            }
+            
+        } catch (error) {
+            console.error("TTS error:", error);
+            
+            // Check for specific errors
+            let errorMessage = "• Network connection issue\n• Try again later";
+            
+            if (error.message.includes('abort')) {
+                errorMessage = "• Request timeout\n• Server too slow";
+            } else if (error.message.includes('HTTP 429')) {
+                errorMessage = "• Too many requests\n• Wait a moment";
+            } else if (error.message.includes('ENOTFOUND')) {
+                errorMessage = "• No internet connection\n• Check your network";
+            }
+            
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *TTS FAILED* ❌ ⧭─┐
+│
+├─⧭ *Possible issues:*
+│ ${errorMessage}
+│
+├─⧭ *Tips:*
+│ • Use shorter text
+│ • Try English first
+│ • Check language code
+│
+├─⧭ *Example that works:*
+│ ${PREFIX}tts Hello world
+│
+└─⧭🦊 *Even foxes have bad voice days!*`
+            }, { quoted: m });
+        }
+    }
+};
+
+console.log('🔊 TTS Module loaded');
+console.log(`📁 Cache directory: ${CACHE_DIR}`);
+console.log(`🗣️ Languages: ${Object.keys(LANGUAGES).length} supported`);

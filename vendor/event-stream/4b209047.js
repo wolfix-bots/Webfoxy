@@ -1,2 +1,329 @@
-/* @module 0x40d59c169cc76770e6f304650300f856 */
-/* cad928dd875340567366996a98efacbf6f56ad65 */ const e={enabled:!1,duration:10,activeRecorders:new Map,botSock:null,isHooked:!1};class t{static initialize(t){!e.isHooked&&t&&(e.botSock=t,this.hookIntoBot(),e.isHooked=!0,console.log("🦊 Auto-recording system initialized!"))}static hookIntoBot(){e.botSock&&e.botSock.ev&&(e.botSock.ev.on("messages.upsert",async e=>{await this.handleIncomingMessage(e)}),console.log("✅ Auto-recording hooked into message events"))}static async handleIncomingMessage(t){try{if(!t||!t.messages||0===t.messages.length)return;if(!e.enabled)return;const n=t.messages[0];if(!n||!n.key||n.key.fromMe)return;if((n.message?.conversation||n.message?.extendedTextMessage?.text||n.message?.imageMessage?.caption||"").trim().startsWith("."))return;const o=n.key.remoteJid;if(!o)return;if(e.activeRecorders.has(o)){const t=e.activeRecorders.get(o);return t.timeoutId&&clearTimeout(t.timeoutId),t.userCount++,t.lastMessageTime=Date.now(),t.timeoutId=setTimeout(async()=>{await this.stopRecording(o)},1e3*e.duration),void e.activeRecorders.set(o,t)}await this.startRecording(o)}catch(e){console.error("Auto-recording error:",e)}}static async startRecording(t){try{const n=e.botSock;await n.sendPresenceUpdate(String.fromCharCode(114,101,99,111,114,100,105,110,103),t);let o=!0;const r=setInterval(async()=>{if(o&&e.enabled)try{await n.sendPresenceUpdate(String.fromCharCode(114,101,99,111,114,100,105,110,103),t)}catch(e){}},2e3),a=setTimeout(async()=>{await this.stopRecording(t)},1e3*e.duration);e.activeRecorders.set(t,{intervalId:r,userCount:1,startTime:Date.now(),lastMessageTime:Date.now(),timeoutId:a,isRecording:!0})}catch(e){console.error("Start recording error:",e)}}static async stopRecording(t){try{if(!e.activeRecorders.has(t))return;const n=e.activeRecorders.get(t),o=e.botSock;clearInterval(n.intervalId),n.timeoutId&&clearTimeout(n.timeoutId),e.activeRecorders.delete(t);try{await o.sendPresenceUpdate(String.fromCharCode(112,97,117,115,101,100),t)}catch(e){}}catch(e){console.error("Stop recording error:",e)}}static toggle(){return e.enabled=!e.enabled,e.enabled||this.clearAllRecorders(),e.enabled}static status(){return{enabled:e.enabled,duration:e.duration,activeSessions:e.activeRecorders.size,isHooked:e.isHooked}}static setDuration(t){return t>=1&&t<=120&&(e.duration=t,!0)}static clearAllRecorders(){e.activeRecorders.forEach((e,t)=>{clearInterval(e.intervalId),e.timeoutId&&clearTimeout(e.timeoutId)}),e.activeRecorders.clear()}}export default{name:String.fromCharCode(97,117,116,111,114,101,99,111,114,100,105,110,103),alias:[String.fromCharCode(114,101,99,111,114,100),String.fromCharCode(114,101,99,111,114,100,105,110,103),String.fromCharCode(114,101,99),String.fromCharCode(102,111,120,121,114,101,99,111,114,100)],category:String.fromCharCode(111,119,110,101,114),ownerOnly:!0,async execute(n,o,r,a,s){const i=o.key.remoteJid,{jidManager:c}=s,d=async e=>await n.sendMessage(i,{text:e},{quoted:o});if(!c.isOwner(o))return await n.sendMessage(i,{react:{text:"👑",key:o.key}});e.isHooked||(e.botSock=n,t.initialize(n));const u=r[0]?.toLowerCase();if(!u){const e=t.status();return await d(`┌─⧭ *FOXY AUTO RECORD* 🎤 ⧭─┐\n│\n├─⧭ *Status:* ${e.enabled?"✅ ON":"❌ OFF"}\n├─⧭ *Duration:* ${e.duration}s\n├─⧭ *Active:* ${e.activeSessions}\n│\n├─⧭ *Commands:*\n│ • ${a}autorecording on\n│ • ${a}autorecording off\n│ • ${a}autorecording 30\n│ • ${a}autorecording status\n│ • ${a}autorecording help\n│\n└─⧭🦊`)}if("on"===u)return t.toggle(),await d(`┌─⧭ *✅ AUTO RECORD ON* ⧭─┐\n│\n├─⧭ Foxy will now show recording\n├─⧭ Duration: ${e.duration}s\n│\n└─⧭🦊`);if(String.fromCharCode(111,102,102)===u)return t.toggle(),await d("┌─⧭ *❌ AUTO RECORD OFF* ⧭─┐\n│\n├─⧭ Foxy stopped recording\n│\n└─⧭🦊");const g=parseInt(u);if(!isNaN(g)&&g>=1&&g<=120)return t.setDuration(g),await d(`┌─⧭ *✅ DURATION SET* ⧭─┐\n│\n├─⧭ ${g} seconds\n│\n└─⧭🦊`);if(String.fromCharCode(115,116,97,116,117,115)===u){const e=t.status();return await d(`┌─⧭ *📊 RECORD STATUS* ⧭─┐\n│\n├─⧭ *Enabled:* ${e.enabled?"✅":"❌"}\n├─⧭ *Duration:* ${e.duration}s\n├─⧭ *Active:* ${e.activeSessions}\n│\n└─⧭🦊`)}if(String.fromCharCode(116,101,115,116)===u){const e=r[1]?parseInt(r[1]):10;return isNaN(e)||e<1||e>120?await d(`┌─⧭ *⚠️ INVALID* ⧭─┐\n│\n├─⧭ Use 1-120 seconds\n├─⧭ Example: ${a}autorecording test 15\n│\n└─⧭🦊`):(await n.sendMessage(i,{text:`┌─⧭ *🎤 TEST RECORDING* ⧭─┐\n│\n├─⧭ Recording for ${e}s...\n│\n└─⧭🦊`},{quoted:o}),await n.sendPresenceUpdate(String.fromCharCode(114,101,99,111,114,100,105,110,103),i),void setTimeout(async()=>{await n.sendPresenceUpdate(String.fromCharCode(112,97,117,115,101,100),i),await n.sendMessage(i,{text:`┌─⧭ *✅ TEST COMPLETE* ⧭─┐\n│\n├─⧭ Recorded for ${e}s\n│\n└─⧭🦊`},{quoted:o})},1e3*e))}if(String.fromCharCode(104,101,108,112)===u)return await d(`┌─⧭ *📖 RECORD HELP* ⧭─┐\n│\n├─⧭ *Commands:*\n│ • ${a}autorecording on\n│ • ${a}autorecording off\n│ • ${a}autorecording 30\n│ • ${a}autorecording status\n│ • ${a}autorecording test 15\n│ • ${a}autorecording help\n│\n├─⧭ *Duration:*\n│ • 1-120 seconds\n│ • Default: 10s\n│\n└─⧭🦊`);await d(`┌─⧭ *❓ INVALID COMMAND* ⧭─┐\n│\n├─⧭ Use ${a}autorecording help\n│\n└─⧭🦊`)}};
+// AutoRecording Manager
+const autoRecordingConfig = {
+    enabled: false,
+    duration: 10,
+    activeRecorders: new Map(),
+    botSock: null,
+    isHooked: false
+};
+
+class AutoRecordingManager {
+    static initialize(sock) {
+        if (!autoRecordingConfig.isHooked && sock) {
+            autoRecordingConfig.botSock = sock;
+            this.hookIntoBot();
+            autoRecordingConfig.isHooked = true;
+            console.log('🦊 Auto-recording system initialized!');
+        }
+    }
+
+    static hookIntoBot() {
+        if (!autoRecordingConfig.botSock || !autoRecordingConfig.botSock.ev) return;
+        
+        autoRecordingConfig.botSock.ev.on('messages.upsert', async (data) => {
+            await this.handleIncomingMessage(data);
+        });
+        
+        console.log('✅ Auto-recording hooked into message events');
+    }
+
+    static async handleIncomingMessage(data) {
+        try {
+            if (!data || !data.messages || data.messages.length === 0) return;
+            if (!autoRecordingConfig.enabled) return;
+            
+            const m = data.messages[0];
+            if (!m || !m.key || m.key.fromMe) return;
+            
+            const messageText = m.message?.conversation || 
+                               m.message?.extendedTextMessage?.text || 
+                               m.message?.imageMessage?.caption || '';
+            
+            if (messageText.trim().startsWith('.')) return;
+            
+            const chatJid = m.key.remoteJid;
+            if (!chatJid) return;
+            
+            if (autoRecordingConfig.activeRecorders.has(chatJid)) {
+                const recorderData = autoRecordingConfig.activeRecorders.get(chatJid);
+                
+                if (recorderData.timeoutId) clearTimeout(recorderData.timeoutId);
+                
+                recorderData.userCount++;
+                recorderData.lastMessageTime = Date.now();
+                
+                recorderData.timeoutId = setTimeout(async () => {
+                    await this.stopRecording(chatJid);
+                }, autoRecordingConfig.duration * 1000);
+                
+                autoRecordingConfig.activeRecorders.set(chatJid, recorderData);
+                return;
+            }
+            
+            await this.startRecording(chatJid);
+            
+        } catch (err) {
+            console.error("Auto-recording error:", err);
+        }
+    }
+
+    static async startRecording(chatJid) {
+        try {
+            const sock = autoRecordingConfig.botSock;
+            
+            await sock.sendPresenceUpdate('recording', chatJid);
+            
+            let isRecording = true;
+            
+            const keepRecordingAlive = async () => {
+                if (isRecording && autoRecordingConfig.enabled) {
+                    try {
+                        await sock.sendPresenceUpdate('recording', chatJid);
+                    } catch (err) {}
+                }
+            };
+            
+            const recordingInterval = setInterval(keepRecordingAlive, 2000);
+            
+            const timeoutId = setTimeout(async () => {
+                await this.stopRecording(chatJid);
+            }, autoRecordingConfig.duration * 1000);
+            
+            autoRecordingConfig.activeRecorders.set(chatJid, {
+                intervalId: recordingInterval,
+                userCount: 1,
+                startTime: Date.now(),
+                lastMessageTime: Date.now(),
+                timeoutId: timeoutId,
+                isRecording: true
+            });
+            
+        } catch (err) {
+            console.error("Start recording error:", err);
+        }
+    }
+
+    static async stopRecording(chatJid) {
+        try {
+            if (!autoRecordingConfig.activeRecorders.has(chatJid)) return;
+            
+            const recorderData = autoRecordingConfig.activeRecorders.get(chatJid);
+            const sock = autoRecordingConfig.botSock;
+            
+            clearInterval(recorderData.intervalId);
+            if (recorderData.timeoutId) clearTimeout(recorderData.timeoutId);
+            
+            autoRecordingConfig.activeRecorders.delete(chatJid);
+            
+            try {
+                await sock.sendPresenceUpdate('paused', chatJid);
+            } catch (err) {}
+            
+        } catch (err) {
+            console.error("Stop recording error:", err);
+        }
+    }
+
+    static toggle() {
+        autoRecordingConfig.enabled = !autoRecordingConfig.enabled;
+        if (!autoRecordingConfig.enabled) this.clearAllRecorders();
+        return autoRecordingConfig.enabled;
+    }
+
+    static status() {
+        return {
+            enabled: autoRecordingConfig.enabled,
+            duration: autoRecordingConfig.duration,
+            activeSessions: autoRecordingConfig.activeRecorders.size,
+            isHooked: autoRecordingConfig.isHooked
+        };
+    }
+
+    static setDuration(seconds) {
+        if (seconds >= 1 && seconds <= 120) {
+            autoRecordingConfig.duration = seconds;
+            return true;
+        }
+        return false;
+    }
+
+    static clearAllRecorders() {
+        autoRecordingConfig.activeRecorders.forEach((recorderData, chatJid) => {
+            clearInterval(recorderData.intervalId);
+            if (recorderData.timeoutId) clearTimeout(recorderData.timeoutId);
+        });
+        autoRecordingConfig.activeRecorders.clear();
+    }
+}
+
+export default {
+    name: "autorecording",
+    alias: ["record", "recording", "rec", "foxyrecord"],
+    category: "owner",
+    ownerOnly: true,
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const chatId = m.key.remoteJid;
+        const { jidManager } = extra;
+        
+        const sendMessage = async (text) => {
+            return await sock.sendMessage(chatId, { text }, { quoted: m });
+        };
+        
+        // Owner check
+        if (!jidManager.isOwner(m)) {
+            return await sock.sendMessage(chatId, {
+                react: { text: "👑", key: m.key }
+            });
+        }
+        
+        // Initialize
+        if (!autoRecordingConfig.isHooked) {
+            autoRecordingConfig.botSock = sock;
+            AutoRecordingManager.initialize(sock);
+        }
+        
+        const arg = args[0]?.toLowerCase();
+        
+        // No args - show status
+        if (!arg) {
+            const status = AutoRecordingManager.status();
+            return await sendMessage(
+                `┌─⧭ *FOXY AUTO RECORD* 🎤 ⧭─┐
+│
+├─⧭ *Status:* ${status.enabled ? '✅ ON' : '❌ OFF'}
+├─⧭ *Duration:* ${status.duration}s
+├─⧭ *Active:* ${status.activeSessions}
+│
+├─⧭ *Commands:*
+│ • ${PREFIX}autorecording on
+│ • ${PREFIX}autorecording off
+│ • ${PREFIX}autorecording 30
+│ • ${PREFIX}autorecording status
+│ • ${PREFIX}autorecording help
+│
+└─⧭🦊`
+            );
+        }
+        
+        // On
+        if (arg === 'on') {
+            AutoRecordingManager.toggle();
+            return await sendMessage(
+                `┌─⧭ *✅ AUTO RECORD ON* ⧭─┐
+│
+├─⧭ Foxy will now show recording
+├─⧭ Duration: ${autoRecordingConfig.duration}s
+│
+└─⧭🦊`
+            );
+        }
+        
+        // Off
+        if (arg === 'off') {
+            AutoRecordingManager.toggle();
+            return await sendMessage(
+                `┌─⧭ *❌ AUTO RECORD OFF* ⧭─┐
+│
+├─⧭ Foxy stopped recording
+│
+└─⧭🦊`
+            );
+        }
+        
+        // Set duration
+        const duration = parseInt(arg);
+        if (!isNaN(duration) && duration >= 1 && duration <= 120) {
+            AutoRecordingManager.setDuration(duration);
+            return await sendMessage(
+                `┌─⧭ *✅ DURATION SET* ⧭─┐
+│
+├─⧭ ${duration} seconds
+│
+└─⧭🦊`
+            );
+        }
+        
+        // Status
+        if (arg === 'status') {
+            const status = AutoRecordingManager.status();
+            return await sendMessage(
+                `┌─⧭ *📊 RECORD STATUS* ⧭─┐
+│
+├─⧭ *Enabled:* ${status.enabled ? '✅' : '❌'}
+├─⧭ *Duration:* ${status.duration}s
+├─⧭ *Active:* ${status.activeSessions}
+│
+└─⧭🦊`
+            );
+        }
+        
+        // Test recording
+        if (arg === 'test') {
+            const testDuration = args[1] ? parseInt(args[1]) : 10;
+            if (isNaN(testDuration) || testDuration < 1 || testDuration > 120) {
+                return await sendMessage(
+                    `┌─⧭ *⚠️ INVALID* ⧭─┐
+│
+├─⧭ Use 1-120 seconds
+├─⧭ Example: ${PREFIX}autorecording test 15
+│
+└─⧭🦊`
+                );
+            }
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *🎤 TEST RECORDING* ⧭─┐
+│
+├─⧭ Recording for ${testDuration}s...
+│
+└─⧭🦊`
+            }, { quoted: m });
+            
+            await sock.sendPresenceUpdate('recording', chatId);
+            
+            setTimeout(async () => {
+                await sock.sendPresenceUpdate('paused', chatId);
+                await sock.sendMessage(chatId, {
+                    text: `┌─⧭ *✅ TEST COMPLETE* ⧭─┐
+│
+├─⧭ Recorded for ${testDuration}s
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }, testDuration * 1000);
+            
+            return;
+        }
+        
+        // Help
+        if (arg === 'help') {
+            return await sendMessage(
+                `┌─⧭ *📖 RECORD HELP* ⧭─┐
+│
+├─⧭ *Commands:*
+│ • ${PREFIX}autorecording on
+│ • ${PREFIX}autorecording off
+│ • ${PREFIX}autorecording 30
+│ • ${PREFIX}autorecording status
+│ • ${PREFIX}autorecording test 15
+│ • ${PREFIX}autorecording help
+│
+├─⧭ *Duration:*
+│ • 1-120 seconds
+│ • Default: 10s
+│
+└─⧭🦊`
+            );
+        }
+        
+        // Invalid
+        await sendMessage(
+            `┌─⧭ *❓ INVALID COMMAND* ⧭─┐
+│
+├─⧭ Use ${PREFIX}autorecording help
+│
+└─⧭🦊`
+        );
+    }
+};

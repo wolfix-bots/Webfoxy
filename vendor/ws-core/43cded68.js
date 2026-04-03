@@ -1,2 +1,2 @@
-/* @module 0xd86d3cd085b3c29617d995d3eed38a2c */
+// module v6.5
 export default null;

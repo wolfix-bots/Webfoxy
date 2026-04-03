@@ -1,2 +1,71 @@
-/* @module 0xe492f7983adcf4f15af83bf35fa05287 */
-/* 1acd19d2f1e7e49336ff1a8d22dae86940d0ab3f */ import e fromString.fromCharCode(97,120,105,111,115);import o from"fs";import a fromString.fromCharCode(112,97,116,104);export default{name:String.fromCharCode(109,112,52),alias:[String.fromCharCode(118,105,100,101,111),String.fromCharCode(100,111,119,110,108,111,97,100),String.fromCharCode(121,116,109,112,52)],desc:"Download video from various platforms (YouTube, Facebook, etc.)",category:String.fromCharCode(100,111,119,110,108,111,97,100,101,114),usage:".mp4 [video URL]",async execute(o,a,t){try{const s=a.key.remoteJid,d=t[0]?.trim();if(!d)return void await o.sendMessage(s,{text:"🎥 *Please provide a video URL!*\n\nExample: `.mp4 https://youtu.be/xxxx`"});await o.sendMessage(s,{text:"⏬ *Downloading video... Please wait.*"});const r=`https://apis.xwolf.space/download/mp4?url=${encodeURIComponent(d)}`,i=await e.get(r,{timeout:6e4,responseType:String.fromCharCode(106,115,111,110)});i.data?.downloadUrl?await o.sendMessage(s,{video:{url:i.data.downloadUrl},caption:"✅ Here's your video!"}):i.data?.buffer?await o.sendMessage(s,{video:Buffer.from(i.data.buffer,String.fromCharCode(98,97,115,101,54,52)),caption:"✅ Here's your video!"}):await o.sendMessage(s,{text:"⚠️ Could not process video. Please check the URL or try another one."})}catch(e){console.error("🎥 Error in mp4 command:",e);let t="❌ Failed to download video!";400===e.response?.status?t="❌ Invalid URL or unsupported platform. Please check the link.":String.fromCharCode(69,67,79,78,78,65,66,79,82,84,69,68)===e.code&&(t="⏱️ Download timeout! The file might be too large."),await o.sendMessage(a.key.remoteJid,{text:t})}}};
+import axios from "axios";
+import fs from "fs";
+import path from "path";
+
+export default {
+  name: "mp4",
+  alias: ["video", "download", "ytmp4"],
+  desc: "Download video from various platforms (YouTube, Facebook, etc.)",
+  category: "downloader",
+  usage: ".mp4 [video URL]",
+
+  async execute(sock, m, args) {
+    try {
+      const chatId = m.key.remoteJid;
+      const videoUrl = args[0]?.trim();
+
+      if (!videoUrl) {
+        await sock.sendMessage(chatId, {
+          text: "🎥 *Please provide a video URL!*\n\nExample: `.mp4 https://youtu.be/xxxx`",
+        });
+        return;
+      }
+
+      await sock.sendMessage(chatId, { text: "⏬ *Downloading video... Please wait.*" });
+
+      // Call the download API
+      const apiUrl = `https://apis.xwolf.space/download/mp4?url=${encodeURIComponent(videoUrl)}`;
+      const response = await axios.get(apiUrl, { 
+        timeout: 60000, // Longer timeout for downloads
+        responseType: "json" 
+      });
+
+      // --- IMPORTANT: ADAPT THIS PART ---
+      // You need to check the actual response format from the API
+      // It might return a direct download link or the video file itself.
+      
+      // Option 1: API returns a download URL
+      if (response.data?.downloadUrl) {
+        await sock.sendMessage(chatId, {
+          video: { url: response.data.downloadUrl },
+          caption: "✅ Here's your video!",
+        });
+      } 
+      // Option 2: API returns base64 or buffer data
+      else if (response.data?.buffer) {
+        await sock.sendMessage(chatId, {
+          video: Buffer.from(response.data.buffer, 'base64'),
+          caption: "✅ Here's your video!",
+        });
+      }
+      // Option 3: Handle other formats
+      else {
+        await sock.sendMessage(chatId, { 
+          text: "⚠️ Could not process video. Please check the URL or try another one." 
+        });
+      }
+
+    } catch (error) {
+      console.error("🎥 Error in mp4 command:", error);
+      
+      let errorMessage = "❌ Failed to download video!";
+      if (error.response?.status === 400) {
+        errorMessage = "❌ Invalid URL or unsupported platform. Please check the link.";
+      } else if (error.code === "ECONNABORTED") {
+        errorMessage = "⏱️ Download timeout! The file might be too large.";
+      }
+      
+      await sock.sendMessage(m.key.remoteJid, { text: errorMessage });
+    }
+  },
+};

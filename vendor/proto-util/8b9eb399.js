@@ -1,2 +1,40 @@
-/* @module 0xa799ba80b657984651f3adca4305af8d */
-/* 0cd1ce8888bbfc2c15dfcb9a32ae4365c7608e1c */ export default{name:String.fromCharCode(97,115,99,105,105),alias:[String.fromCharCode(97,115,99,105,105,97,114,116),String.fromCharCode(116,101,120,116,97,114,116)],category:String.fromCharCode(102,117,110),async execute(t,e,a,n,s){const i=e.key.remoteJid;if(!a.length)return t.sendMessage(i,{text:`┌─⧭ *ASCII Art*\n│ Usage: ${n}ascii <text>\n│ Example: ${n}ascii heart\n└─⧭`},{quoted:e});const r=a.join(" ");await t.sendMessage(i,{text:"┌─⧭ *Creating ASCII...*\n└─⧭"},{quoted:e});try{const a=(await import(String.fromCharCode(97,120,105,111,115))).default,n=`Create ASCII art for: "${r}". Use only text characters.`,s=`https://iamtkm.vercel.app/ai/copilot?apikey=tkm&text=${encodeURIComponent(n)}`,o=await a.get(s,{timeout:15e3}),c=o.data?.result||o.data?.response;await t.sendMessage(i,{text:`┌─⧭ *ASCII: ${r}*\n│\n\`\`\`\n${c}\n\`\`\`\n└─⧭`},{quoted:e})}catch(a){await t.sendMessage(i,{text:"┌─⧭ *Error*\n│ ASCII art failed\n└─⧭"},{quoted:e})}}};
+export default {
+    name: "ascii",
+    alias: ["asciiart", "textart"],
+    category: "fun",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *ASCII Art*\n\u2502 Usage: ${PREFIX}ascii <text>\n\u2502 Example: ${PREFIX}ascii heart\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+        
+        const text = args.join(' ');
+        
+        await sock.sendMessage(jid, {
+            text: `\u250C\u2500\u29ED *Creating ASCII...*\n\u2514\u2500\u29ED`
+        }, { quoted: m });
+        
+        try {
+            const axios = (await import('axios')).default;
+            
+            const prompt = `Create ASCII art for: "${text}". Use only text characters.`;
+            const url = `https://iamtkm.vercel.app/ai/copilot?apikey=tkm&text=${encodeURIComponent(prompt)}`;
+            
+            const response = await axios.get(url, { timeout: 15000 });
+            const asciiArt = response.data?.result || response.data?.response;
+            
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *ASCII: ${text}*\n\u2502\n\`\`\`\n${asciiArt}\n\`\`\`\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+            
+        } catch (error) {
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Error*\n\u2502 ASCII art failed\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+    }
+};

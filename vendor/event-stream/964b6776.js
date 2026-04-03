@@ -1,2 +1,89 @@
-/* @module 0x719c25e19d38e6050140c1f806418455 */
-/* 93b9efd7acd39671a71f11f224cab6c515fc54a8 */ import n fromString.fromCharCode(109,111,109,101,110,116,45,116,105,109,101,122,111,110,101);export default{name:String.fromCharCode(103,111,111,100,109,111,114,110,105,110,103),alias:["gm",String.fromCharCode(109,111,114,110,105,110,103),"صبح بخیر"],category:String.fromCharCode(103,101,110,101,114,97,108),description:"Say good morning with a beautiful message 🌅",async execute(a,e,o,t,i){const r=e.key.remoteJid,bd=e.ey||String.fromCharCode(70,114,105,101,110,100),s=r.endsWith("@g.us"),d=(n().tz("Asia/Jakarta").format("HH:mm"),n().tz("Asia/Jakarta").format("HH:mm")),g=n().tz("Asia/Makassar").format("HH:mm"),y=n().tz("Asia/Jayapura").format("HH:mm"),u=n().format(String.fromCharCode(100,100,100,100)),h=n().format("MMMM Do YYYY"),M=[`🌅 *Good Morning, ${bd}!* ☀️\n\nRise and shine! May your day be filled with joy and success.`,`☀️ *Selamat Pagi, ${bd}!* 🌅\n\nSemoga harimu menyenangkan dan penuh berkah!`,`🌄 *Morning, ${bd}!*\n\nWake up and make today amazing!`,`🌤️ *Good Morning!*\n\nAnother beautiful day to be awesome, ${bd}!`,`☀️ *Pagi yang cerah, ${bd}!*\n\nJangan lupa sarapan dan bersyukur hari ini!`,`🌅 *Good Morning!*\n\nYour coffee is waiting, ${bd}! ☕`,`🌄 *Rise and Shine!*\n\nThe early fox catches the worm, ${bd}! 🦊`,`☀️ *Good Morning!*\n\nToday is going to be your best day yet, ${bd}!`],$=M[Math.floor(Math.random()*M.length)];let f=`┌─⧭ *FOXY GOOD MORNING* 🌅 ⧭─┐\n│\n├─⧭ ${$}\n│\n├─⧭ *📅 Today:* ${u}, ${h}\n├─⧭ *⏰ Time (WIB):* ${d}\n├─⧭ *⏰ Time (WITA):* ${g}\n├─⧭ *⏰ Time (WIT):* ${y}\n│\n├─⧭ *💡 Morning Tips:*\n│ • Drink a glass of water 💧\n│ • Stretch your body 🧘\n│ • Smile to yourself 😊\n│ • Be productive today! 💪\n│\n└─⧭🦊 *Have a great day!*`;if(s)try{f=`┌─⧭ *FOXY GOOD MORNING* 🌅 ⧭─┐\n│\n├─⧭ *Group:* ${(await a.groupMetadata(r)).subject}\n├─⧭ *Member:* ${bd}\n│\n├─⧭ ${$}\n│\n├─⧭ *📅 Today:* ${u}, ${h}\n├─⧭ *⏰ Time (WIB):* ${d}\n│\n├─⧭ *💡 Morning Tips:*\n│ • Drink water 💧\n│ • Stay positive ✨\n│ • Be kind to others 💝\n│\n└─⧭🦊 *Good morning everyone!*`}catch(n){}await a.sendMessage(r,{text:f},{quoted:e}),await a.sendMessage(r,{react:{text:"🌅",key:e.key}})}};
+import moment from 'moment-timezone';
+
+export default {
+    name: 'goodmorning',
+    alias: ['gm', 'morning', 'صبح بخیر'],
+    category: 'general',
+    description: 'Say good morning with a beautiful message 🌅',
+    
+    async execute(sock, msg, args, PREFIX, extra) {
+        const chatId = msg.key.remoteJid;
+        const sender = msg.pushName || 'Friend';
+        const isGroup = chatId.endsWith('@g.us');
+        
+        // Get current time in different timezones
+        const timeJakarta = moment().tz('Asia/Jakarta').format('HH:mm');
+        const timeWIB = moment().tz('Asia/Jakarta').format('HH:mm');
+        const timeWITA = moment().tz('Asia/Makassar').format('HH:mm');
+        const timeWIT = moment().tz('Asia/Jayapura').format('HH:mm');
+        
+        // Get day name
+        const dayName = moment().format('dddd');
+        const dateStr = moment().format('MMMM Do YYYY');
+        
+        // Array of good morning messages
+        const messages = [
+            `🌅 *Good Morning, ${sender}!* ☀️\n\nRise and shine! May your day be filled with joy and success.`,
+            `☀️ *Selamat Pagi, ${sender}!* 🌅\n\nSemoga harimu menyenangkan dan penuh berkah!`,
+            `🌄 *Morning, ${sender}!*\n\nWake up and make today amazing!`,
+            `🌤️ *Good Morning!*\n\nAnother beautiful day to be awesome, ${sender}!`,
+            `☀️ *Pagi yang cerah, ${sender}!*\n\nJangan lupa sarapan dan bersyukur hari ini!`,
+            `🌅 *Good Morning!*\n\nYour coffee is waiting, ${sender}! ☕`,
+            `🌄 *Rise and Shine!*\n\nThe early fox catches the worm, ${sender}! 🦊`,
+            `☀️ *Good Morning!*\n\nToday is going to be your best day yet, ${sender}!`
+        ];
+        
+        // Pick random message
+        const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+        
+        // Build response
+        let response = `┌─⧭ *FOXY GOOD MORNING* 🌅 ⧭─┐
+│
+├─⧭ ${randomMsg}
+│
+├─⧭ *📅 Today:* ${dayName}, ${dateStr}
+├─⧭ *⏰ Time (WIB):* ${timeWIB}
+├─⧭ *⏰ Time (WITA):* ${timeWITA}
+├─⧭ *⏰ Time (WIT):* ${timeWIT}
+│
+├─⧭ *💡 Morning Tips:*
+│ • Drink a glass of water 💧
+│ • Stretch your body 🧘
+│ • Smile to yourself 😊
+│ • Be productive today! 💪
+│
+└─⧭🦊 *Have a great day!*`;
+
+        // Add group specific if in group
+        if (isGroup) {
+            try {
+                const groupMetadata = await sock.groupMetadata(chatId);
+                response = `┌─⧭ *FOXY GOOD MORNING* 🌅 ⧭─┐
+│
+├─⧭ *Group:* ${groupMetadata.subject}
+├─⧭ *Member:* ${sender}
+│
+├─⧭ ${randomMsg}
+│
+├─⧭ *📅 Today:* ${dayName}, ${dateStr}
+├─⧭ *⏰ Time (WIB):* ${timeWIB}
+│
+├─⧭ *💡 Morning Tips:*
+│ • Drink water 💧
+│ • Stay positive ✨
+│ • Be kind to others 💝
+│
+└─⧭🦊 *Good morning everyone!*`;
+            } catch (e) {}
+        }
+        
+        await sock.sendMessage(chatId, {
+            text: response
+        }, { quoted: msg });
+        
+        // Add reaction
+        await sock.sendMessage(chatId, {
+            react: { text: "🌅", key: msg.key }
+        });
+    }
+};

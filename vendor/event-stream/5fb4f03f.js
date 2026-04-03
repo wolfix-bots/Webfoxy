@@ -1,2 +1,290 @@
-/* @module 0x92b4ac008aed6e431439b15cadfa0e9a */
-/* 7d1794998f427e6e14183b42d58b3c43703af7ec */ import e fromString.fromCharCode(97,120,105,111,115);import n fromString.fromCharCode(115,104,97,114,112);export default{name:"qr",alias:[String.fromCharCode(113,114,99,111,100,101),String.fromCharCode(113,114,103,101,110),String.fromCharCode(109,97,107,101,113,114),String.fromCharCode(102,111,120,113,114)],description:"Generate QR codes from text/URL 📱",category:String.fromCharCode(116,111,111,108,115),ownerOnly:!1,async execute(n,t,o,a,s){const r=t.key.remoteJid,i=t.uj||String.fromCharCode(70,114,105,101,110,100);if(0===o.length)return n.sendMessage(r,{text:`┌─⧭ *FOXY QR GENERATOR* 📱 ⧭─┐\n│\n├─⧭ *What I do:*\n│ Generate QR codes from text or URLs!\n│\n├─⧭ *Usage:*\n│ • \`${a}qr <text/url>\`\n│ • \`${a}qr wifi <ssid> <password>\`\n│ • \`${a}qr contact <name> <phone>\`\n│ • \`${a}qr email <email> <subject> <body>\`\n│ • \`${a}qr location <lat> <lng> <name>\`\n│\n├─⧭ *Examples:*\n│ • \`.qr https://github.com\`\n│ • \`.qr Hello World!\`\n│ • \`.qr wifi MyWiFi mypassword123\`\n│ • \`.qr contact John 1234567890\`\n│ • \`.qr email info@foxy.com Hello\`\n│ • \`.qr location -6.2 106.8 Jakarta\`\n│\n├─⧭ *Special Formats:*\n│ • \`wifi\` - WiFi network QR\n│ • \`contact\` - Contact info (vCard)\n│ • \`email\` - Email message\n│ • \`location\` - GPS coordinates\n│ • \`phone\` - Phone number\n│ • \`sms\` - SMS message\n│\n├─⧭ *More info:*\n│ • \`${a}qr help\` - Detailed guide\n│\n└─⧭🦊 *Foxy makes QR codes!*`},{quoted:t});if(String.fromCharCode(104,101,108,112)===o[0].toLowerCase())return n.sendMessage(r,{text:"┌─⧭ *QR CODE GUIDE* 📖 ⧭─┐\n│\n├─⧭ *WiFi QR:*\n│ `.qr wifi MyWiFi pass123`\n│ • T:WPA/WEP/nopass\n│ • Hidden SSID? Add H:true\n│\n├─⧭ *Contact QR (vCard):*\n│ `.qr contact John 1234567890`\n│ • Name, Phone required\n│ • Email optional: `.qr contact John 123 john@email.com`\n│\n├─⧭ *Email QR:*\n│ `.qr email to@email.com Subject Body here`\n│ • Creates mailto: link\n│\n├─⧭ *Location QR:*\n│ `.qr location -6.2 106.8 Jakarta`\n│ • Latitude, Longitude, Label\n│\n├─⧭ *Phone QR:*\n│ `.qr phone +1234567890`\n│ • tel: link\n│\n├─⧭ *SMS QR:*\n│ `.qr sms +1234567890 Hello`\n│ • sms: link with message\n│\n├─⧭ *Plain Text/URL:*\n│ Just type any text or URL!\n│ • URLs become clickable\n│ • Text is encoded directly\n│\n└─⧭🦊 *Scan away!*"},{quoted:t});try{const a=o.join(" "),s=await n.sendMessage(r,{text:`┌─⧭ *FOXY QR GENERATOR* 📱 ⧭─┐\n│\n├─⧭ *Generating QR code...*\n│\n│ • Content: ${a.substring(0,30)}${a.length>30?"...":""}\n│ • Size: 500x500\n│ • Format: PNG\n│\n│ Please wait, Foxy is working! 🦊\n│\n└─⧭`},{quoted:t});let c,l=a,ln="FOXY QR CODE",d="";if(String.fromCharCode(119,105,102,105)===o[0].toLowerCase()&&o.length>=2){const e=o[1],n=o[2]||"",t=o[3]||String.fromCharCode(87,80,65);l=`WIFI:S:${e};T:${t};P:${n};;`,ln="FOXY WiFi QR",d=`📶 *SSID:* ${e}\n🔐 *Password:* ${n||String.fromCharCode(79,112,101,110)}\n🔒 *Encryption:* ${t}`}else if(String.fromCharCode(99,111,110,116,97,99,116)===o[0].toLowerCase()&&o.length>=3){const e=o[1],n=o[2],t=o[3]||"";l=`BEGIN:VCARD\nVERSION:3.0\nFN:${e}\nTEL:${n}`,t&&(l+=`\nEMAIL:${t}`),l+="\nEND:VCARD",ln="FOXY CONTACT QR",d=`👤 *Name:* ${e}\n📞 *Phone:* ${n}\n${t?`📧 *Email:* ${t}`:""}`}else if(String.fromCharCode(101,109,97,105,108)===o[0].toLowerCase()&&o.length>=2){const e=o[1],n=o[2]||"",t=o.slice(3).join(" ")||"";l=`mailto:${e}?subject=${encodeURIComponent(n)}&body=${encodeURIComponent(t)}`,ln="FOXY EMAIL QR",d=`📧 *To:* ${e}\n📝 *Subject:* ${n||"(none)"}`}else if(String.fromCharCode(108,111,99,97,116,105,111,110)===o[0].toLowerCase()&&o.length>=3){const e=o[1],n=o[2],t=o.slice(3).join(" ")||String.fromCharCode(76,111,99,97,116,105,111,110);l=`geo:${e},${n}?q=${e},${n}(${encodeURIComponent(t)})`,ln="FOXY LOCATION QR",d=`📍 *Location:* ${t}\n🌐 *Coordinates:* ${e}, ${n}`}else if(String.fromCharCode(112,104,111,110,101)===o[0].toLowerCase()&&o.length>=2){const e=o[1];l=`tel:${e}`,ln="FOXY PHONE QR",d=`📞 *Phone:* ${e}`}else if(String.fromCharCode(115,109,115)===o[0].toLowerCase()&&o.length>=2){const e=o[1],n=o.slice(2).join(" ")||"";l=`sms:${e}?body=${encodeURIComponent(n)}`,ln="FOXY SMS QR",d=`📱 *To:* ${e}\n💬 *Message:* ${n.substring(0,30)}${n.length>30?"...":""}`}else a.match(/^(http|https|ftp):\/\
+import axios from "axios";
+import sharp from "sharp"; // Optional: for adding fox logo to QR
+
+export default {
+    name: "qr",
+    alias: ["qrcode", "qrgen", "makeqr", "foxqr"],
+    description: "Generate QR codes from text/URL 📱",
+    category: "tools",
+    ownerOnly: false,
+
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        const sender = m.pushName || 'Friend';
+        
+        // Show help if no arguments
+        if (args.length === 0) {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY QR GENERATOR* 📱 ⧭─┐
+│
+├─⧭ *What I do:*
+│ Generate QR codes from text or URLs!
+│
+├─⧭ *Usage:*
+│ • \`${PREFIX}qr <text/url>\`
+│ • \`${PREFIX}qr wifi <ssid> <password>\`
+│ • \`${PREFIX}qr contact <name> <phone>\`
+│ • \`${PREFIX}qr email <email> <subject> <body>\`
+│ • \`${PREFIX}qr location <lat> <lng> <name>\`
+│
+├─⧭ *Examples:*
+│ • \`.qr https://github.com\`
+│ • \`.qr Hello World!\`
+│ • \`.qr wifi MyWiFi mypassword123\`
+│ • \`.qr contact John 1234567890\`
+│ • \`.qr email info@foxy.com Hello\`
+│ • \`.qr location -6.2 106.8 Jakarta\`
+│
+├─⧭ *Special Formats:*
+│ • \`wifi\` - WiFi network QR
+│ • \`contact\` - Contact info (vCard)
+│ • \`email\` - Email message
+│ • \`location\` - GPS coordinates
+│ • \`phone\` - Phone number
+│ • \`sms\` - SMS message
+│
+├─⧭ *More info:*
+│ • \`${PREFIX}qr help\` - Detailed guide
+│
+└─⧭🦊 *Foxy makes QR codes!*`
+            }, { quoted: m });
+        }
+        
+        // Show detailed help
+        if (args[0].toLowerCase() === 'help') {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *QR CODE GUIDE* 📖 ⧭─┐
+│
+├─⧭ *WiFi QR:*
+│ \`.qr wifi MyWiFi pass123\`
+│ • T:WPA/WEP/nopass
+│ • Hidden SSID? Add H:true
+│
+├─⧭ *Contact QR (vCard):*
+│ \`.qr contact John 1234567890\`
+│ • Name, Phone required
+│ • Email optional: \`.qr contact John 123 john@email.com\`
+│
+├─⧭ *Email QR:*
+│ \`.qr email to@email.com Subject Body here\`
+│ • Creates mailto: link
+│
+├─⧭ *Location QR:*
+│ \`.qr location -6.2 106.8 Jakarta\`
+│ • Latitude, Longitude, Label
+│
+├─⧭ *Phone QR:*
+│ \`.qr phone +1234567890\`
+│ • tel: link
+│
+├─⧭ *SMS QR:*
+│ \`.qr sms +1234567890 Hello\`
+│ • sms: link with message
+│
+├─⧭ *Plain Text/URL:*
+│ Just type any text or URL!
+│ • URLs become clickable
+│ • Text is encoded directly
+│
+└─⧭🦊 *Scan away!*`
+            }, { quoted: m });
+        }
+        
+        try {
+            const text = args.join(' ');
+            
+            // Send processing message
+            const processingMsg = await sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY QR GENERATOR* 📱 ⧭─┐
+│
+├─⧭ *Generating QR code...*
+│
+│ • Content: ${text.substring(0, 30)}${text.length > 30 ? '...' : ''}
+│ • Size: 500x500
+│ • Format: PNG
+│
+│ Please wait, Foxy is working! 🦊
+│
+└─⧭`
+            }, { quoted: m });
+            
+            // Handle different QR types
+            let qrContent = text;
+            let qrTitle = "FOXY QR CODE";
+            let qrSubtitle = "";
+            
+            // WiFi QR
+            if (args[0].toLowerCase() === 'wifi' && args.length >= 2) {
+                const ssid = args[1];
+                const password = args[2] || '';
+                const encryption = args[3] || 'WPA';
+                
+                qrContent = `WIFI:S:${ssid};T:${encryption};P:${password};;`;
+                qrTitle = "FOXY WiFi QR";
+                qrSubtitle = `📶 *SSID:* ${ssid}\n🔐 *Password:* ${password || 'Open'}\n🔒 *Encryption:* ${encryption}`;
+            }
+            
+            // Contact QR (vCard)
+            else if (args[0].toLowerCase() === 'contact' && args.length >= 3) {
+                const name = args[1];
+                const phone = args[2];
+                const email = args[3] || '';
+                
+                qrContent = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${phone}`;
+                if (email) qrContent += `\nEMAIL:${email}`;
+                qrContent += `\nEND:VCARD`;
+                
+                qrTitle = "FOXY CONTACT QR";
+                qrSubtitle = `👤 *Name:* ${name}\n📞 *Phone:* ${phone}\n${email ? `📧 *Email:* ${email}` : ''}`;
+            }
+            
+            // Email QR
+            else if (args[0].toLowerCase() === 'email' && args.length >= 2) {
+                const email = args[1];
+                const subject = args[2] || '';
+                const body = args.slice(3).join(' ') || '';
+                
+                qrContent = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                qrTitle = "FOXY EMAIL QR";
+                qrSubtitle = `📧 *To:* ${email}\n📝 *Subject:* ${subject || '(none)'}`;
+            }
+            
+            // Location QR
+            else if (args[0].toLowerCase() === 'location' && args.length >= 3) {
+                const lat = args[1];
+                const lng = args[2];
+                const label = args.slice(3).join(' ') || 'Location';
+                
+                qrContent = `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(label)})`;
+                qrTitle = "FOXY LOCATION QR";
+                qrSubtitle = `📍 *Location:* ${label}\n🌐 *Coordinates:* ${lat}, ${lng}`;
+            }
+            
+            // Phone QR
+            else if (args[0].toLowerCase() === 'phone' && args.length >= 2) {
+                const phone = args[1];
+                qrContent = `tel:${phone}`;
+                qrTitle = "FOXY PHONE QR";
+                qrSubtitle = `📞 *Phone:* ${phone}`;
+            }
+            
+            // SMS QR
+            else if (args[0].toLowerCase() === 'sms' && args.length >= 2) {
+                const phone = args[1];
+                const message = args.slice(2).join(' ') || '';
+                qrContent = `sms:${phone}?body=${encodeURIComponent(message)}`;
+                qrTitle = "FOXY SMS QR";
+                qrSubtitle = `📱 *To:* ${phone}\n💬 *Message:* ${message.substring(0, 30)}${message.length > 30 ? '...' : ''}`;
+            }
+            
+            // Default: plain text/URL
+            else {
+                // Check if it's a URL
+                if (text.match(/^(http|https|ftp):\/\//)) {
+                    qrTitle = "FOXY URL QR";
+                    qrSubtitle = `🔗 *URL:* ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}`;
+                } else {
+                    qrTitle = "FOXY TEXT QR";
+                    qrSubtitle = `📝 *Text:* ${text.substring(0, 50)}${text.length > 50 ? '...' : ''}`;
+                }
+            }
+            
+            // Generate QR code using multiple APIs (fallback)
+            let qrUrl;
+            const encodedData = encodeURIComponent(qrContent);
+            
+            // Try primary API
+            qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodedData}`;
+            
+            // Try to add Fox logo to QR (optional - requires sharp)
+            let imageBuffer;
+            try {
+                const response = await axios.get(qrUrl, { responseType: 'arraybuffer' });
+                imageBuffer = Buffer.from(response.data);
+                
+                // Optional: Add small fox logo to center (commented out as it requires sharp)
+                /*
+                try {
+                    const foxLogo = await axios.get('https://i.ibb.co/fox-logo.png', { responseType: 'arraybuffer' });
+                    const logoBuffer = Buffer.from(foxLogo.data);
+                    
+                    const qrWithLogo = await sharp(imageBuffer)
+                        .composite([{
+                            input: logoBuffer,
+                            gravity: 'centre',
+                            blend: 'over'
+                        }])
+                        .png()
+                        .toBuffer();
+                    
+                    imageBuffer = qrWithLogo;
+                } catch (logoErr) {}
+                */
+                
+            } catch (apiError) {
+                // Fallback to alternative API
+                qrUrl = `https://chart.googleapis.com/chart?chs=500x500&cht=qr&chl=${encodedData}`;
+                const response = await axios.get(qrUrl, { responseType: 'arraybuffer' });
+                imageBuffer = Buffer.from(response.data);
+            }
+            
+            // Delete processing message
+            await sock.sendMessage(jid, {
+                delete: processingMsg.key
+            });
+            
+            // Prepare caption
+            const caption = `┌─⧭ *${qrTitle}* 📱 ⧭─┐
+│
+${qrSubtitle ? `├─⧭ ${qrSubtitle}\n│\n` : ''}
+├─⧭ *Generated by:* ${sender}
+├─⧭ *Size:* 500x500
+│
+│ Scan the QR code below!
+│
+└─⧭🦊 *Foxy QR generator*`;
+            
+            // Send QR image
+            await sock.sendMessage(jid, {
+                image: imageBuffer,
+                caption: caption,
+                mimetype: 'image/png'
+            }, { quoted: m });
+            
+            // Also send the raw content for copying
+            if (qrContent.length < 200) {
+                await sock.sendMessage(jid, {
+                    text: `📋 *Raw Content:*\n\`${qrContent}\``
+                });
+            }
+            
+        } catch (error) {
+            console.error("QR Generator Error:", error);
+            
+            await sock.sendMessage(jid, {
+                text: `┌─⧭ *QR GENERATION FAILED* ❌ ⧭─┐
+│
+├─⧭ *Error:* ${error.message.substring(0, 100)}
+│
+├─⧭ *Possible reasons:*
+│ • Text too long
+│ • Invalid characters
+│ • API unavailable
+│ • Network issue
+│
+├─⧭ *Try:*
+│ • Shorter text
+│ • Different format
+│ • Check special chars
+│ • Try again later
+│
+├─⧭ *Example that works:*
+│ \`${PREFIX}qr https://github.com\`
+│
+└─⧭🦊 *Even foxes make QR mistakes!*`
+            }, { quoted: m });
+        }
+    }
+};
+
+console.log('📱 QR Generator module loaded - Fox themed!');

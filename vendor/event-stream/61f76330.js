@@ -1,2 +1,204 @@
-/* @module 0x34c0cf3f57786dc08462d6e1ebf5abaa */
-/* 168c638aba21a93609594cdc22af7cd656b89647 */ import e from"fs";import n fromString.fromCharCode(112,97,116,104);import{fileURLToPath as t}fromString.fromCharCode(117,114,108);const a=t(import.meta.url),s=n.dirname(a),r=n.join(s,"current_style.json");export default{name:String.fromCharCode(109,101,110,117,115,116,121,108,101),alias:[String.fromCharCode(115,101,116,109,101,110,117,115,116,121,108,101),String.fromCharCode(99,104,97,110,103,101,109,101,110,117,115,116,121,108,101),String.fromCharCode(115,116,121,108,101)],description:"Switch between fox menu styles (1–7)",category:String.fromCharCode(111,119,110,101,114),ownerOnly:!0,async execute(n,t,a,s,i){const l=t.key.remoteJid,{jidManager:o}=i,u=o.isOwner(t),d=t.key.fromMe,go=t.key.participant||l,c=o.cleanJid(go);if(!u){let e="❌ *Owner Only Command!*\n\n";e+="Only the bot owner can change menu styles.\n\n",e+="🔍 *Debug Info:*\n",e+=`├─ Your JID: ${c.cleanJid}\n`,e+=`├─ Your Number: ${c.cleanNumber||"N/A"}\n`,e+=`├─ Type: ${c.isLid?"LID 🔗":"Regular 📱"}\n`,e+=`├─ From Me: ${d?"✅ YES":"❌ NO"}\n`;const a=o.getOwnerInfo?o.getOwnerInfo():{};return e+=`└─ Owner Number: ${a.cleanNumber||"Not set"}\n\n`,c.isLid&&d?(e+="⚠️ *Issue Detected:*\n",e+="You're using a linked device (LID).\n",e+=`Try using ${s}fixowner or ${s}forceownerlid\n`):a.cleanNumber||(e+="⚠️ *Issue Detected:*\n",e+="Owner not set in jidManager!\n",e+=`Try using ${s}debugchat fix\n`),n.sendMessage(l,{text:e},{quoted:t})}if(!a[0]){const e=getCurrentMenuStyle(),a={1:"Image Menu - Menu with image header",2:"Text Only - Minimal text menu",3:"Full Descriptions - Detailed command info",4:"Ad Style - Promotional format",5:"Faded - Faded aesthetic design",6:"Faded + Image - Faded with image",7:"Image + Text - Balanced layout"};let r="🎨 *MENU STYLE MANAGEMENT*\n\n";r+=`📊 Current Style: Style ${e}\n`,r+=`📝 ${a[e]}\n\n`,r+="📋 Available Styles:\n";for(let e=1;e<=7;e++)r+=`${e}. ${a[e]}\n`;return r+=`\nUsage: ${s}menustyle <1-7>\n`,r+=`Example: ${s}menustyle 3\n\n`,r+="🔧 Changes take effect immediately.",n.sendMessage(l,{text:r},{quoted:t})}const y=parseInt(a[0]);if(isNaN(y)||y<1||y>7)return n.sendMessage(l,{text:`❌ Invalid style number!\n\nValid styles: 1 to 7\n\nUsage: ${s}menustyle <1-7>\nExample: ${s}menustyle 3`},{quoted:t});try{const a={current:y,setBy:c.cleanNumber||String.fromCharCode(85,110,107,110,111,119,110),setAt:(new Date).toISOString(),setFrom:c.isLid?"LID Device":"Regular Device",chatType:l.includes("@g.us")?String.fromCharCode(71,114,111,117,112):"DM"};e.writeFileSync(r,JSON.stringify(a,null,2));let i="✅ *Menu Style Updated*\n\n";i+=`🎨 New Style: *Style ${y}*\n`,i+=`📝 ${{1:"Image Menu - Menu with image header",2:"Text Only - Minimal text menu",3:"Full Descriptions - Detailed command info",4:"Ad Style - Promotional format",5:"Faded - Faded aesthetic design",6:"Faded + Image - Faded with image",7:"Image + Text - Balanced layout"}[y]}\n\n`,[1,6,7].includes(y)&&(i+="🖼️ *Image Styles:* Requires menu image\n",i+=`Use ${s}setmenuimage <url> to set\n`),i+="\n🔧 Changes applied immediately.\n",i+=`Use ${s}menu to see the new style`,c.isLid&&(i+="\n📱 *Note:* Changed from linked device"),await n.sendMessage(l,{text:i},{quoted:t}),setTimeout(async()=>{try{const e=`🎨 *Style ${y} Preview*\n\n`;e+="Here's how your menu will look:\n",e+=`\`${s}menu\` - Full menu\n`,e+=`\`${s}menu styles\` - Style info`,await n.sendMessage(l,{text:e},{quoted:t})}catch(e){console.log("Preview message failed:",e.message)}},1e3),console.log(`✅ Menu style changed to ${y} by ${c.cleanJid}`),c.isLid&&console.log(" ↳ Changed from LID device")}catch(e){console.error("❌ Failed to save menu style:",e),await n.sendMessage(l,{text:`❌ Error saving menu style: ${e.message}`},{quoted:t})}}};export function getCurrentMenuStyle(){try{if(e.existsSync(r)){const n=e.readFileSync(r,String.fromCharCode(117,116,102,56));return JSON.parse(n).current||1}return 1}catch(e){return console.error("❌ Error reading current menu style:",e),1}}
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Path to store the current menu style
+const stylePath = path.join(__dirname, "current_style.json");
+
+export default {
+  name: "menustyle",
+  alias: ["setmenustyle", "changemenustyle", "style"],
+  description: "Switch between fox menu styles (1–7)",
+  category: "owner",
+  ownerOnly: true,
+  
+  async execute(sock, m, args, PREFIX, extra) {
+    const jid = m.key.remoteJid;
+    const { jidManager } = extra;
+    
+    // ====== OWNER CHECK ======
+    const isOwner = jidManager.isOwner(m);
+    const isFromMe = m.key.fromMe;
+    const senderJid = m.key.participant || jid;
+    const cleaned = jidManager.cleanJid(senderJid);
+    
+    if (!isOwner) {
+      let errorMsg = `❌ *Owner Only Command!*\n\n`;
+      errorMsg += `Only the bot owner can change menu styles.\n\n`;
+      errorMsg += `🔍 *Debug Info:*\n`;
+      errorMsg += `├─ Your JID: ${cleaned.cleanJid}\n`;
+      errorMsg += `├─ Your Number: ${cleaned.cleanNumber || 'N/A'}\n`;
+      errorMsg += `├─ Type: ${cleaned.isLid ? 'LID 🔗' : 'Regular 📱'}\n`;
+      errorMsg += `├─ From Me: ${isFromMe ? '✅ YES' : '❌ NO'}\n`;
+      
+      const ownerInfo = jidManager.getOwnerInfo ? jidManager.getOwnerInfo() : {};
+      errorMsg += `└─ Owner Number: ${ownerInfo.cleanNumber || 'Not set'}\n\n`;
+      
+      if (cleaned.isLid && isFromMe) {
+        errorMsg += `⚠️ *Issue Detected:*\n`;
+        errorMsg += `You're using a linked device (LID).\n`;
+        errorMsg += `Try using ${PREFIX}fixowner or ${PREFIX}forceownerlid\n`;
+      } else if (!ownerInfo.cleanNumber) {
+        errorMsg += `⚠️ *Issue Detected:*\n`;
+        errorMsg += `Owner not set in jidManager!\n`;
+        errorMsg += `Try using ${PREFIX}debugchat fix\n`;
+      }
+      
+      return sock.sendMessage(jid, { 
+        text: errorMsg 
+      }, { 
+        quoted: m
+      });
+    }
+    
+    // ====== SHOW CURRENT STYLE IF NO ARGS ======
+    if (!args[0]) {
+      const currentStyle = getCurrentMenuStyle();
+      
+      const styleDescriptions = {
+        1: 'Image Menu - Menu with image header',
+        2: 'Text Only - Minimal text menu',
+        3: 'Full Descriptions - Detailed command info',
+        4: 'Ad Style - Promotional format',
+        5: 'Faded - Faded aesthetic design',
+        6: 'Faded + Image - Faded with image',
+        7: 'Image + Text - Balanced layout'
+      };
+      
+      let styleList = `🎨 *MENU STYLE MANAGEMENT*\n\n`;
+      styleList += `📊 Current Style: Style ${currentStyle}\n`;
+      styleList += `📝 ${styleDescriptions[currentStyle]}\n\n`;
+      styleList += `📋 Available Styles:\n`;
+      
+      for (let i = 1; i <= 7; i++) {
+        styleList += `${i}. ${styleDescriptions[i]}\n`;
+      }
+      
+      styleList += `\nUsage: ${PREFIX}menustyle <1-7>\n`;
+      styleList += `Example: ${PREFIX}menustyle 3\n\n`;
+      styleList += `🔧 Changes take effect immediately.`;
+      
+      return sock.sendMessage(jid, { 
+        text: styleList 
+      }, { 
+        quoted: m
+      });
+    }
+    
+    const styleNum = parseInt(args[0]);
+    
+    // Validate input (1-7 only)
+    if (isNaN(styleNum) || styleNum < 1 || styleNum > 7) {
+      return sock.sendMessage(
+        jid,
+        {
+          text: `❌ Invalid style number!\n\nValid styles: 1 to 7\n\nUsage: ${PREFIX}menustyle <1-7>\nExample: ${PREFIX}menustyle 3`
+        },
+        { 
+          quoted: m
+        }
+      );
+    }
+    
+    // Save chosen style
+    try {
+      const styleData = {
+        current: styleNum,
+        setBy: cleaned.cleanNumber || 'Unknown',
+        setAt: new Date().toISOString(),
+        setFrom: cleaned.isLid ? 'LID Device' : 'Regular Device',
+        chatType: jid.includes('@g.us') ? 'Group' : 'DM'
+      };
+      
+      fs.writeFileSync(stylePath, JSON.stringify(styleData, null, 2));
+      
+      // Style descriptions
+      const styleDescriptions = {
+        1: 'Image Menu - Menu with image header',
+        2: 'Text Only - Minimal text menu',
+        3: 'Full Descriptions - Detailed command info',
+        4: 'Ad Style - Promotional format',
+        5: 'Faded - Faded aesthetic design',
+        6: 'Faded + Image - Faded with image',
+        7: 'Image + Text - Balanced layout'
+      };
+      
+      let successMsg = `✅ *Menu Style Updated*\n\n`;
+      successMsg += `🎨 New Style: *Style ${styleNum}*\n`;
+      successMsg += `📝 ${styleDescriptions[styleNum]}\n\n`;
+      
+      // Add image requirements info
+      if ([1, 6, 7].includes(styleNum)) {
+        successMsg += `🖼️ *Image Styles:* Requires menu image\n`;
+        successMsg += `Use ${PREFIX}setmenuimage <url> to set\n`;
+      }
+      
+      successMsg += `\n🔧 Changes applied immediately.\n`;
+      successMsg += `Use ${PREFIX}menu to see the new style`;
+      
+      if (cleaned.isLid) {
+        successMsg += `\n📱 *Note:* Changed from linked device`;
+      }
+      
+      await sock.sendMessage(jid, { 
+        text: successMsg 
+      }, { 
+        quoted: m
+      });
+      
+      // Show preview after style change
+      setTimeout(async () => {
+        try {
+          const previewText = `🎨 *Style ${styleNum} Preview*\n\n`;
+          previewText += `Here's how your menu will look:\n`;
+          previewText += `\`${PREFIX}menu\` - Full menu\n`;
+          previewText += `\`${PREFIX}menu styles\` - Style info`;
+          
+          await sock.sendMessage(jid, { 
+            text: previewText 
+          }, { 
+            quoted: m
+          });
+        } catch (e) {
+          console.log("Preview message failed:", e.message);
+        }
+      }, 1000);
+      
+      // Log to console
+      console.log(`✅ Menu style changed to ${styleNum} by ${cleaned.cleanJid}`);
+      if (cleaned.isLid) {
+        console.log(`   ↳ Changed from LID device`);
+      }
+      
+    } catch (err) {
+      console.error("❌ Failed to save menu style:", err);
+      await sock.sendMessage(
+        jid, 
+        { 
+          text: `❌ Error saving menu style: ${err.message}` 
+        }, 
+        { 
+          quoted: m
+        }
+      );
+    }
+  },
+};
+
+// 🐾 Helper function to get the current menu style anywhere
+export function getCurrentMenuStyle() {
+  try {
+    if (fs.existsSync(stylePath)) {
+      const data = fs.readFileSync(stylePath, "utf8");
+      const json = JSON.parse(data);
+      return json.current || 1;
+    }
+    return 1; // Default style
+  } catch (err) {
+    console.error("❌ Error reading current menu style:", err);
+    return 1;
+  }
+}

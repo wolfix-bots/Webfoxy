@@ -1,2 +1,302 @@
-/* @module 0x339ae5dc567a7317f49558fdc7230f16 */
-/* 5a326272c8f8ded649e147820aa754daa8e079a8 */ import{createCanvas as t}fromString.fromCharCode(99,97,110,118,97,115);export default{name:String.fromCharCode(115,116,111,110,101,116,101,120,116),alias:[String.fromCharCode(115,116,111,110,101),String.fromCharCode(99,97,114,118,101,100),String.fromCharCode(101,110,103,114,97,118,101,100)],description:"Create stone/carved/engraved text effects",async execute(e,a,o){const n=a.key.remoteJid;try{if(0===o.length)return void await e.sendMessage(n,{text:"🪨 *Stone Text*\n\nUsage: stonetext <text>\n\n*Examples:*\n• stonetetch ANCIENT\n• stonetext CARVED\n• stonetext STONE\n• stonetetch RUNES"},{quoted:a});const r=o.join(" ");if(r.length>15)return void await e.sendMessage(n,{text:"🪨 Short texts work best for carving effect!"},{quoted:a});await e.sendMessage(n,{text:`🪨 Carving text into stone: "${r}"...`},{quoted:a});const l=await async function(e){const a=t(800,400),o=a.getContext("2d");return function(t){const e=["#8a7f8d","#7a6f7d","#6a5f6d","#5a4f5d"],a=60;for(let o=0;o<400;o+=a)for(let n=0;n<800;n+=a){const r=e[Math.floor(Math.random()*e.length)];t.fillStyle=r;const l=10*(Math.random()-.5),i=10*(Math.random()-.5),s=10*(Math.random()-.5);t.fillRect(n+l,o+i,a+s,a+s),t.strokeStyle="rgba(255, 255, 255, 0.1)",t.lineWidth=1,t.strokeRect(n+l,o+i,a+s,a+s),t.strokeStyle="rgba(100, 100, 100, 0.3)",t.lineWidth=3,n>0&&(t.beginPath(),t.moveTo(n+l,o+i),t.lineTo(n+l,o+i+a),t.stroke()),o>0&&(t.beginPath(),t.moveTo(n+l,o+i),t.lineTo(n+l+a,o+i),t.stroke())}t.fillStyle="rgba(0, 0, 0, 0.05)";for(let e=0;e<5e3;e++){const e=800*Math.random(),a=400*Math.random(),o=2*Math.random()+1;t.fillRect(e,a,o,o)}}(o),function(t,e){t.textAlign=String.fromCharCode(99,101,110,116,101,114),t.textBaseline=String.fromCharCode(109,105,100,100,108,101),t.font='bold 100px "Times New Roman"',t.fillStyle="rgba(0, 0, 0, 0.6)",t.fillText(e.toUpperCase(),404,204),t.fillStyle="rgba(255, 255, 255, 0.4)",t.fillText(e.toUpperCase(),398,198),t.fillStyle="#5a4f5d",t.fillText(e.toUpperCase(),400,200),t.strokeStyle="rgba(0, 0, 0, 0.3)",t.lineWidth=1;const a=t.measureText(e).width,o=400-a/2;for(let e=0;e<50;e++){let e,n;Math.random()>.5?(e=o+Math.random()*a,n=Math.random()>.5?155:245):(e=Math.random()>.5?o-5:o+a+5,n=160+80*Math.random());const r=Math.random()*Math.PI,l=8*Math.random()+4;t.beginPath(),t.moveTo(e,n),t.lineTo(e+Math.cos(r)*l,n+Math.sin(r)*l),t.stroke()}!function(t,e,a,o){t.strokeStyle="rgba(0, 0, 0, 0.4)",t.lineWidth=2;for(let e=0;e<10;e++){const e=Math.random()*Math.PI*2,a=20*Math.random()+10,n=400+Math.cos(e)*(o/2+a),r=200+Math.sin(e)*(40+a);t.beginPath(),t.moveTo(n,r);let l=n,i=r,s=Math.floor(5*Math.random())+3;for(let e=0;e<s;e++){const e=30*Math.random()+10,a=Math.random()*Math.PI*2;l+=Math.cos(a)*e,i+=Math.sin(a)*e,t.lineTo(l,i)}t.stroke()}}(t,0,0,a)}(o,e),function(t){t.fillStyle="rgba(50, 100, 50, 0.3)";for(let e=0;e<10;e++){const e=800*Math.random(),a=400*Math.random(),o=40*Math.random()+20,n=t.createRadialGradient(e,a,0,e,a,o);n.addColorStop(0,"rgba(50, 100, 50, 0.5)"),n.addColorStop(1,String.fromCharCode(116,114,97,110,115,112,97,114,101,110,116)),t.fillStyle=n,t.beginPath(),t.arc(e,a,o,0,2*Math.PI),t.fill()}t.fillStyle="rgba(80, 60, 40, 0.2)";for(let e=0;e<5;e++){const e=800*Math.random(),a=400*Math.random(),o=100*Math.random()+50,n=30*Math.random()+10,r=t.createLinearGradient(e,a,e,a+n);r.addColorStop(0,"rgba(80, 60, 40, 0.3)"),r.addColorStop(1,String.fromCharCode(116,114,97,110,115,112,97,114,101,110,116)),t.fillStyle=r,t.fillRect(e,a,o,n)}}(o),function(t){t.globalAlpha=.05;const e=["rgba(255, 255, 0, 0.5)","rgba(0, 255, 255, 0.3)","rgba(255, 0, 255, 0.3)"];for(let a=0;a<100;a++){const a=e[Math.floor(Math.random()*e.length)];t.fillStyle=a;const o=800*Math.random(),n=400*Math.random(),r=3*Math.random()+1;t.beginPath(),t.arc(o,n,r,0,2*Math.PI),t.fill()}t.globalAlpha=1,t.fillStyle="rgba(200, 180, 150, 0.05)";for(let e=0;e<2e3;e++){const e=800*Math.random(),a=400*Math.random();t.fillRect(e,a,1,1)}}(o),a.toBuffer("image/png")}(r);await e.sendMessage(n,{image:l,caption:`🪨 *Stone Text*\n"${r}"\n⛏️ Ancient carved stone effect`},{quoted:a})}catch(t){console.error("❌ [STONETEXT] ERROR:",t),await e.sendMessage(n,{text:`❌ Error: ${t.message}`},{quoted:a})}}};
+import { createCanvas } from 'canvas';
+
+export default {
+  name: "stonetext",
+  alias: ["stone", "carved", "engraved"],
+  description: "Create stone/carved/engraved text effects",
+  async execute(sock, m, args) {
+    const jid = m.key.remoteJid;
+
+    try {
+      if (args.length === 0) {
+        await sock.sendMessage(jid, { 
+          text: `🪨 *Stone Text*\n\nUsage: stonetext <text>\n\n*Examples:*\n• stonetetch ANCIENT\n• stonetext CARVED\n• stonetext STONE\n• stonetetch RUNES` 
+        }, { quoted: m });
+        return;
+      }
+
+      const text = args.join(" ");
+      
+      if (text.length > 15) {
+        await sock.sendMessage(jid, { 
+          text: `🪨 Short texts work best for carving effect!` 
+        }, { quoted: m });
+        return;
+      }
+
+      await sock.sendMessage(jid, { 
+        text: `🪨 Carving text into stone: "${text}"...` 
+      }, { quoted: m });
+
+      const logoBuffer = await generateStoneText(text);
+      
+      await sock.sendMessage(jid, {
+        image: logoBuffer,
+        caption: `🪨 *Stone Text*\n"${text}"\n⛏️ Ancient carved stone effect`
+      }, { quoted: m });
+
+    } catch (error) {
+      console.error("❌ [STONETEXT] ERROR:", error);
+      await sock.sendMessage(jid, { 
+        text: `❌ Error: ${error.message}` 
+      }, { quoted: m });
+    }
+  },
+};
+
+async function generateStoneText(text) {
+  const width = 800;
+  const height = 400;
+  
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Stone wall background
+  drawStoneWall(ctx, width, height);
+
+  // Carved text effect
+  drawCarvedText(ctx, text, width, height);
+
+  // Add moss and weathering
+  addWeathering(ctx, width, height);
+
+  // Add stone texture overlay
+  addStoneTexture(ctx, width, height);
+
+  return canvas.toBuffer('image/png');
+}
+
+function drawStoneWall(ctx, width, height) {
+  // Draw stone blocks
+  const stoneColors = ['#8a7f8d', '#7a6f7d', '#6a5f6d', '#5a4f5d'];
+  const blockSize = 60;
+  
+  // Stone blocks pattern
+  for (let y = 0; y < height; y += blockSize) {
+    for (let x = 0; x < width; x += blockSize) {
+      // Random stone color
+      const color = stoneColors[Math.floor(Math.random() * stoneColors.length)];
+      ctx.fillStyle = color;
+      
+      // Slightly randomize block position for natural look
+      const offsetX = (Math.random() - 0.5) * 10;
+      const offsetY = (Math.random() - 0.5) * 10;
+      const sizeVariation = (Math.random() - 0.5) * 10;
+      
+      // Draw stone block
+      ctx.fillRect(
+        x + offsetX,
+        y + offsetY,
+        blockSize + sizeVariation,
+        blockSize + sizeVariation
+      );
+      
+      // Stone block highlights (edges)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(
+        x + offsetX,
+        y + offsetY,
+        blockSize + sizeVariation,
+        blockSize + sizeVariation
+      );
+      
+      // Add mortar lines
+      ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+      ctx.lineWidth = 3;
+      
+      // Vertical mortar
+      if (x > 0) {
+        ctx.beginPath();
+        ctx.moveTo(x + offsetX, y + offsetY);
+        ctx.lineTo(x + offsetX, y + offsetY + blockSize);
+        ctx.stroke();
+      }
+      
+      // Horizontal mortar
+      if (y > 0) {
+        ctx.beginPath();
+        ctx.moveTo(x + offsetX, y + offsetY);
+        ctx.lineTo(x + offsetX + blockSize, y + offsetY);
+        ctx.stroke();
+      }
+    }
+  }
+  
+  // Add stone grain texture
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+  for (let i = 0; i < 5000; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 2 + 1;
+    
+    ctx.fillRect(x, y, size, size);
+  }
+}
+
+function drawCarvedText(ctx, text, width, height) {
+  const centerX = width / 2;
+  const centerY = height / 2;
+  
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 100px "Times New Roman"';
+  
+  // Carved effect (recessed text)
+  // First, draw shadow (deep part of carving)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillText(text.toUpperCase(), centerX + 4, centerY + 4);
+  
+  // Draw highlight (top edge of carving)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.fillText(text.toUpperCase(), centerX - 2, centerY - 2);
+  
+  // Draw inner carved area (stone color)
+  ctx.fillStyle = '#5a4f5d'; // Dark stone color
+  ctx.fillText(text.toUpperCase(), centerX, centerY);
+  
+  // Add chisel marks around letters
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.lineWidth = 1;
+  
+  const textWidth = ctx.measureText(text).width;
+  const textHeight = 80;
+  const textLeft = centerX - textWidth / 2;
+  const textTop = centerY - textHeight / 2;
+  
+  // Add random chisel marks around text
+  for (let i = 0; i < 50; i++) {
+    // Position around text perimeter
+    let x, y;
+    
+    if (Math.random() > 0.5) {
+      // Horizontal edge
+      x = textLeft + Math.random() * textWidth;
+      y = Math.random() > 0.5 ? textTop - 5 : textTop + textHeight + 5;
+    } else {
+      // Vertical edge
+      x = Math.random() > 0.5 ? textLeft - 5 : textLeft + textWidth + 5;
+      y = textTop + Math.random() * textHeight;
+    }
+    
+    // Draw small chisel mark
+    const angle = Math.random() * Math.PI;
+    const length = Math.random() * 8 + 4;
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(
+      x + Math.cos(angle) * length,
+      y + Math.sin(angle) * length
+    );
+    ctx.stroke();
+  }
+  
+  // Add cracks from carving
+  drawStoneCracks(ctx, centerX, centerY, textWidth, textHeight);
+}
+
+function drawStoneCracks(ctx, centerX, centerY, textWidth, textHeight) {
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.lineWidth = 2;
+  
+  // Draw cracks radiating from text
+  for (let i = 0; i < 10; i++) {
+    const startAngle = Math.random() * Math.PI * 2;
+    const startDist = Math.random() * 20 + 10;
+    
+    const startX = centerX + Math.cos(startAngle) * (textWidth/2 + startDist);
+    const startY = centerY + Math.sin(startAngle) * (textHeight/2 + startDist);
+    
+    // Create jagged crack line
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    
+    let currentX = startX;
+    let currentY = startY;
+    let segments = Math.floor(Math.random() * 5) + 3;
+    
+    for (let s = 0; s < segments; s++) {
+      const length = Math.random() * 30 + 10;
+      const angle = Math.random() * Math.PI * 2;
+      
+      currentX += Math.cos(angle) * length;
+      currentY += Math.sin(angle) * length;
+      
+      ctx.lineTo(currentX, currentY);
+    }
+    
+    ctx.stroke();
+  }
+}
+
+function addWeathering(ctx, width, height) {
+  // Add moss and weathering effects
+  ctx.fillStyle = 'rgba(50, 100, 50, 0.3)'; // Moss color
+  
+  // Moss in corners and edges
+  for (let i = 0; i < 10; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 40 + 20;
+    
+    // Moss patches
+    const mossGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+    mossGradient.addColorStop(0, 'rgba(50, 100, 50, 0.5)');
+    mossGradient.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = mossGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Water stains
+  ctx.fillStyle = 'rgba(80, 60, 40, 0.2)';
+  for (let i = 0; i < 5; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const widthStain = Math.random() * 100 + 50;
+    const heightStain = Math.random() * 30 + 10;
+    
+    // Stains run downward
+    const stainGradient = ctx.createLinearGradient(x, y, x, y + heightStain);
+    stainGradient.addColorStop(0, 'rgba(80, 60, 40, 0.3)');
+    stainGradient.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = stainGradient;
+    ctx.fillRect(x, y, widthStain, heightStain);
+  }
+}
+
+function addStoneTexture(ctx, width, height) {
+  // Add final stone texture overlay
+  ctx.globalAlpha = 0.05;
+  
+  // Add random mineral flecks
+  const mineralColors = ['rgba(255, 255, 0, 0.5)', 'rgba(0, 255, 255, 0.3)', 'rgba(255, 0, 255, 0.3)'];
+  
+  for (let i = 0; i < 100; i++) {
+    const color = mineralColors[Math.floor(Math.random() * mineralColors.length)];
+    ctx.fillStyle = color;
+    
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const size = Math.random() * 3 + 1;
+    
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  ctx.globalAlpha = 1.0;
+  
+  // Add dust/sand overlay
+  ctx.fillStyle = 'rgba(200, 180, 150, 0.05)';
+  for (let i = 0; i < 2000; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    
+    ctx.fillRect(x, y, 1, 1);
+  }
+}

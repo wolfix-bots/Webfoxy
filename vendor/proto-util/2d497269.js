@@ -1,2 +1,364 @@
-/* @module 0xd7b3de8cb054f808e8e8cb8aba72e58a */
-/* 196cb855a46b5c285dc74576f2ec439e13c5bca4 */ import{menuToggles as e,toggleField as n,getCurrentMenuStyle as t,getAllFieldsStatus as o}from"./menuToggles.js";export default{name:String.fromCharCode(116,111,103,103,108,101,109,101,110,117,105,110,102,111),description:"Toggle info sections (user, owner, uptime, etc.) for menu styles 5, 6, and 7.",alias:"tmi, togglemenu",category:String.fromCharCode(111,119,110,101,114),ownerOnly:!0,async execute(e,s,i,r,a){const u=s.key.remoteJid,{jidManager:d}=a,l=i[0]?.toLowerCase(),g=d.isOwner(s),wh=s.key.fromMe,c=s.key.participant||u,f=d.cleanJid(c);if(!g){let n="❌ *Owner Only Command!*\n\n";n+="Only the bot owner can toggle menu info sections.\n\n",n+="🔍 *Debug Info:*\n",n+=`├─ Your JID: ${f.cleanJid}\n`,n+=`├─ Your Number: ${f.cleanNumber||"N/A"}\n`,n+=`├─ Type: ${f.isLid?"LID 🔗":"Regular 📱"}\n`,n+=`├─ From Me: ${wh?"✅ YES":"❌ NO"}\n`;const t=d.getOwnerInfo?d.getOwnerInfo():{};return n+=`└─ Owner Number: ${t.cleanNumber||"Not set"}\n\n`,f.isLid&&wh?(n+="⚠️ *Issue Detected:*\n",n+="You're using a linked device (LID).\n",n+=`Try using ${r}fixowner or ${r}forceownerlid\n`):t.cleanNumber||(n+="⚠️ *Issue Detected:*\n",n+="Owner not set in jidManager!\n",n+=`Try using ${r}debugchat fix\n`),e.sendMessage(u,{text:n},{quoted:s})}const $=await t();if(console.log(`🐺 [TOGGLEMENUINFO] Owner ${f.cleanNumber} toggling menu style ${$}`),![5,6,7].includes($))return void await e.sendMessage(u,{text:`❌ Current menu style (${$}) does not support info toggles.\n\nOnly menu styles 5, 6, and 7 can be customized.\n\nSwitch to a compatible menu style first using *${r}menustyle*, then use this command.`},{quoted:s});if(!l){const n=o($);if(!n)return void await e.sendMessage(u,{text:`❌ No configuration found for menu style ${$}.`},{quoted:s});const t=Object.entries(n).map(([e,n])=>`> ${n?"✅":"❌"} ${e}`).join("\n");let i="";return f.isLid&&(i="\n📱 *Owner:* Using linked device"),void await e.sendMessage(u,{text:`🐺 *Menu Style ${$} Info Toggles*\n\n*Current Status:*\n${t}\n\n*Usage:* ${r}togglemenuinfo <field>\n\n*Available fields:* user, owner, mode, host, speed, prefix, uptime, version, usage, ram${i}`},{quoted:s})}let w="✅ *Menu Toggle Updated*\n\n";w+=`🎨 Menu Style: ${$}\n`,w+=`⚙️ Field: ${l}\n`,w+=`📊 Status: ${n($,l).includes(String.fromCharCode(101,110,97,98,108,101,100))?"✅ Enabled":"❌ Disabled"}\n\n`,w+=`🔧 Changes applied to menu style ${$}.`,f.isLid&&(w+="\n📱 *Changed from linked device*"),await e.sendMessage(u,{text:w},{quoted:s})}};
+// // // // commands/menus/togglemenuinfo.js
+// // // import { menuToggles, toggleField, lastMenuUsed } from "./menuToggles.js";
+
+// // // export default {
+// // //   name: "togglemenuinfo",
+// // //   description: "Toggle info sections (user, owner, uptime, etc.) for menu styles 5, 6, and 7.",
+// // //   category: "settings",
+  
+// // //   async execute(sock, m, args) {
+// // //     const jid = m.key.remoteJid;
+// // //     const field = args[0]?.toLowerCase();
+
+// // //     // Check if user is owner
+// // //     const isOwner = m.key.fromMe || (global.owner && m.sender.includes(global.owner));
+// // //     if (!isOwner) {
+// // //       await sock.sendMessage(
+// // //         jid,
+// // //         { text: "❌ This command is only available to the bot owner." },
+// // //         { quoted: m }
+// // //       );
+// // //       return;
+// // //     }
+
+// // //     // Check if we have a last menu used and if it's toggleable
+// // //     if (!lastMenuUsed) {
+// // //       await sock.sendMessage(
+// // //         jid,
+// // //         { 
+// // //           text: `❌ No toggleable menu detected.\n\nPlease use *${global.prefix || "."}menu* first with style 5, 6, or 7, then use this command to customize the info display.` 
+// // //         },
+// // //         { quoted: m }
+// // //       );
+// // //       return;
+// // //     }
+
+// // //     if (!field) {
+// // //       // Show all toggles for the current menu
+// // //       const fields = Object.entries(menuToggles[`style${lastMenuUsed}`])
+// // //         .map(([key, value]) => `> ${value ? "✅" : "❌"} ${key}`)
+// // //         .join("\n");
+      
+// // //       await sock.sendMessage(
+// // //         jid,
+// // //         { 
+// // //           text: `🐺 *Menu ${lastMenuUsed} Info Toggles:*\n\n${fields}\n\nUse *${global.prefix || "."}togglemenuinfo fieldname* to toggle one.\n\n*Available fields:* user, owner, mode, host, speed, prefix, uptime, version, usage, ram` 
+// // //         },
+// // //         { quoted: m }
+// // //       );
+// // //       return;
+// // //     }
+
+// // //     const result = toggleField(lastMenuUsed, field);
+// // //     await sock.sendMessage(jid, { text: result }, { quoted: m });
+// // //   },
+// // // };
+
+
+
+// // // commands/menus/togglemenuinfo.js
+// // import { menuToggles, toggleField, lastMenuUsed } from "./menuToggles.js";
+
+// // export default {
+// //   name: "togglemenuinfo",
+// //   description: "Toggle info sections (user, owner, uptime, etc.) for menu styles 5, 6, and 7.",
+// //   category: "settings",
+  
+// //   async execute(sock, m, args) {
+// //     const jid = m.key.remoteJid;
+// //     const field = args[0]?.toLowerCase();
+
+// //     // Check if user is owner
+// //     const isOwner = m.key.fromMe || (global.owner && m.sender.includes(global.owner));
+// //     if (!isOwner) {
+// //       await sock.sendMessage(
+// //         jid,
+// //         { text: "❌ This command is only available to the bot owner." },
+// //         { quoted: m }
+// //       );
+// //       return;
+// //     }
+
+// //     // Check if we have a last menu used
+// //     if (!lastMenuUsed) {
+// //       await sock.sendMessage(
+// //         jid,
+// //         { 
+// //           text: `❌ No toggleable menu detected.\n\nPlease use *${global.prefix || "."}menu* first with style 5, 6, or 7, then use this command to customize the info display.\n\n*Note:* Only menu styles 5, 6, and 7 support info customization.` 
+// //         },
+// //         { quoted: m }
+// //       );
+// //       return;
+// //     }
+
+// //     // Check if the current menu is toggleable (5, 6, or 7)
+// //     if (![5, 6, 7].includes(lastMenuUsed)) {
+// //       await sock.sendMessage(
+// //         jid,
+// //         { 
+// //           text: `❌ Current menu style ${lastMenuUsed} does not support info toggles.\n\nOnly menu styles 5, 6, and 7 can be customized.\n\nSwitch to a compatible menu style first using *${global.prefix || "."}menustyle*, then use this command.` 
+// //         },
+// //         { quoted: m }
+// //       );
+// //       return;
+// //     }
+
+// //     if (!field) {
+// //       // Show all toggles for the current menu
+// //       const fields = Object.entries(menuToggles[`style${lastMenuUsed}`])
+// //         .map(([key, value]) => `> ${value ? "✅" : "❌"} ${key}`)
+// //         .join("\n");
+      
+// //       await sock.sendMessage(
+// //         jid,
+// //         { 
+// //           text: `🐺 *Menu ${lastMenuUsed} Info Toggles:*\n\n${fields}\n\nUse *${global.prefix || "."}togglemenuinfo fieldname* to toggle one.\n\n*Available fields:* user, owner, mode, host, speed, prefix, uptime, version, usage, ram` 
+// //         },
+// //         { quoted: m }
+// //       );
+// //       return;
+// //     }
+
+// //     const result = toggleField(lastMenuUsed, field);
+// //     await sock.sendMessage(jid, { text: result }, { quoted: m });
+// //   },
+// // };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // commands/menus/togglemenuinfo.js
+// import { menuToggles, toggleField, getCurrentMenuStyle, getAllFieldsStatus } from "./menuToggles.js";
+
+// export default {
+//   name: "togglemenuinfo",
+//   description: "Toggle info sections (user, owner, uptime, etc.) for menu styles 5, 6, and 7.",
+//   alias: "tmi, togglemenu",
+//   category: "settings",
+  
+//   async execute(sock, m, args) {
+//     const jid = m.key.remoteJid;
+//     const field = args[0]?.toLowerCase();
+
+//     // // Check if user is owner
+//     // const isOwner = m.key.fromMe || (global.owner && m.sender.includes(global.owner));
+//     // if (!isOwner) {
+//     //   await sock.sendMessage(
+//     //     jid,
+//     //     { text: "❌ This command is only available to the bot owner." },
+//     //     { quoted: m }
+//     //   );
+//     //   return;
+//     // }
+
+//     // Get the CURRENT menu style dynamically (await the async function)
+//     const currentMenuStyle = await getCurrentMenuStyle();
+    
+//     console.log(`🐺 [TOGGLEMENUINFO] Current menu style detected: ${currentMenuStyle}`);
+
+//     // Check if the current menu is toggleable (5, 6, or 7)
+//     if (![5, 6, 7].includes(currentMenuStyle)) {
+//       await sock.sendMessage(
+//         jid,
+//         { 
+//           text: `❌ Current menu style (${currentMenuStyle}) does not support info toggles.\n\nOnly menu styles 5, 6, and 7 can be customized.\n\nSwitch to a compatible menu style first using *${global.prefix || "."}menustyle*, then use this command.` 
+//         },
+//         { quoted: m }
+//       );
+//       return;
+//     }
+
+//     if (!field) {
+//       // Show all toggles for the current menu
+//       const fieldsStatus = getAllFieldsStatus(currentMenuStyle);
+//       if (!fieldsStatus) {
+//         await sock.sendMessage(
+//           jid,
+//           { text: `❌ No configuration found for menu style ${currentMenuStyle}.` },
+//           { quoted: m }
+//         );
+//         return;
+//       }
+
+//       const fields = Object.entries(fieldsStatus)
+//         .map(([key, value]) => `> ${value ? "✅" : "❌"} ${key}`)
+//         .join("\n");
+      
+//       await sock.sendMessage(
+//         jid,
+//         { 
+//           text: `🐺 *Menu ${currentMenuStyle} Info Toggles:*\n\n${fields}\n\nUse *${global.prefix || "."}togglemenuinfo fieldname* to toggle one.\n\n*Available fields:* user, owner, mode, host, speed, prefix, uptime, version, usage, ram` 
+//         },
+//         { quoted: m }
+//       );
+//       return;
+//     }
+
+//     const result = toggleField(currentMenuStyle, field);
+//     await sock.sendMessage(jid, { text: result }, { quoted: m });
+//   },
+// };
+
+
+
+
+
+
+
+
+
+
+// commands/menus/togglemenuinfo.js
+import { menuToggles, toggleField, getCurrentMenuStyle, getAllFieldsStatus } from "./menuToggles.js";
+
+export default {
+  name: "togglemenuinfo",
+  description: "Toggle info sections (user, owner, uptime, etc.) for menu styles 5, 6, and 7.",
+  alias: "tmi, togglemenu",
+  category: "owner", // Changed from "settings" to "owner"
+  ownerOnly: true, // Added owner restriction
+  
+  async execute(sock, m, args, PREFIX, extra) {
+    const jid = m.key.remoteJid;
+    const { jidManager } = extra;
+    const field = args[0]?.toLowerCase();
+
+    // ====== OWNER CHECK ======
+    const isOwner = jidManager.isOwner(m);
+    const isFromMe = m.key.fromMe;
+    const senderJid = m.key.participant || jid;
+    const cleaned = jidManager.cleanJid(senderJid);
+    
+    if (!isOwner) {
+      // Detailed error message in REPLY format
+      let errorMsg = `❌ *Owner Only Command!*\n\n`;
+      errorMsg += `Only the bot owner can toggle menu info sections.\n\n`;
+      errorMsg += `🔍 *Debug Info:*\n`;
+      errorMsg += `├─ Your JID: ${cleaned.cleanJid}\n`;
+      errorMsg += `├─ Your Number: ${cleaned.cleanNumber || 'N/A'}\n`;
+      errorMsg += `├─ Type: ${cleaned.isLid ? 'LID 🔗' : 'Regular 📱'}\n`;
+      errorMsg += `├─ From Me: ${isFromMe ? '✅ YES' : '❌ NO'}\n`;
+      
+      // Get owner info
+      const ownerInfo = jidManager.getOwnerInfo ? jidManager.getOwnerInfo() : {};
+      errorMsg += `└─ Owner Number: ${ownerInfo.cleanNumber || 'Not set'}\n\n`;
+      
+      if (cleaned.isLid && isFromMe) {
+        errorMsg += `⚠️ *Issue Detected:*\n`;
+        errorMsg += `You're using a linked device (LID).\n`;
+        errorMsg += `Try using ${PREFIX}fixowner or ${PREFIX}forceownerlid\n`;
+      } else if (!ownerInfo.cleanNumber) {
+        errorMsg += `⚠️ *Issue Detected:*\n`;
+        errorMsg += `Owner not set in jidManager!\n`;
+        errorMsg += `Try using ${PREFIX}debugchat fix\n`;
+      }
+      
+      return sock.sendMessage(jid, { 
+        text: errorMsg 
+      }, { 
+        quoted: m // Reply format
+      });
+    }
+
+    // Get the CURRENT menu style dynamically
+    const currentMenuStyle = await getCurrentMenuStyle();
+    
+    console.log(`🐺 [TOGGLEMENUINFO] Owner ${cleaned.cleanNumber} toggling menu style ${currentMenuStyle}`);
+
+    // Check if the current menu is toggleable (5, 6, or 7)
+    if (![5, 6, 7].includes(currentMenuStyle)) {
+      await sock.sendMessage(
+        jid,
+        { 
+          text: `❌ Current menu style (${currentMenuStyle}) does not support info toggles.\n\nOnly menu styles 5, 6, and 7 can be customized.\n\nSwitch to a compatible menu style first using *${PREFIX}menustyle*, then use this command.` 
+        },
+        { 
+          quoted: m // Reply format
+        }
+      );
+      return;
+    }
+
+    if (!field) {
+      // Show all toggles for the current menu
+      const fieldsStatus = getAllFieldsStatus(currentMenuStyle);
+      if (!fieldsStatus) {
+        await sock.sendMessage(
+          jid,
+          { 
+            text: `❌ No configuration found for menu style ${currentMenuStyle}.` 
+          },
+          { 
+            quoted: m // Reply format
+          }
+        );
+        return;
+      }
+
+      const fields = Object.entries(fieldsStatus)
+        .map(([key, value]) => `> ${value ? "✅" : "❌"} ${key}`)
+        .join("\n");
+      
+      let ownerNote = "";
+      if (cleaned.isLid) {
+        ownerNote = `\n📱 *Owner:* Using linked device`;
+      }
+      
+      await sock.sendMessage(
+        jid,
+        { 
+          text: `🐺 *Menu Style ${currentMenuStyle} Info Toggles*\n\n*Current Status:*\n${fields}\n\n*Usage:* ${PREFIX}togglemenuinfo <field>\n\n*Available fields:* user, owner, mode, host, speed, prefix, uptime, version, usage, ram${ownerNote}` 
+        },
+        { 
+          quoted: m // Reply format
+        }
+      );
+      return;
+    }
+
+    // Toggle the field
+    const result = toggleField(currentMenuStyle, field);
+    
+    // Enhanced success message
+    let successMsg = `✅ *Menu Toggle Updated*\n\n`;
+    successMsg += `🎨 Menu Style: ${currentMenuStyle}\n`;
+    successMsg += `⚙️ Field: ${field}\n`;
+    successMsg += `📊 Status: ${result.includes('enabled') ? '✅ Enabled' : '❌ Disabled'}\n\n`;
+    successMsg += `🔧 Changes applied to menu style ${currentMenuStyle}.`;
+    
+    if (cleaned.isLid) {
+      successMsg += `\n📱 *Changed from linked device*`;
+    }
+    
+    await sock.sendMessage(
+      jid, 
+      { 
+        text: successMsg 
+      }, 
+      { 
+        quoted: m // Reply format
+      }
+    );
+  },
+};

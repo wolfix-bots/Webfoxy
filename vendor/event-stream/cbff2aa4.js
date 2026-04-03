@@ -1,2 +1,134 @@
-/* @module 0x6d0349aaf6331adbdd35c9445a149044 */
-/* 3f5da0bc016720727ea9d9c822aac2be509a7466 */ export default{name:String.fromCharCode(103,114,111,117,112,105,110,102,111),alias:[String.fromCharCode(103,105,110,102,111),String.fromCharCode(105,110,102,111,103,114,111,117,112),String.fromCharCode(103,114,111,117,112),"gc"],category:String.fromCharCode(103,114,111,117,112),description:"Show group information 📊",async execute(n,e,t,i,o){const r=e.key.remoteJid,{jidManager:a}=o;if(!r.endsWith("@g.us"))return n.sendMessage(r,{text:"┌─⧭ *GROUP ONLY* 👥 ⧭─┐\n│\n├─⧭ This command works in groups only!\n│\n└─⧭🦊"},{quoted:e});try{const t=await n.groupMetadata(r),i=t.participants||[],o=i.filter(n=>String.fromCharCode(97,100,109,105,110)===n.admin||String.fromCharCode(115,117,112,101,114,97,100,109,105,110)===n.admin),a=i.filter(n=>String.fromCharCode(115,117,112,101,114,97,100,109,105,110)===n.admin),s=i.filter(n=>String.fromCharCode(97,100,109,105,110)===n.admin),d=i.length,u=i.filter(n=>n.id.includes(String.fromCharCode(98,111,116))||n.id.includes(String.fromCharCode(119,104,97,116,115,97,112,112,98,111,116))).length,c=new Date(1e3*t.creation),g=c.toLocaleDateString(String.fromCharCode(101,110,45,85,83),{year:String.fromCharCode(110,117,109,101,114,105,99),month:String.fromCharCode(108,111,110,103),day:String.fromCharCode(110,117,109,101,114,105,99)}),l=c.toLocaleTimeString(String.fromCharCode(101,110,45,85,83),{hour:"2-digit",minute:"2-digit"});let mp=!1;try{await n.profilePictureUrl(r,String.fromCharCode(105,109,97,103,101)),mp=!0}catch{mp=!1}let p=t.owner||i.find(n=>String.fromCharCode(115,117,112,101,114,97,100,109,105,110)===n.admin)?.id||String.fromCharCode(85,110,107,110,111,119,110),$=String.fromCharCode(85,110,107,110,111,119,110);if(String.fromCharCode(85,110,107,110,111,119,110)!==p){const n=i.find(n=>n.id===p);$=n?.name||p.split("@")[0]}let f=`┌─⧭ *🦊 GROUP INFORMATION* ⧭─┐\n│\n├─⧭ *📌 Name:* ${t.subject}\n`;if(t.desc){const n=t.desc.length>50?t.desc.substring(0,50)+"...":t.desc;f+=`├─⧭ *📝 Desc:* ${n}\n`}f+=`├─⧭ *🆔 ID:* \`${t.id}\`\n│\n├─⧭ *👥 Members:* ${d}\n├─⧭ *👑 Admins:* ${o.length} (${a.length} super, ${s.length} regular)\n${u>0?`├─⧭ *🤖 Bots:* ${u}\n`:""}├─⧭ *🖼️ Icon:* ${mp?"✅ Yes":"❌ No"}\n│\n├─⧭ *📅 Created:*\n│ • ${g}\n│ • ${l}\n│\n├─⧭ *👤 Group Owner:*\n│ • @${p.split("@")[0]}\n│\n├─⧭ *👑 Admin List:*\n`,o.slice(0,10).forEach((n,e)=>{const t=String.fromCharCode(115,117,112,101,114,97,100,109,105,110)===n.admin?"👑":"🔰",i=n.name||n.id.split("@")[0];f+=`│ ${e+1}. ${t} @${n.id.split("@")[0]} (${i.substring(0,15)})\n`}),o.length>10&&(f+=`│ ... and ${o.length-10} more admins\n`),f+=`│\n├─⧭ *⚙️ Settings:*\n│ • ${t.announce?"🔇 Muted":"🔊 Open"}\n│\n├─⧭ *👤 Requested by:* ${e.gt||String.fromCharCode(70,114,105,101,110,100)}\n│\n└─⧭🦊 *Foxy knows your group!*`;const h=o.map(n=>n.id);await n.sendMessage(r,{text:f,mentions:[p,...h]},{quoted:e})}catch(t){console.error("Group info error:",t),await n.sendMessage(r,{text:"┌─⧭ *ERROR* ❌ ⧭─┐\n│\n├─⧭ Failed to fetch group info!\n│\n├─⧭ *Possible reasons:*\n│ • Bot not in group\n│ • No internet\n│ • Group deleted\n│\n└─⧭🦊"},{quoted:e})}}};
+export default {
+    name: 'groupinfo',
+    alias: ['ginfo', 'infogroup', 'group', 'gc'],
+    category: 'group',
+    description: 'Show group information 📊',
+    
+    async execute(sock, msg, args, PREFIX, extra) {
+        const chatId = msg.key.remoteJid;
+        const { jidManager } = extra;
+        
+        if (!chatId.endsWith('@g.us')) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *GROUP ONLY* 👥 ⧭─┐
+│
+├─⧭ This command works in groups only!
+│
+└─⧭🦊`
+            }, { quoted: msg });
+        }
+        
+        try {
+            const metadata = await sock.groupMetadata(chatId);
+            const participants = metadata.participants || [];
+            
+            // Count stats
+            const admins = participants.filter(p => p.admin === 'admin' || p.admin === 'superadmin');
+            const superAdmins = participants.filter(p => p.admin === 'superadmin');
+            const regularAdmins = participants.filter(p => p.admin === 'admin');
+            const members = participants.length;
+            const bots = participants.filter(p => p.id.includes('bot') || p.id.includes('whatsappbot')).length;
+            
+            // Format dates
+            const createdAt = new Date(metadata.creation * 1000);
+            const createdDate = createdAt.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            const createdTime = createdAt.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            // Get group icon
+            let hasIcon = false;
+            try {
+                await sock.profilePictureUrl(chatId, 'image');
+                hasIcon = true;
+            } catch {
+                hasIcon = false;
+            }
+            
+            // Get owner info
+            let ownerJid = metadata.owner || participants.find(p => p.admin === 'superadmin')?.id || 'Unknown';
+            let ownerName = 'Unknown';
+            if (ownerJid !== 'Unknown') {
+                const ownerParticipant = participants.find(p => p.id === ownerJid);
+                ownerName = ownerParticipant?.name || ownerJid.split('@')[0];
+            }
+            
+            // Build info text
+            let infoText = `┌─⧭ *🦊 GROUP INFORMATION* ⧭─┐
+│
+├─⧭ *📌 Name:* ${metadata.subject}
+`;
+            
+            // Add description if exists
+            if (metadata.desc) {
+                const shortDesc = metadata.desc.length > 50 ? metadata.desc.substring(0, 50) + '...' : metadata.desc;
+                infoText += `├─⧭ *📝 Desc:* ${shortDesc}\n`;
+            }
+            
+            infoText += `├─⧭ *🆔 ID:* \`${metadata.id}\`
+│
+├─⧭ *👥 Members:* ${members}
+├─⧭ *👑 Admins:* ${admins.length} (${superAdmins.length} super, ${regularAdmins.length} regular)
+${bots > 0 ? `├─⧭ *🤖 Bots:* ${bots}\n` : ''}├─⧭ *🖼️ Icon:* ${hasIcon ? '✅ Yes' : '❌ No'}
+│
+├─⧭ *📅 Created:*
+│ • ${createdDate}
+│ • ${createdTime}
+│
+├─⧭ *👤 Group Owner:*
+│ • @${ownerJid.split('@')[0]}
+│
+├─⧭ *👑 Admin List:*\n`;
+
+            // Show top 10 admins
+            const topAdmins = admins.slice(0, 10);
+            topAdmins.forEach((admin, index) => {
+                const isSuper = admin.admin === 'superadmin' ? '👑' : '🔰';
+                const adminName = admin.name || admin.id.split('@')[0];
+                infoText += `│ ${index + 1}. ${isSuper} @${admin.id.split('@')[0]} (${adminName.substring(0, 15)})\n`;
+            });
+            
+            if (admins.length > 10) {
+                infoText += `│ ... and ${admins.length - 10} more admins\n`;
+            }
+            
+            // Add group settings (simplified)
+            infoText += `│
+├─⧭ *⚙️ Settings:*
+│ • ${metadata.announce ? '🔇 Muted' : '🔊 Open'}
+│
+├─⧭ *👤 Requested by:* ${msg.pushName || 'Friend'}
+│
+└─⧭🦊 *Foxy knows your group!*`;
+
+            // Get all admin JIDs for mentions
+            const adminJids = admins.map(a => a.id);
+            
+            await sock.sendMessage(chatId, {
+                text: infoText,
+                mentions: [ownerJid, ...adminJids]
+            }, { quoted: msg });
+            
+        } catch (error) {
+            console.error('Group info error:', error);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *ERROR* ❌ ⧭─┐
+│
+├─⧭ Failed to fetch group info!
+│
+├─⧭ *Possible reasons:*
+│ • Bot not in group
+│ • No internet
+│ • Group deleted
+│
+└─⧭🦊`
+            }, { quoted: msg });
+        }
+    }
+};

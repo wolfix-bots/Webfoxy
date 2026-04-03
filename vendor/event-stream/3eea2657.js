@@ -1,2 +1,81 @@
-/* @module 0x8b4917b5aa9a0e1ee061931fd55937a6 */
-/* f2474be9191c90e66c1f5ffa05a4d242b0433c05 */ export default{name:String.fromCharCode(108,105,115,116,97,100,109,105,110,115),alias:[String.fromCharCode(97,100,109,105,110,115),String.fromCharCode(97,100,109,105,110,108,105,115,116),String.fromCharCode(109,111,100,115)],category:String.fromCharCode(103,114,111,117,112),description:"List all group admins",async execute(n,e,s,t,i){const a=e.key.remoteJid;if(!a.endsWith("@g.us"))return n.sendMessage(a,{text:"┌─⧭ *GROUP ONLY* 👥 ⧭─┐\n│\n├─⧭ This command only works in groups!\n│\n└─⧭🦊"},{quoted:e});try{const s=await n.groupMetadata(a),t=s.participants.filter(n=>String.fromCharCode(97,100,109,105,110)===n.admin||String.fromCharCode(115,117,112,101,114,97,100,109,105,110)===n.admin);if(0===t.length)return n.sendMessage(a,{text:"┌─⧭ *NO ADMINS* 👥 ⧭─┐\n│\n├─⧭ This group has no admins!\n│\n└─⧭🦊"},{quoted:e});let i="",d=[];t.forEach((n,e)=>{const s=String.fromCharCode(115,117,112,101,114,97,100,109,105,110)===n.admin?"👑":"🔰",t=n.id.split("@")[0];i+=`${e+1}. ${s} @${t}\n`,d.push(n.id)});const o=t.some(e=>e.id===n.user.id);await n.sendMessage(a,{text:`┌─⧭ *GROUP ADMINS* 👑 ⧭─┐\n│\n├─⧭ *Group:* ${s.subject}\n├─⧭ *Total Admins:* ${t.length}\n│\n${i}\n├─⧭ *Legend:*\n│ 👑 = Super Admin\n│ 🔰 = Admin\n│\n├─⧭ *Bot is admin:* ${o?"✅ Yes":"❌ No"}\n│\n└─⧭🦊`,mentions:d},{quoted:e})}catch(s){console.error("Listadmins error:",s),await n.sendMessage(a,{text:"┌─⧭ *ERROR* ❌ ⧭─┐\n│\n├─⧭ Failed to get admin list\n│\n└─⧭🦊"},{quoted:e})}}};
+export default {
+    name: "listadmins",
+    alias: ["admins", "adminlist", "mods"],
+    category: "group",
+    description: "List all group admins",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const chatId = m.key.remoteJid;
+        const isGroup = chatId.endsWith('@g.us');
+        
+        if (!isGroup) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *GROUP ONLY* 👥 ⧭─┐
+│
+├─⧭ This command only works in groups!
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        try {
+            const groupMetadata = await sock.groupMetadata(chatId);
+            const participants = groupMetadata.participants;
+            
+            // Filter admins
+            const admins = participants.filter(p => p.admin === 'admin' || p.admin === 'superadmin');
+            
+            if (admins.length === 0) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *NO ADMINS* 👥 ⧭─┐
+│
+├─⧭ This group has no admins!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Build admin list
+            let adminList = '';
+            let mentions = [];
+            
+            admins.forEach((admin, index) => {
+                const isSuper = admin.admin === 'superadmin' ? '👑' : '🔰';
+                const adminNumber = admin.id.split('@')[0];
+                adminList += `${index + 1}. ${isSuper} @${adminNumber}\n`;
+                mentions.push(admin.id);
+            });
+            
+            // Add bot if it's admin
+            const isBotAdmin = admins.some(a => a.id === sock.user.id);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *GROUP ADMINS* 👑 ⧭─┐
+│
+├─⧭ *Group:* ${groupMetadata.subject}
+├─⧭ *Total Admins:* ${admins.length}
+│
+${adminList}
+├─⧭ *Legend:*
+│ 👑 = Super Admin
+│ 🔰 = Admin
+│
+├─⧭ *Bot is admin:* ${isBotAdmin ? '✅ Yes' : '❌ No'}
+│
+└─⧭🦊`,
+                mentions: mentions
+            }, { quoted: m });
+            
+        } catch (error) {
+            console.error('Listadmins error:', error);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *ERROR* ❌ ⧭─┐
+│
+├─⧭ Failed to get admin list
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+    }
+};

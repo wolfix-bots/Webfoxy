@@ -1,2 +1,89 @@
-/* @module 0x76fa05f92a3256fb2f7230d7f5c64f69 */
-/* 7648dbc02f4986e2862cd252868bd384f74bf095 */ export default{name:String.fromCharCode(102,108,117,120),alias:["ai",String.fromCharCode(103,101,110,101,114,97,116,101),String.fromCharCode(97,105,105,109,97,103,101)],category:"ai",async execute(e,t,a,s,o){const i=t.key.remoteJid;if(!a.length)return e.sendMessage(i,{text:`${s}flux <prompt>\nExample: ${s}flux cute anime cat`},{quoted:t});const n=a.join(" ");try{await e.sendMessage(i,{text:`🎨 Generating: "${n}"\n⏳ Please wait...`},{quoted:t});const a=`https://apiskeith.vercel.app/ai/flux?q=${encodeURIComponent(n)}`;console.log(`🌐 Fetching from: ${a}`);const s=await fetch(a);if(!s.ok)throw new Error(`HTTP ${s.status}`);const o=await s.arrayBuffer(),r=Buffer.from(o);if(r.length<1024)throw new Error("Image too small or invalid");const l=r.slice(0,4).toString(String.fromCharCode(104,101,120)),g=l.startsWith(String.fromCharCode(102,102,100,56)),c=l.startsWith("89504e47"),qu=l.startsWith("52494646"),d=l.startsWith("47494638");if(!(g||c||qu||d))throw console.log("Magic bytes:",l),new Error("Not a valid image format");await e.sendMessage(i,{image:r,caption:`🎨 ${n}`}),console.log(`✅ Image sent (${(r.length/1024).toFixed(1)}KB)`)}catch(a){console.error("❌ Flux error:",a.message);let s="❌ Failed to generate\n\n";a.message.includes(String.fromCharCode(116,105,109,101,111,117,116))?(s+="The API is taking too long.\n",s+="Try a simpler prompt."):a.message.includes(String.fromCharCode(72,84,84,80))?(s+=`API error: ${a.message}\n`,s+="The service might be down."):a.message.includes(String.fromCharCode(105,110,118,97,108,105,100))?(s+="Invalid image received.\n",s+="Try again."):s+=a.message,await e.sendMessage(i,{text:s},{quoted:t})}}};
+// commands/ai/flux.js - FIXED VERSION
+export default {
+    name: "flux",
+    alias: ["ai", "generate", "aiimage"],
+    category: "ai",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `${PREFIX}flux <prompt>\nExample: ${PREFIX}flux cute anime cat`
+            }, { quoted: m });
+        }
+        
+        const prompt = args.join(' ');
+        
+        try {
+            // Send generating message
+            await sock.sendMessage(jid, {
+                text: `🎨 Generating: "${prompt}"\n⏳ Please wait...`
+            }, { quoted: m });
+            
+            // Encode the prompt
+            const encodedPrompt = encodeURIComponent(prompt);
+            const apiUrl = `https://apiskeith.vercel.app/ai/flux?q=${encodedPrompt}`;
+            
+            console.log(`🌐 Fetching from: ${apiUrl}`);
+            
+            // Fetch the image directly (it returns image, not JSON)
+            const response = await fetch(apiUrl);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            // Get the image as buffer
+            const arrayBuffer = await response.arrayBuffer();
+            const imageBuffer = Buffer.from(arrayBuffer);
+            
+            // Check if we actually got an image
+            if (imageBuffer.length < 1024) {
+                throw new Error('Image too small or invalid');
+            }
+            
+            // Check if it's a valid image by checking magic bytes
+            const magicBytes = imageBuffer.slice(0, 4).toString('hex');
+            const isJpeg = magicBytes.startsWith('ffd8');
+            const isPng = magicBytes.startsWith('89504e47');
+            const isWebP = magicBytes.startsWith('52494646'); // RIFF
+            const isGif = magicBytes.startsWith('47494638'); // GIF8
+            
+            if (!isJpeg && !isPng && !isWebP && !isGif) {
+                console.log('Magic bytes:', magicBytes);
+                throw new Error('Not a valid image format');
+            }
+            
+            // Send the image
+            await sock.sendMessage(jid, {
+                image: imageBuffer,
+                caption: `🎨 ${prompt}`
+            });
+            
+            console.log(`✅ Image sent (${(imageBuffer.length / 1024).toFixed(1)}KB)`);
+            
+        } catch (error) {
+            console.error("❌ Flux error:", error.message);
+            
+            let errorMsg = `❌ Failed to generate\n\n`;
+            
+            if (error.message.includes('timeout')) {
+                errorMsg += 'The API is taking too long.\n';
+                errorMsg += 'Try a simpler prompt.';
+            } else if (error.message.includes('HTTP')) {
+                errorMsg += `API error: ${error.message}\n`;
+                errorMsg += 'The service might be down.';
+            } else if (error.message.includes('invalid')) {
+                errorMsg += 'Invalid image received.\n';
+                errorMsg += 'Try again.';
+            } else {
+                errorMsg += error.message;
+            }
+            
+            await sock.sendMessage(jid, {
+                text: errorMsg
+            }, { quoted: m });
+        }
+    }
+};

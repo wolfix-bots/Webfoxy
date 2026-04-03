@@ -1,2 +1,108 @@
-/* @module 0x5a392c8e6089927b223fdc01b7855012 */
-/* 0a54daf43a481aba4a3b3fc5bfa1e4c24073ea7b */ import e fromString.fromCharCode(97,120,105,111,115);export default{name:String.fromCharCode(97,116,116,112),alias:[String.fromCharCode(103,108,105,116,116,101,114),String.fromCharCode(115,112,97,114,107,108,101),String.fromCharCode(103,108,111,119,116,101,120,116),String.fromCharCode(97,110,105,109,97,116,101,116,101,120,116)],description:"Create animated glitter text sticker ✨",category:String.fromCharCode(109,101,100,105,97),ownerOnly:!1,async execute(t,a,n,s){const r=a.key.remoteJid;if(0===n.length)return t.sendMessage(r,{text:`┌─⧭ *FOXY GLITTER TEXT* ✨ ⧭─┐\n│\n├─⧭ *Usage:*\n│ ${s}attp <text>\n│\n├─⧭ *Examples:*\n│ • ${s}attp Hello\n│ • ${s}attp Foxy\n│ • ${s}attp Love\n│\n├─⧭ *Note:*\n│ • Max 30 characters\n│ • Creates animated sticker\n│\n└─⧭🦊`},{quoted:a});try{const s=n.join(" ");if(s.length>30)return t.sendMessage(r,{text:`┌─⧭ *TEXT TOO LONG* ❌ ⧭─┐\n│\n├─⧭ Max 30 characters\n├─⧭ Yours: ${s.length} chars\n│\n└─⧭🦊`},{quoted:a});const i=encodeURIComponent(s);let o;const p=[`https://api.lolhuman.xyz/api/attp?apikey=ayakadesu&text=${i}`,`https://api.lolhuman.xyz/api/attp?apikey=beta&text=${i}`,`https://api.lolhuman.xyz/api/attp?apikey=alama&text=${i}`,`https://api.lolhuman.xyz/api/ttp?apikey=ayakadesu&text=${i}`];for(const t of p)try{const a=await e.get(t,{responseType:String.fromCharCode(97,114,114,97,121,98,117,102,102,101,114),timeout:8e3});if(a.data&&a.data.length>100){o=t;break}}catch(e){continue}if(!o)return await t.sendMessage(r,{text:`✨ *${s.toUpperCase()}* ✨`},{quoted:a}),void await t.sendMessage(r,{react:{text:"✨",key:a.key}});await t.sendMessage(r,{sticker:{url:o},mimetype:"image/webp"},{quoted:a}),await t.sendMessage(r,{react:{text:"✨",key:a.key}})}catch(e){console.error("ATTP error:",e),await t.sendMessage(r,{react:{text:"❌",key:a.key}})}}};
+import axios from 'axios';
+
+export default {
+    name: "attp",
+    alias: ["glitter", "sparkle", "glowtext", "animatetext"],
+    description: "Create animated glitter text sticker ✨",
+    category: "media",
+    ownerOnly: false,
+
+    async execute(sock, m, args, PREFIX) {
+        const jid = m.key.remoteJid;
+        
+        // Show help if no text
+        if (args.length === 0) {
+            return sock.sendMessage(jid, {
+                text: `┌─⧭ *FOXY GLITTER TEXT* ✨ ⧭─┐
+│
+├─⧭ *Usage:*
+│ ${PREFIX}attp <text>
+│
+├─⧭ *Examples:*
+│ • ${PREFIX}attp Hello
+│ • ${PREFIX}attp Foxy
+│ • ${PREFIX}attp Love
+│
+├─⧭ *Note:*
+│ • Max 30 characters
+│ • Creates animated sticker
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        try {
+            const text = args.join(' ');
+            
+            if (text.length > 30) {
+                return sock.sendMessage(jid, {
+                    text: `┌─⧭ *TEXT TOO LONG* ❌ ⧭─┐
+│
+├─⧭ Max 30 characters
+├─⧭ Yours: ${text.length} chars
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Direct API call - no processing message
+            const encodedText = encodeURIComponent(text);
+            
+            // Try multiple APIs for reliability
+            let stickerUrl;
+            const apis = [
+                `https://api.lolhuman.xyz/api/attp?apikey=ayakadesu&text=${encodedText}`,
+                `https://api.lolhuman.xyz/api/attp?apikey=beta&text=${encodedText}`,
+                `https://api.lolhuman.xyz/api/attp?apikey=alama&text=${encodedText}`,
+                `https://api.lolhuman.xyz/api/ttp?apikey=ayakadesu&text=${encodedText}`
+            ];
+            
+            for (const api of apis) {
+                try {
+                    const response = await axios.get(api, {
+                        responseType: 'arraybuffer',
+                        timeout: 8000
+                    });
+                    
+                    if (response.data && response.data.length > 100) {
+                        stickerUrl = api;
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            
+            if (!stickerUrl) {
+                // Fallback to text if all APIs fail
+                await sock.sendMessage(jid, {
+                    text: `✨ *${text.toUpperCase()}* ✨`
+                }, { quoted: m });
+                
+                await sock.sendMessage(jid, {
+                    react: { text: "✨", key: m.key }
+                });
+                return;
+            }
+            
+            // Send sticker directly
+            await sock.sendMessage(jid, {
+                sticker: { url: stickerUrl },
+                mimetype: 'image/webp'
+            }, { quoted: m });
+            
+            // Just add reaction
+            await sock.sendMessage(jid, {
+                react: { text: "✨", key: m.key }
+            });
+            
+        } catch (error) {
+            console.error("ATTP error:", error);
+            
+            // Silent fail - just react with ❌
+            await sock.sendMessage(jid, {
+                react: { text: "❌", key: m.key }
+            });
+        }
+    }
+};

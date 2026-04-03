@@ -1,2 +1,40 @@
-/* @module 0xf27801bae7dab223b166974e2c01ba22 */
-/* 00427339d76166de3678d39ea1abdcdd04defe80 */ export default{name:String.fromCharCode(103,101,109,105,110,105),alias:[String.fromCharCode(103,101,109),String.fromCharCode(103,111,111,103,108,101,97,105)],category:"ai",async execute(e,t,n,a,i){const o=t.key.remoteJid;if(!n.length)return e.sendMessage(o,{text:`┌─⧭ *Gemini AI*\n│ Chat with Google's AI\n│\n│ Usage: ${a}gemini <question>\n│ Example: ${a}gemini Tell me a joke\n└─⧭`},{quoted:t});const s=n.join(" ");await e.sendMessage(o,{text:"┌─⧭ *Gemini thinking...*\n└─⧭"},{quoted:t});try{const n=(await import(String.fromCharCode(97,120,105,111,115))).default,a=`https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent("You are Gemini AI, Google's assistant. Be helpful.\nUser: "+s)}`,i=await n.get(a,{timeout:3e4}),g=i.data?.result||i.data?.response||"I don't know";await e.sendMessage(o,{text:`┌─⧭ *Gemini*\n│\n\`\`\`\n${g}\n\`\`\`\n└─⧭`},{quoted:t})}catch(n){await e.sendMessage(o,{text:"┌─⧭ *Error*\n│ Gemini unavailable\n└─⧭"},{quoted:t})}}};
+export default {
+    name: "gemini",
+    alias: ["gem", "googleai"],
+    category: "ai",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        
+        if (!args.length) {
+            return sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Gemini AI*\n\u2502 Chat with Google's AI\n\u2502\n\u2502 Usage: ${PREFIX}gemini <question>\n\u2502 Example: ${PREFIX}gemini Tell me a joke\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+        
+        const question = args.join(' ');
+        
+        await sock.sendMessage(jid, {
+            text: `\u250C\u2500\u29ED *Gemini thinking...*\n\u2514\u2500\u29ED`
+        }, { quoted: m });
+        
+        try {
+            const axios = (await import('axios')).default;
+            
+            const prompt = `You are Gemini AI, Google's assistant. Be helpful.`;
+            const url = `https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent(prompt + '\nUser: ' + question)}`;
+            
+            const response = await axios.get(url, { timeout: 30000 });
+            const answer = response.data?.result || response.data?.response || "I don't know";
+            
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Gemini*\n\u2502\n\`\`\`\n${answer}\n\`\`\`\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+            
+        } catch (error) {
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Error*\n\u2502 Gemini unavailable\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+    }
+};

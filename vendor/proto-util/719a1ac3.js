@@ -1,2 +1,268 @@
-/* @module 0xe16a890f73b813bdfbf53e0f7626ec39 */
-/* f2b9b2d2c199987703315251919f6aa8cd78d053 */ import{createCanvas as t}fromString.fromCharCode(99,97,110,118,97,115);export default{name:String.fromCharCode(99,121,98,101,114,112,117,110,107,116,101,120,116),alias:[String.fromCharCode(99,121,98,101,114),String.fromCharCode(102,117,116,117,114,101),String.fromCharCode(110,101,111,110,111,105,114)],description:"Create cyberpunk/futuristic neon text",async execute(e,o,l){const n=o.key.remoteJid;try{if(0===l.length)return void await e.sendMessage(n,{text:"🌃 *Cyberpunk Text*\n\nUsage: cyberpunktext <text>\n\n*Examples:*\n• cyberpunktext SYNTH\n• cyberpunktext CYBER\n• cyberpunktext FUTURE\n• cyberpunktext NEON"},{quoted:o});const f=l.join(" ");f.length>20&&(f=f.substring(0,17)+"..."),await e.sendMessage(n,{text:`🌃 Rendering cyberpunk text: "${f}"...`},{quoted:o});const a=await async function(e){const o=800,l=400,n=t(o,l),f=n.getContext("2d");return f.fillStyle="#0a0a1a",f.fillRect(0,0,o,l),function(t){t.fillStyle="#001122";for(let e=0;e<15;e++){const o=800/15*e,l=40*Math.random()+20,n=200*Math.random()+100;t.fillRect(o,400-n,l,n),t.fillStyle="#00aaff";const f=Math.floor(n/20),a=Math.floor(l/15);for(let e=0;e<f;e++)for(let l=0;l<a;l++)if(Math.random()>.6){const f=o+15*l+5,a=400-n+20*e+5;t.fillRect(f,a,8,12)}t.fillStyle="#001122"}t.fillStyle="#ff00ff";for(let e=0;e<5;e++){const e=800*Math.random(),o=200*Math.random(),l=20*Math.random()+10;t.fillRect(e,o,2*l,l),t.fillStyle="rgba(255, 0, 255, 0.3)",t.fillRect(e-5,o-5,2*l+10,l+10),t.fillStyle="#ff00ff"}}(f),function(t){t.fillStyle="rgba(0, 255, 0, 0.7)",t.font="12px monospace";for(let e=0;e<100;e++){const e=800*Math.random();let o=400*Math.random();const l=Math.floor(3*Math.random())+3;for(let n=0;n<l;n++){const f="0123456789アイウエオカキクケコサシスセソ",a=f[Math.floor(Math.random()*f.length)],r=1-n/l;t.fillStyle=`rgba(0, 255, 0, ${.7*r})`,t.fillText(a,e,o+15*n)}}}(f),function(t,e){const o=400;t.textAlign=String.fromCharCode(99,101,110,116,101,114),t.textBaseline=String.fromCharCode(109,105,100,100,108,101),t.font='bold 80px "Courier New"';const l=[{color:"#00ffff",offset:-2,blur:20},{color:"#ff00ff",offset:2,blur:15},{color:"#00ff00",offset:0,blur:25}];for(const n of l)t.shadowColor=n.color,t.shadowBlur=n.blur,t.fillStyle=n.color,t.fillText(e.toUpperCase(),o+n.offset,150+n.offset);t.shadowBlur=0,t.fillStyle="#ffffff",t.fillText(e.toUpperCase(),o,150),t.strokeStyle="#00ffff",t.lineWidth=2;const n=t.measureText(e).width,f=o-n/2,a=o+n/2;t.beginPath(),t.moveTo(f-20,210),t.lineTo(a+20,210),t.stroke();for(let e=0;e<5;e++){const o=f+n/4*e;t.beginPath(),t.moveTo(o,210),t.lineTo(o,240),t.stroke(),t.fillStyle="#ff00ff",t.beginPath(),t.arc(o,240,5,0,2*Math.PI),t.fill()}}(f,e),function(t){t.globalAlpha=.3;for(let e=0;e<5;e++){const e=400*Math.random(),o=20*Math.random()+5,l=["#ff00ff","#00ffff","#00ff00"],n=l[Math.floor(Math.random()*l.length)];t.fillStyle=n;const f=30*(Math.random()-.5);t.fillRect(0,e,400+f,o),t.fillRect(400-f,e,400,o)}t.globalAlpha=1,t.fillStyle="rgba(0, 255, 0, 0.5)",t.font="10px monospace";for(let e=0;e<50;e++){const e=800*Math.random(),o=400*Math.random(),l=Math.random()>.5?"1":"0";t.fillText(l,e,o)}}(f),function(t,e,o){t.strokeStyle="rgba(0, 255, 0, 0.1)",t.lineWidth=1;for(let l=0;l<o;l+=3)t.beginPath(),t.moveTo(0,l),t.lineTo(e,l),t.stroke();const l=t.createRadialGradient(400,200,0,400,200,Math.max(e,o)/2);l.addColorStop(0,String.fromCharCode(116,114,97,110,115,112,97,114,101,110,116)),l.addColorStop(.7,String.fromCharCode(116,114,97,110,115,112,97,114,101,110,116)),l.addColorStop(1,"rgba(0, 0, 0, 0.5)"),t.fillStyle=l,t.fillRect(0,0,e,o)}(f,o,l),n.toBuffer("image/png")}(f);await e.sendMessage(n,{image:a,caption:`🌃 *Cyberpunk Text*\n"${f}"\n🤖 Futuristic neon dystopia`},{quoted:o})}catch(t){console.error("❌ [CYBERPUNKTEXT] ERROR:",t),await e.sendMessage(n,{text:`❌ Error: ${t.message}`},{quoted:o})}}};
+import { createCanvas } from 'canvas';
+
+export default {
+  name: "cyberpunktext",
+  alias: ["cyber", "future", "neonoir"],
+  description: "Create cyberpunk/futuristic neon text",
+  async execute(sock, m, args) {
+    const jid = m.key.remoteJid;
+
+    try {
+      if (args.length === 0) {
+        await sock.sendMessage(jid, { 
+          text: `🌃 *Cyberpunk Text*\n\nUsage: cyberpunktext <text>\n\n*Examples:*\n• cyberpunktext SYNTH\n• cyberpunktext CYBER\n• cyberpunktext FUTURE\n• cyberpunktext NEON` 
+        }, { quoted: m });
+        return;
+      }
+
+      const text = args.join(" ");
+      
+      if (text.length > 20) {
+        text = text.substring(0, 17) + '...';
+      }
+
+      await sock.sendMessage(jid, { 
+        text: `🌃 Rendering cyberpunk text: "${text}"...` 
+      }, { quoted: m });
+
+      const logoBuffer = await generateCyberpunkText(text);
+      
+      await sock.sendMessage(jid, {
+        image: logoBuffer,
+        caption: `🌃 *Cyberpunk Text*\n"${text}"\n🤖 Futuristic neon dystopia`
+      }, { quoted: m });
+
+    } catch (error) {
+      console.error("❌ [CYBERPUNKTEXT] ERROR:", error);
+      await sock.sendMessage(jid, { 
+        text: `❌ Error: ${error.message}` 
+      }, { quoted: m });
+    }
+  },
+};
+
+async function generateCyberpunkText(text) {
+  const width = 800;
+  const height = 400;
+  
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Dark futuristic city background
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(0, 0, width, height);
+
+  // Add cityscape
+  drawCyberpunkCity(ctx, width, height);
+
+  // Add rain effect
+  drawCyberpunkRain(ctx, width, height);
+
+  // Main cyberpunk text
+  drawCyberpunkEffect(ctx, text, width, height);
+
+  // Add holographic glitches
+  addCyberGlitches(ctx, width, height);
+
+  // Add scanlines
+  drawScanlines(ctx, width, height);
+
+  return canvas.toBuffer('image/png');
+}
+
+function drawCyberpunkCity(ctx, width, height) {
+  // Draw futuristic city skyline
+  ctx.fillStyle = '#001122';
+  
+  // Tall buildings
+  const buildingCount = 15;
+  for (let i = 0; i < buildingCount; i++) {
+    const x = (width / buildingCount) * i;
+    const buildingWidth = Math.random() * 40 + 20;
+    const buildingHeight = Math.random() * 200 + 100;
+    
+    // Building base
+    ctx.fillRect(x, height - buildingHeight, buildingWidth, buildingHeight);
+    
+    // Building windows
+    ctx.fillStyle = '#00aaff';
+    const windowRows = Math.floor(buildingHeight / 20);
+    const windowCols = Math.floor(buildingWidth / 15);
+    
+    for (let row = 0; row < windowRows; row++) {
+      for (let col = 0; col < windowCols; col++) {
+        if (Math.random() > 0.6) { // Random windows
+          const windowX = x + col * 15 + 5;
+          const windowY = height - buildingHeight + row * 20 + 5;
+          
+          ctx.fillRect(windowX, windowY, 8, 12);
+        }
+      }
+    }
+    
+    ctx.fillStyle = '#001122';
+  }
+  
+  // Add flying cars/vehicles
+  ctx.fillStyle = '#ff00ff';
+  for (let i = 0; i < 5; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * (height - 200);
+    const size = Math.random() * 20 + 10;
+    
+    // Vehicle body
+    ctx.fillRect(x, y, size * 2, size);
+    
+    // Glow
+    ctx.fillStyle = 'rgba(255, 0, 255, 0.3)';
+    ctx.fillRect(x - 5, y - 5, size * 2 + 10, size + 10);
+    ctx.fillStyle = '#ff00ff';
+  }
+}
+
+function drawCyberpunkRain(ctx, width, height) {
+  // Digital rain effect (matrix style)
+  ctx.fillStyle = 'rgba(0, 255, 0, 0.7)';
+  ctx.font = '12px monospace';
+  
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * width;
+    let y = Math.random() * height;
+    
+    // Draw 3-5 characters in a column
+    const chars = Math.floor(Math.random() * 3) + 3;
+    for (let j = 0; j < chars; j++) {
+      // Random katakana or numbers
+      const characters = '0123456789アイウエオカキクケコサシスセソ';
+      const char = characters[Math.floor(Math.random() * characters.length)];
+      
+      // Fade out as it goes down
+      const alpha = 1 - (j / chars);
+      ctx.fillStyle = `rgba(0, 255, 0, ${alpha * 0.7})`;
+      
+      ctx.fillText(char, x, y + j * 15);
+    }
+  }
+}
+
+function drawCyberpunkEffect(ctx, text, width, height) {
+  const centerX = width / 2;
+  const centerY = height / 2 - 50; // Higher for city view
+  
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 80px "Courier New"';
+  
+  // Multiple neon layers with different colors
+  const neonLayers = [
+    { color: '#00ffff', offset: -2, blur: 20 },
+    { color: '#ff00ff', offset: 2, blur: 15 },
+    { color: '#00ff00', offset: 0, blur: 25 }
+  ];
+  
+  // Draw glow layers
+  for (const layer of neonLayers) {
+    ctx.shadowColor = layer.color;
+    ctx.shadowBlur = layer.blur;
+    ctx.fillStyle = layer.color;
+    ctx.fillText(text.toUpperCase(), centerX + layer.offset, centerY + layer.offset);
+  }
+  
+  // Clear shadow for main text
+  ctx.shadowBlur = 0;
+  
+  // Main text (bright white)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(text.toUpperCase(), centerX, centerY);
+  
+  // Add circuit board lines under text
+  ctx.strokeStyle = '#00ffff';
+  ctx.lineWidth = 2;
+  
+  const textWidth = ctx.measureText(text).width;
+  const startX = centerX - textWidth / 2;
+  const endX = centerX + textWidth / 2;
+  const lineY = centerY + 60;
+  
+  // Horizontal circuit line
+  ctx.beginPath();
+  ctx.moveTo(startX - 20, lineY);
+  ctx.lineTo(endX + 20, lineY);
+  ctx.stroke();
+  
+  // Vertical connectors
+  for (let i = 0; i < 5; i++) {
+    const x = startX + (textWidth / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(x, lineY);
+    ctx.lineTo(x, lineY + 30);
+    ctx.stroke();
+    
+    // Circuit nodes
+    ctx.fillStyle = '#ff00ff';
+    ctx.beginPath();
+    ctx.arc(x, lineY + 30, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function addCyberGlitches(ctx, width, height) {
+  // Add digital glitch effects
+  ctx.globalAlpha = 0.3;
+  
+  // Horizontal glitch bars
+  for (let i = 0; i < 5; i++) {
+    const y = Math.random() * height;
+    const h = Math.random() * 20 + 5;
+    
+    // Random glitch color
+    const colors = ['#ff00ff', '#00ffff', '#00ff00'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    ctx.fillStyle = color;
+    
+    // Offset part of the bar for glitch effect
+    const offset = (Math.random() - 0.5) * 30;
+    ctx.fillRect(0, y, width/2 + offset, h);
+    ctx.fillRect(width/2 - offset, y, width/2, h);
+  }
+  
+  ctx.globalAlpha = 1.0;
+  
+  // Add binary code floating
+  ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+  ctx.font = '10px monospace';
+  
+  for (let i = 0; i < 50; i++) {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+    const binary = Math.random() > 0.5 ? '1' : '0';
+    
+    ctx.fillText(binary, x, y);
+  }
+}
+
+function drawScanlines(ctx, width, height) {
+  // CRT monitor scanlines
+  ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
+  ctx.lineWidth = 1;
+  
+  for (let y = 0; y < height; y += 3) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+  
+  // Vignette effect
+  const vignette = ctx.createRadialGradient(
+    width / 2, height / 2, 0,
+    width / 2, height / 2, Math.max(width, height) / 2
+  );
+  vignette.addColorStop(0, 'transparent');
+  vignette.addColorStop(0.7, 'transparent');
+  vignette.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
+  
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, width, height);
+}

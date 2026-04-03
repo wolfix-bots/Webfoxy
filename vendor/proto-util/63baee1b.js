@@ -1,2 +1,127 @@
-/* @module 0x629b1fef8d01e6717a2e0b75157e4acf */
-/* 77d7475e2713c51b81f65ba6a65e08320e8c073b */ export default{name:String.fromCharCode(112,114,111,109,111,116,101),alias:[String.fromCharCode(109,97,107,101,97,100,109,105,110),String.fromCharCode(97,100,109,105,110)],category:String.fromCharCode(103,114,111,117,112),description:"Promote user to admin",async execute(e,n,t,a,s){const i=n.key.remoteJid,d=i.endsWith("@g.us"),{jidManager:o}=s;if(!d)return e.sendMessage(i,{text:"┌─⧭ *GROUP ONLY* 👥 ⧭─┐\n│\n├─⧭ This command only works in groups!\n│\n└─⧭🦊"},{quoted:n});try{const t=(await e.groupMetadata(i)).participants,s=n.key.participant||i;if(String.fromCharCode(97,100,109,105,110)!==t.find(e=>e.id===s)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==t.find(e=>e.id===s)?.admin&&!n.key.fromMe)return e.sendMessage(i,{text:"┌─⧭ *ADMIN ONLY* 👑 ⧭─┐\n│\n├─⧭ Only admins can promote members!\n│\n└─⧭🦊"},{quoted:n});if(String.fromCharCode(97,100,109,105,110)!==t.find(n=>n.id===e.user.id)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==t.find(n=>n.id===e.user.id)?.admin)return e.sendMessage(i,{text:"┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐\n│\n├─⧭ I need to be an admin to promote people!\n│\n└─⧭🦊"},{quoted:n});let d=null;const r=n.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0],ri=n.message?.extendedTextMessage?.contextInfo?.participant;if(d=r||ri,!d)return e.sendMessage(i,{text:`┌─⧭ *PROMOTE USER* 👑 ⧭─┐\n│\n├─⧭ *Usage:*\n│ • @mention the user\n│ • Reply to their message\n│\n├─⧭ *Examples:*\n│ • ${a}promote @user\n│ • Reply to message → ${a}promote\n│\n└─⧭🦊`},{quoted:n});if(String.fromCharCode(97,100,109,105,110)===t.find(e=>e.id===d)?.admin||String.fromCharCode(115,117,112,101,114,97,100,109,105,110)===t.find(e=>e.id===d)?.admin)return e.sendMessage(i,{text:"┌─⧭ *ALREADY ADMIN* 👑 ⧭─┐\n│\n├─⧭ This user is already an admin!\n│\n└─⧭🦊"},{quoted:n});await e.groupParticipantsUpdate(i,[d],String.fromCharCode(112,114,111,109,111,116,101));const u=o.cleanJid(d);await e.sendMessage(i,{text:`┌─⧭ *✅ USER PROMOTED* ⧭─┐\n│\n├─⧭ *User:* @${u.cleanNumber}\n├─⧭ *Promoted by:* ${n.mk||String.fromCharCode(65,100,109,105,110)}\n│\n│ 👑 Welcome to the admin team!\n│\n└─⧭🦊`,mentions:[d]},{quoted:n})}catch(t){console.error("Promote error:",t),await e.sendMessage(i,{text:`┌─⧭ *PROMOTE FAILED* ❌ ⧭─┐\n│\n├─⧭ ${t.message}\n│\n├─⧭ *Possible reasons:*\n│ • User not in group\n│ • Bot not admin\n│ • Already admin\n│\n└─⧭🦊`},{quoted:n})}}};
+export default {
+    name: "promote",
+    alias: ["makeadmin", "admin"],
+    category: "group",
+    description: "Promote user to admin",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const chatId = m.key.remoteJid;
+        const isGroup = chatId.endsWith('@g.us');
+        const { jidManager } = extra;
+        
+        if (!isGroup) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *GROUP ONLY* 👥 ⧭─┐
+│
+├─⧭ This command only works in groups!
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        try {
+            const groupMetadata = await sock.groupMetadata(chatId);
+            const participants = groupMetadata.participants;
+            const senderId = m.key.participant || chatId;
+            
+            // Check if sender is admin
+            const isSenderAdmin = participants.find(p => p.id === senderId)?.admin === 'admin' ||
+                                 participants.find(p => p.id === senderId)?.admin === 'superadmin';
+            
+            if (!isSenderAdmin && !m.key.fromMe) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *ADMIN ONLY* 👑 ⧭─┐
+│
+├─⧭ Only admins can promote members!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check if bot is admin
+            const isBotAdmin = participants.find(p => p.id === sock.user.id)?.admin === 'admin' || 
+                              participants.find(p => p.id === sock.user.id)?.admin === 'superadmin';
+            
+            if (!isBotAdmin) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐
+│
+├─⧭ I need to be an admin to promote people!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Get target user
+            let target = null;
+            
+            const mentioned = m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+            const quoted = m.message?.extendedTextMessage?.contextInfo?.participant;
+            
+            target = mentioned || quoted;
+            
+            if (!target) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *PROMOTE USER* 👑 ⧭─┐
+│
+├─⧭ *Usage:*
+│ • @mention the user
+│ • Reply to their message
+│
+├─⧭ *Examples:*
+│ • ${PREFIX}promote @user
+│ • Reply to message → ${PREFIX}promote
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check if already admin
+            const isAlreadyAdmin = participants.find(p => p.id === target)?.admin === 'admin' ||
+                                  participants.find(p => p.id === target)?.admin === 'superadmin';
+            
+            if (isAlreadyAdmin) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *ALREADY ADMIN* 👑 ⧭─┐
+│
+├─⧭ This user is already an admin!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Promote user
+            await sock.groupParticipantsUpdate(chatId, [target], 'promote');
+            
+            const cleaned = jidManager.cleanJid(target);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *✅ USER PROMOTED* ⧭─┐
+│
+├─⧭ *User:* @${cleaned.cleanNumber}
+├─⧭ *Promoted by:* ${m.pushName || 'Admin'}
+│
+│ 👑 Welcome to the admin team!
+│
+└─⧭🦊`,
+                mentions: [target]
+            }, { quoted: m });
+            
+        } catch (error) {
+            console.error('Promote error:', error);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *PROMOTE FAILED* ❌ ⧭─┐
+│
+├─⧭ ${error.message}
+│
+├─⧭ *Possible reasons:*
+│ • User not in group
+│ • Bot not admin
+│ • Already admin
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+    }
+};

@@ -1,2 +1,142 @@
-/* @module 0xf9beaf0009217a3bcbe83b9d2dea8491 */
-/* 7860181486daa2257b28c20da404e78a00f6ae2a */ export default{name:String.fromCharCode(115,101,116,103,110,97,109,101),alias:[String.fromCharCode(115,101,116,110,97,109,101),String.fromCharCode(115,101,116,103,114,111,117,112,110,97,109,101),String.fromCharCode(103,110,97,109,101),String.fromCharCode(114,101,110,97,109,101)],category:String.fromCharCode(103,114,111,117,112),description:"Change the group name",async execute(n,e,a,t,s){const i=e.key.remoteJid;if(!i.endsWith("@g.us"))return n.sendMessage(i,{text:"┌─⧭ *GROUP ONLY* 👥 ⧭─┐\n│\n├─⧭ This command only works in groups!\n│\n└─⧭🦊"},{quoted:e});try{const s=await n.groupMetadata(i),d=s.participants,r=e.key.participant||i;if(String.fromCharCode(97,100,109,105,110)!==d.find(n=>n.id===r)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==d.find(n=>n.id===r)?.admin&&!e.key.fromMe)return n.sendMessage(i,{text:"┌─⧭ *ADMIN ONLY* 👑 ⧭─┐\n│\n├─⧭ Only admins can change group name!\n│\n└─⧭🦊"},{quoted:e});if(String.fromCharCode(97,100,109,105,110)!==d.find(e=>e.id===n.user.id)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==d.find(e=>e.id===n.user.id)?.admin)return n.sendMessage(i,{text:"┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐\n│\n├─⧭ I need to be an admin to change group name!\n│\n└─⧭🦊"},{quoted:e});const o=a.join(" ").trim();if(!o)return n.sendMessage(i,{text:`┌─⧭ *SET GROUP NAME* 📝 ⧭─┐\n│\n├─⧭ *Usage:*\n│ ${t}setgname <new name>\n│\n├─⧭ *Examples:*\n│ • ${t}setgname Foxy Friends\n│ • ${t}setgname Tech Talk\n│ • ${t}setgname Gaming Zone\n│\n├─⧭ *Current name:*\n│ ${s.subject}\n│\n├─⧭ *Limits:*\n│ • Max 50 characters\n│ • No special restrictions\n│\n└─⧭🦊`},{quoted:e});if(o.length>50)return n.sendMessage(i,{text:`┌─⧭ *NAME TOO LONG* ❌ ⧭─┐\n│\n├─⧭ *Length:* ${o.length} chars\n├─⧭ *Max:* 50 chars\n│\n│ Please use a shorter name.\n│\n└─⧭🦊`},{quoted:e});const df=await n.sendMessage(i,{text:`┌─⧭ *UPDATING* 🔄 ⧭─┐\n│\n├─⧭ Changing group name to:\n│ "${o}"\n│\n│ Please wait...\n│\n└─⧭🦊`},{quoted:e});await n.groupUpdateSubject(i,o),await n.sendMessage(i,{delete:df.key}),await n.sendMessage(i,{text:`┌─⧭ *✅ NAME UPDATED* ⧭─┐\n│\n├─⧭ *Old name:* ${s.subject}\n├─⧭ *New name:* ${o}\n├─⧭ *Changed by:* ${e.xc||String.fromCharCode(65,100,109,105,110)}\n│\n│ Group name has been updated!\n│\n└─⧭🦊`},{quoted:e})}catch(a){console.error("Setgname error:",a),await n.sendMessage(i,{text:`┌─⧭ *ERROR* ❌ ⧭─┐\n│\n├─⧭ ${a.message}\n│\n├─⧭ *Possible reasons:*\n│ • Bot not admin\n│ • Network issue\n│ • Invalid name\n│\n└─⧭🦊`},{quoted:e})}}};
+export default {
+    name: 'setgname',
+    alias: ['setname', 'setgroupname', 'gname', 'rename'],
+    category: 'group',
+    description: 'Change the group name',
+    
+    async execute(sock, msg, args, PREFIX, extra) {
+        const chatId = msg.key.remoteJid;
+        const isGroup = chatId.endsWith('@g.us');
+        
+        if (!isGroup) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *GROUP ONLY* 👥 ⧭─┐
+│
+├─⧭ This command only works in groups!
+│
+└─⧭🦊`
+            }, { quoted: msg });
+        }
+        
+        try {
+            const groupMetadata = await sock.groupMetadata(chatId);
+            const participants = groupMetadata.participants;
+            const senderId = msg.key.participant || chatId;
+            
+            // Check if sender is admin
+            const isSenderAdmin = participants.find(p => p.id === senderId)?.admin === 'admin' ||
+                                 participants.find(p => p.id === senderId)?.admin === 'superadmin';
+            
+            if (!isSenderAdmin && !msg.key.fromMe) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *ADMIN ONLY* 👑 ⧭─┐
+│
+├─⧭ Only admins can change group name!
+│
+└─⧭🦊`
+                }, { quoted: msg });
+            }
+            
+            // Check if bot is admin
+            const isBotAdmin = participants.find(p => p.id === sock.user.id)?.admin === 'admin' || 
+                              participants.find(p => p.id === sock.user.id)?.admin === 'superadmin';
+            
+            if (!isBotAdmin) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐
+│
+├─⧭ I need to be an admin to change group name!
+│
+└─⧭🦊`
+                }, { quoted: msg });
+            }
+            
+            const newName = args.join(' ').trim();
+            
+            if (!newName) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *SET GROUP NAME* 📝 ⧭─┐
+│
+├─⧭ *Usage:*
+│ ${PREFIX}setgname <new name>
+│
+├─⧭ *Examples:*
+│ • ${PREFIX}setgname Foxy Friends
+│ • ${PREFIX}setgname Tech Talk
+│ • ${PREFIX}setgname Gaming Zone
+│
+├─⧭ *Current name:*
+│ ${groupMetadata.subject}
+│
+├─⧭ *Limits:*
+│ • Max 50 characters
+│ • No special restrictions
+│
+└─⧭🦊`
+                }, { quoted: msg });
+            }
+            
+            if (newName.length > 50) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *NAME TOO LONG* ❌ ⧭─┐
+│
+├─⧭ *Length:* ${newName.length} chars
+├─⧭ *Max:* 50 chars
+│
+│ Please use a shorter name.
+│
+└─⧭🦊`
+                }, { quoted: msg });
+            }
+            
+            // Send processing message
+            const processingMsg = await sock.sendMessage(chatId, {
+                text: `┌─⧭ *UPDATING* 🔄 ⧭─┐
+│
+├─⧭ Changing group name to:
+│ "${newName}"
+│
+│ Please wait...
+│
+└─⧭🦊`
+            }, { quoted: msg });
+            
+            // Update group name
+            await sock.groupUpdateSubject(chatId, newName);
+            
+            // Delete processing message
+            await sock.sendMessage(chatId, {
+                delete: processingMsg.key
+            });
+            
+            // Send success message
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *✅ NAME UPDATED* ⧭─┐
+│
+├─⧭ *Old name:* ${groupMetadata.subject}
+├─⧭ *New name:* ${newName}
+├─⧭ *Changed by:* ${msg.pushName || 'Admin'}
+│
+│ Group name has been updated!
+│
+└─⧭🦊`
+            }, { quoted: msg });
+            
+        } catch (error) {
+            console.error('Setgname error:', error);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *ERROR* ❌ ⧭─┐
+│
+├─⧭ ${error.message}
+│
+├─⧭ *Possible reasons:*
+│ • Bot not admin
+│ • Network issue
+│ • Invalid name
+│
+└─⧭🦊`
+            }, { quoted: msg });
+        }
+    }
+};

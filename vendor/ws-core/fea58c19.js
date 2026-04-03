@@ -1,2 +1,103 @@
-/* @module 0x0331ab9cea975264f367747a70f6658f */
-export default { name: "foxy", alias: ["ai", "chat", "bot", "fox"], category: "ai", async execute(sock, m, args, PREFIX, extra) { const jid = m.key.remoteJid; const sender = m.key.participant || jid; const userId = sender.split('@')[0]; const fs = (await import('fs')).default; const path = (await import('path')).default; const MEMORY_DIR = './data'; const MEMORY_FILE = path.join(MEMORY_DIR, 'foxy_memory.json'); if (!fs.existsSync(MEMORY_DIR)) fs.mkdirSync(MEMORY_DIR, { recursive: true }); let memory = { users: {} }; if (fs.existsSync(MEMORY_FILE)) { memory = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8')); } if (!memory.users[userId]) { memory.users[userId] = { whatsappName: m.pushName || `User${userId.slice(-4)}`, customName: null, firstSeen: Date.now(), messageCount: 0 }; } const profile = memory.users[userId]; profile.lastSeen = Date.now(); profile.messageCount++; const displayName = profile.customName || profile.whatsappName; fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); const command = args[0]?.toLowerCase(); if (command === 'name' || command === 'setname') { const newName = args.slice(1).join(' ').trim(); if (!newName) { return sock.sendMessage(jid, { text: `\u250C\u2500\u29ED *Set Name*\n\u2502 Usage: ${PREFIX}foxy name <name>\n\u2502 Example: ${PREFIX}foxy name Foxy\n\u2514\u2500\u29ED` }, { quoted: m }); } profile.customName = newName; fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2)); return sock.sendMessage(jid, { text: `\u250C\u2500\u29ED *Name Set*\n\u2502 I'll call you *${newName}* now!\n\u2514\u2500\u29ED` }, { quoted: m }); } if (command === 'stats') { return sock.sendMessage(jid, { text: `\u250C\u2500\u29ED *Your Foxy Stats*\n\u2502 Name: ${displayName}\n\u2502 Messages: ${profile.messageCount}\n\u2502 First met: ${new Date(profile.firstSeen).toLocaleDateString()}\n\u2514\u2500\u29ED` }, { quoted: m }); } if (!args.length || command === 'help') { return sock.sendMessage(jid, { text: `\u250C\u2500\u29ED *Foxy AI*\n\u2502 Chat with me!\n\u2502\n\u2502 Usage:\n\u2502 ${PREFIX}foxy <message>\n\u2502 ${PREFIX}foxy name <name>\n\u2502 ${PREFIX}foxy stats\n\u2502\n\u2502 Your name: ${displayName}\n\u2514\u2500\u29ED` }, { quoted: m }); } const question = args.join(' ').trim(); await sock.sendMessage(jid, { text: `\u250C\u2500\u29ED *Foxy is thinking...*\n\u2514\u2500\u29ED` }, { quoted: m }); try { const axios = (await import('axios')).default; const prompt = `You are chatting with ${displayName}. Address them by name naturally. Keep responses friendly.`; const url = `https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent(prompt + '\nUser: ' + question)}`; const response = await axios.get(url, { timeout: 30000 }); const answer = response.data?.result || response.data?.response || "Hey there!"; await sock.sendMessage(jid, { text: `${answer}\n\n> response for ${displayName}` }, { quoted: m }); } catch (error) { await sock.sendMessage(jid, { text: `\u250C\u2500\u29ED *Error*\n\u2502 API unavailable\n\u2502 Try again later\n\u2514\u2500\u29ED` }, { quoted: m }); } } };
+export default {
+    name: "foxy",
+    alias: ["ai", "chat", "bot", "fox"],
+    category: "ai",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const jid = m.key.remoteJid;
+        const sender = m.key.participant || jid;
+        const userId = sender.split('@')[0];
+        
+        // Memory setup
+        const fs = (await import('fs')).default;
+        const path = (await import('path')).default;
+        const MEMORY_DIR = './data';
+        const MEMORY_FILE = path.join(MEMORY_DIR, 'foxy_memory.json');
+        
+        if (!fs.existsSync(MEMORY_DIR)) fs.mkdirSync(MEMORY_DIR, { recursive: true });
+        
+        // Load memory
+        let memory = { users: {} };
+        if (fs.existsSync(MEMORY_FILE)) {
+            memory = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf8'));
+        }
+        
+        // Get user profile
+        if (!memory.users[userId]) {
+            memory.users[userId] = {
+                whatsappName: m.pushName || `User${userId.slice(-4)}`,
+                customName: null,
+                firstSeen: Date.now(),
+                messageCount: 0
+            };
+        }
+        
+        const profile = memory.users[userId];
+        profile.lastSeen = Date.now();
+        profile.messageCount++;
+        
+        const displayName = profile.customName || profile.whatsappName;
+        
+        // Save memory
+        fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
+        
+        const command = args[0]?.toLowerCase();
+        
+        // Set custom name
+        if (command === 'name' || command === 'setname') {
+            const newName = args.slice(1).join(' ').trim();
+            if (!newName) {
+                return sock.sendMessage(jid, {
+                    text: `\u250C\u2500\u29ED *Set Name*\n\u2502 Usage: ${PREFIX}foxy name <name>\n\u2502 Example: ${PREFIX}foxy name Foxy\n\u2514\u2500\u29ED`
+                }, { quoted: m });
+            }
+            
+            profile.customName = newName;
+            fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
+            
+            return sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Name Set*\n\u2502 I'll call you *${newName}* now!\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+        
+        // Show stats
+        if (command === 'stats') {
+            return sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Your Foxy Stats*\n\u2502 Name: ${displayName}\n\u2502 Messages: ${profile.messageCount}\n\u2502 First met: ${new Date(profile.firstSeen).toLocaleDateString()}\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+        
+        // Help
+        if (!args.length || command === 'help') {
+            return sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Foxy AI*\n\u2502 Chat with me!\n\u2502\n\u2502 Usage:\n\u2502 ${PREFIX}foxy <message>\n\u2502 ${PREFIX}foxy name <name>\n\u2502 ${PREFIX}foxy stats\n\u2502\n\u2502 Your name: ${displayName}\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+        
+        // Normal chat
+        const question = args.join(' ').trim();
+        
+        await sock.sendMessage(jid, {
+            text: `\u250C\u2500\u29ED *Foxy is thinking...*\n\u2514\u2500\u29ED`
+        }, { quoted: m });
+        
+        try {
+            const axios = (await import('axios')).default;
+            
+            const prompt = `You are chatting with ${displayName}. Address them by name naturally. Keep responses friendly.`;
+            const url = `https://api.giftedtech.co.ke/api/ai/letmegpt?apikey=gifted&q=${encodeURIComponent(prompt + '\nUser: ' + question)}`;
+            
+            const response = await axios.get(url, { timeout: 30000 });
+            const answer = response.data?.result || response.data?.response || "Hey there!";
+            
+            await sock.sendMessage(jid, {
+                text: `${answer}\n\n> response for ${displayName}`
+            }, { quoted: m });
+            
+        } catch (error) {
+            await sock.sendMessage(jid, {
+                text: `\u250C\u2500\u29ED *Error*\n\u2502 API unavailable\n\u2502 Try again later\n\u2514\u2500\u29ED`
+            }, { quoted: m });
+        }
+    }
+};

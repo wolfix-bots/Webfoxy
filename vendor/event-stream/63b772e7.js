@@ -1,2 +1,138 @@
-/* @module 0xe2623c295629c9fe44afb028526e5005 */
-/* 8b8db50b823ed8d6abe4b18170b1d20ed69b0e46 */ export default{name:String.fromCharCode(100,101,109,111,116,101),alias:[String.fromCharCode(114,101,109,111,118,101,97,100,109,105,110),String.fromCharCode(117,110,97,100,109,105,110)],category:String.fromCharCode(103,114,111,117,112),description:"Demote user from admin",async execute(e,n,t,a,d){const s=n.key.remoteJid,i=s.endsWith("@g.us"),{jidManager:o}=d;if(!i)return e.sendMessage(s,{text:"┌─⧭ *GROUP ONLY* 👥 ⧭─┐\n│\n├─⧭ This command only works in groups!\n│\n└─⧭🦊"},{quoted:n});try{const t=(await e.groupMetadata(s)).participants,d=n.key.participant||s;if(String.fromCharCode(97,100,109,105,110)!==t.find(e=>e.id===d)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==t.find(e=>e.id===d)?.admin&&!n.key.fromMe)return e.sendMessage(s,{text:"┌─⧭ *ADMIN ONLY* 👑 ⧭─┐\n│\n├─⧭ Only admins can demote members!\n│\n└─⧭🦊"},{quoted:n});if(String.fromCharCode(97,100,109,105,110)!==t.find(n=>n.id===e.user.id)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==t.find(n=>n.id===e.user.id)?.admin)return e.sendMessage(s,{text:"┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐\n│\n├─⧭ I need to be an admin to demote people!\n│\n└─⧭🦊"},{quoted:n});let i=null;const kc=n.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0],r=n.message?.extendedTextMessage?.contextInfo?.participant;if(i=kc||r,!i)return e.sendMessage(s,{text:`┌─⧭ *DEMOTE USER* ⬇️ ⧭─┐\n│\n├─⧭ *Usage:*\n│ • @mention the admin\n│ • Reply to their message\n│\n├─⧭ *Examples:*\n│ • ${a}demote @admin\n│ • Reply to message → ${a}demote\n│\n└─⧭🦊`},{quoted:n});if(String.fromCharCode(97,100,109,105,110)!==t.find(e=>e.id===i)?.admin&&String.fromCharCode(115,117,112,101,114,97,100,109,105,110)!==t.find(e=>e.id===i)?.admin)return e.sendMessage(s,{text:"┌─⧭ *NOT AN ADMIN* ❌ ⧭─┐\n│\n├─⧭ This user is not an admin!\n│\n└─⧭🦊"},{quoted:n});if(i===e.user.id)return e.sendMessage(s,{text:"┌─⧭ *CAN'T DEMOTE BOT* 🤖 ⧭─┐\n│\n├─⧭ You can't demote me! I'kc a good fox!\n│\n└─⧭🦊"},{quoted:n});await e.groupParticipantsUpdate(s,[i],String.fromCharCode(100,101,109,111,116,101));const u=o.cleanJid(i);await e.sendMessage(s,{text:`┌─⧭ *✅ USER DEMOTED* ⧭─┐\n│\n├─⧭ *User:* @${u.cleanNumber}\n├─⧭ *Demoted by:* ${n.gx||String.fromCharCode(65,100,109,105,110)}\n│\n│ 👤 Back to regular member\n│\n└─⧭🦊`,mentions:[i]},{quoted:n})}catch(t){console.error("Demote error:",t),await e.sendMessage(s,{text:`┌─⧭ *DEMOTE FAILED* ❌ ⧭─┐\n│\n├─⧭ ${t.message}\n│\n├─⧭ *Possible reasons:*\n│ • User not in group\n│ • Bot not admin\n│ • Not an admin\n│\n└─⧭🦊`},{quoted:n})}}};
+export default {
+    name: "demote",
+    alias: ["removeadmin", "unadmin"],
+    category: "group",
+    description: "Demote user from admin",
+    
+    async execute(sock, m, args, PREFIX, extra) {
+        const chatId = m.key.remoteJid;
+        const isGroup = chatId.endsWith('@g.us');
+        const { jidManager } = extra;
+        
+        if (!isGroup) {
+            return sock.sendMessage(chatId, {
+                text: `┌─⧭ *GROUP ONLY* 👥 ⧭─┐
+│
+├─⧭ This command only works in groups!
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+        
+        try {
+            const groupMetadata = await sock.groupMetadata(chatId);
+            const participants = groupMetadata.participants;
+            const senderId = m.key.participant || chatId;
+            
+            // Check if sender is admin
+            const isSenderAdmin = participants.find(p => p.id === senderId)?.admin === 'admin' ||
+                                 participants.find(p => p.id === senderId)?.admin === 'superadmin';
+            
+            if (!isSenderAdmin && !m.key.fromMe) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *ADMIN ONLY* 👑 ⧭─┐
+│
+├─⧭ Only admins can demote members!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check if bot is admin
+            const isBotAdmin = participants.find(p => p.id === sock.user.id)?.admin === 'admin' || 
+                              participants.find(p => p.id === sock.user.id)?.admin === 'superadmin';
+            
+            if (!isBotAdmin) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *BOT NOT ADMIN* ❌ ⧭─┐
+│
+├─⧭ I need to be an admin to demote people!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Get target user
+            let target = null;
+            
+            const mentioned = m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+            const quoted = m.message?.extendedTextMessage?.contextInfo?.participant;
+            
+            target = mentioned || quoted;
+            
+            if (!target) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *DEMOTE USER* ⬇️ ⧭─┐
+│
+├─⧭ *Usage:*
+│ • @mention the admin
+│ • Reply to their message
+│
+├─⧭ *Examples:*
+│ • ${PREFIX}demote @admin
+│ • Reply to message → ${PREFIX}demote
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check if user is admin
+            const isAdmin = participants.find(p => p.id === target)?.admin === 'admin' ||
+                           participants.find(p => p.id === target)?.admin === 'superadmin';
+            
+            if (!isAdmin) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *NOT AN ADMIN* ❌ ⧭─┐
+│
+├─⧭ This user is not an admin!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Check if trying to demote bot
+            if (target === sock.user.id) {
+                return sock.sendMessage(chatId, {
+                    text: `┌─⧭ *CAN'T DEMOTE BOT* 🤖 ⧭─┐
+│
+├─⧭ You can't demote me! I'm a good fox!
+│
+└─⧭🦊`
+                }, { quoted: m });
+            }
+            
+            // Demote user
+            await sock.groupParticipantsUpdate(chatId, [target], 'demote');
+            
+            const cleaned = jidManager.cleanJid(target);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *✅ USER DEMOTED* ⧭─┐
+│
+├─⧭ *User:* @${cleaned.cleanNumber}
+├─⧭ *Demoted by:* ${m.pushName || 'Admin'}
+│
+│ 👤 Back to regular member
+│
+└─⧭🦊`,
+                mentions: [target]
+            }, { quoted: m });
+            
+        } catch (error) {
+            console.error('Demote error:', error);
+            
+            await sock.sendMessage(chatId, {
+                text: `┌─⧭ *DEMOTE FAILED* ❌ ⧭─┐
+│
+├─⧭ ${error.message}
+│
+├─⧭ *Possible reasons:*
+│ • User not in group
+│ • Bot not admin
+│ • Not an admin
+│
+└─⧭🦊`
+            }, { quoted: m });
+        }
+    }
+};
