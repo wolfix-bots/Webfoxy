@@ -159,28 +159,29 @@ function cleanupFile(filepath, delay = CONFIG.CLEANUP_DELAY) {
 }
 
 // Get owner JID from metadata or extra
-// Always returns a @s.whatsapp.net JID — never a @lid (linked device) JID
 function getOwnerJid(extra) {
-    const toJid = (num) => num ? String(num).replace(/[^0-9]/g, '') + '@s.whatsapp.net' : null;
-    const validJid = (jid) => jid && !jid.includes('@lid') ? jid : null;
-
-    // 1. Env var set by user — highest priority
-    if (process.env.OWNER_NUMBER) return toJid(process.env.OWNER_NUMBER);
-
-    // 2. Extra fields — skip @lid JIDs, fall through to number-based ones
-    if (validJid(extra?.OWNER_JID)) return validJid(extra.OWNER_JID);
-    if (validJid(extra?.ownerJid)) return validJid(extra.ownerJid);
-    if (extra?.OWNER_NUMBER) return toJid(extra.OWNER_NUMBER);
-    if (extra?.ownerNumber) return toJid(extra.ownerNumber);
-
-    // 3. Global fallback
-    if (typeof global !== 'undefined') {
-        if (validJid(global.OWNER_JID)) return validJid(global.OWNER_JID);
-        if (validJid(global.ownerJid)) return validJid(global.ownerJid);
-        if (global.OWNER_NUMBER) return toJid(global.OWNER_NUMBER);
-        if (global.ownerNumber) return toJid(global.ownerNumber);
+    // Try multiple sources for owner info
+    if (extra?.OWNER_JID) {
+        return extra.OWNER_JID;
     }
-
+    if (extra?.ownerJid) {
+        return extra.ownerJid;
+    }
+    if (extra?.OWNER_NUMBER) {
+        return extra.OWNER_NUMBER + '@s.whatsapp.net';
+    }
+    if (extra?.ownerNumber) {
+        return extra.ownerNumber + '@s.whatsapp.net';
+    }
+    
+    // Try global variables
+    if (typeof global !== 'undefined') {
+        if (global.OWNER_JID) return global.OWNER_JID;
+        if (global.ownerJid) return global.ownerJid;
+        if (global.OWNER_NUMBER) return global.OWNER_NUMBER + '@s.whatsapp.net';
+        if (global.ownerNumber) return global.ownerNumber + '@s.whatsapp.net';
+    }
+    
     return null;
 }
 
