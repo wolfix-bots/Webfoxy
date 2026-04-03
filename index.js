@@ -2109,15 +2109,16 @@ async function loadCommandsFromFolder(folderPath, category = 'general') {
                     const command = commandModule.default || commandModule;
                     
                     if (command && command.name) {
-                        command.category = category;
+                        const effectiveCategory = command.category || category;
+                        command.category = effectiveCategory;
                         commands.set(command.name.toLowerCase(), command);
                         
-                        if (!commandCategories.has(category)) {
-                            commandCategories.set(category, []);
+                        if (!commandCategories.has(effectiveCategory)) {
+                            commandCategories.set(effectiveCategory, []);
                         }
-                        commandCategories.get(category).push(command.name);
+                        commandCategories.get(effectiveCategory).push(command.name);
                         
-                        UltraCleanLogger.info(`[${category}] Loaded: ${command.name}`);
+                        UltraCleanLogger.info(`[${effectiveCategory}] Loaded: ${command.name}`);
                         categoryCount++;
                         
                         if (Array.isArray(command.alias)) {
