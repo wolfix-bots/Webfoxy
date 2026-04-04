@@ -90,6 +90,30 @@ export default {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
             const updateMsg =
+            `╔══════════════════════════════════╗
+            ║  🦊  *FOXY BOT — UPDATED!*  🦊   ║
+            ╚══════════════════════════════════╝
+
+            ✅ *Update installed successfully*
+
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+            📦 *Files updated:*  ${written}
+            🕐 *Updated at:*    ${timeStr}
+            🔄 *Status:*        Restarting now...
+
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+            🚀 Bot will be back online in seconds
+            🦊 *Powered by Foxy Bot*`;
+
+            await sock.sendMessage(chatId, { text: updateMsg }, { quoted: m });
+            await new Promise(r => setTimeout(r, 2200));
+            process.exit(0);
+            const chatId = m.key.remoteJid;
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const updateMsg =
 `╔══════════════════════════════════╗
 ║  🦊  *FOXY BOT — UPDATED!*  🦊   ║
 ╚══════════════════════════════════╝
