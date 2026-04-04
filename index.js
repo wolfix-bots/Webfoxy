@@ -2541,22 +2541,35 @@ async function startBot(loginMode = 'pair', loginData = null) {
                         const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
                         const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                         const successMessage =
-`╔══════════════════════════════════╗
-║   🦊  *FOXY BOT — ONLINE!*  🦊   ║
-╚══════════════════════════════════╝
+                        `╔══════════════════════════════════╗
+                        ║   🦊  *FOXY BOT — ONLINE!*  🦊   ║
+                        ╚══════════════════════════════════╝
 
-✅ *Your bot is live and ready 24/7*
+                        ✅ *Your bot is live and ready 24/7*
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👤 *Owner*    » +${cleaned.cleanNumber}
-⚡ *Prefix*   » ${currentPrefix}
-🤖 *Version*  » ${VERSION}
-🌐 *Platform* » ${platform}
-🕐 *Online*   » ${dateStr}, ${timeStr}
-🔐 *Auth*     » ${loginMode === 'session' ? 'Session ID' : 'Pairing Code'}
-🖥️  *Device*   » ${cleaned.isLid ? 'Linked Device 🔗' : 'Primary Device 📱'}
+                        👤 *Owner*    » +${cleaned.cleanNumber}
+                        ⚡ *Prefix*   » ${currentPrefix}
+                        🤖 *Version*  » ${VERSION}
+                        🌐 *Platform* » ${platform}
+                        🕐 *Online*   » ${dateStr}, ${timeStr}
+                        🔐 *Auth*     » ${loginMode === 'session' ? 'Session ID' : 'Pairing Code'}
+                        🖥️  *Device*   » ${cleaned.isLid ? 'Linked Device 🔗' : 'Primary Device 📱'}
 
+                        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                        📡 *Live Systems*
+                        ┃ ⚡ Defibrillator   ✅  active
+                        ┃ 🛡️  Connection Fix  ✅  ready
+                        ┃ 🔄 Auto-Join       ${AUTO_JOIN_ENABLED ? '✅  enabled' : '⏸️  disabled'}
+                        ┃ 🟢 All Systems     ✅  go
+
+                        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                        💬 *${currentPrefix}help* — full command menu
+                        🏓 *${currentPrefix}ping* — check latency
+                        🦊 *Powered by Foxy Bot*`;
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📡 *Live Systems*
