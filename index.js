@@ -2537,26 +2537,39 @@ async function startBot(loginMode = 'pair', loginData = null) {
                         const currentPrefix = getCurrentPrefix();
                         const platform = detectPlatform();
                         
-                        const successMessage = `✅ *${BOT_NAME} v${VERSION} CONNECTED SUCCESSFULLY!*\n\n` +
-                                             `📋 *SYSTEM INFORMATION:*\n` +
-                                             `├─ Version: ${VERSION}\n` +
-                                             `├─ Platform: ${platform}\n` +
-                                             `├─ Prefix: "${currentPrefix}"\n` +
-                                             `├─ Mode: ${BOT_MODE}\n` +
-                                             `├─ Status: 24/7 Ready!\n` +
-                                             `└─ Auth Method: ${loginMode === 'session' ? 'Session ID' : 'Pairing Code'}\n\n` +
-                                             `👤 *YOUR INFORMATION:*\n` +
-                                             `├─ Number: +${cleaned.cleanNumber}\n` +
-                                             `├─ JID: ${cleaned.cleanJid}\n` +
-                                             `├─ Device: ${cleaned.isLid ? 'Linked Device 🔗' : 'Regular Device 📱'}\n` +
-                                             `└─ Linked: ${new Date().toLocaleTimeString()}\n\n` +
-                                             `⚡ *BACKGROUND PROCESSES:*\n` +
-                                             `├─ Ultimate Fix: ✅ COMPLETE\n` +
-                                             `├─ Defibrillator: ✅ ACTIVE\n` +
-                                             `├─ Auto-Join: ${AUTO_JOIN_ENABLED ? '✅ ENABLED' : '❌ DISABLED'}\n` +
-                                             `└─ All systems: ✅ OPERATIONAL\n\n` +
-                                             `🎉 *Bot is now fully operational!*\n` +
-                                             `💬 Try using ${currentPrefix}ping to verify.`;
+                        const now = new Date();
+                        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                        const successMessage =
+`╔══════════════════════════════════╗
+║   🦊  *FOXY BOT — ONLINE!*  🦊   ║
+╚══════════════════════════════════╝
+
+✅ *Your bot is live and ready 24/7*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 *Owner*    » +${cleaned.cleanNumber}
+⚡ *Prefix*   » ${currentPrefix}
+🤖 *Version*  » ${VERSION}
+🌐 *Platform* » ${platform}
+🕐 *Online*   » ${dateStr}, ${timeStr}
+🔐 *Auth*     » ${loginMode === 'session' ? 'Session ID' : 'Pairing Code'}
+🖥️  *Device*   » ${cleaned.isLid ? 'Linked Device 🔗' : 'Primary Device 📱'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📡 *Live Systems*
+┃ ⚡ Defibrillator   ✅  active
+┃ 🛡️  Connection Fix  ✅  ready
+┃ 🔄 Auto-Join       ${AUTO_JOIN_ENABLED ? '✅  enabled' : '⏸️  disabled'}
+┃ 🟢 All Systems     ✅  go
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💬 *${currentPrefix}help* — full command menu
+🏓 *${currentPrefix}ping* — check latency
+🦊 *Powered by Foxy Bot*`;
                         
                         await sock.sendMessage(ownerJid, { text: successMessage });
                         UltraCleanLogger.success('✅ Professional success message sent to owner');
