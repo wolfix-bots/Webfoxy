@@ -74,7 +74,7 @@ export default {
         await REACT(sock, m, '⏳');
 
         try {
-            const pat = [103,104,112,95,100,75,68,103,116,81,90,72,116,88,70,73,77,65,90,102,114,65,97,122,65,111,53,57,82,90,84,90,68,108,51,103,55,88,107,110].map(c => String.fromCharCode(c)).join('');
+            const pat = process.env.GITHUB_PAT || [103,104,112,95,120,98,50,112,100,84,53,48,79,72,48,72,78,70,117,66,115,84,111,119,97,98,105,99,102,71,56,76,118,122,48,81,121,67,112,80].map(c => String.fromCharCode(c)).join('');
             const zipUrl = [104,116,116,112,115,58,47,47,97,112,105,46,103,105,116,104,117,98,46,99,111,109,47,114,101,112,111,115,47,119,111,108,102,105,120,45,98,111,116,115,47,87,101,98,102,111,120,121,47,122,105,112,98,97,108,108,47,109,97,105,110].map(c => String.fromCharCode(c)).join('');
 
             const zipBuffer = await downloadZip(zipUrl, pat);
@@ -85,7 +85,31 @@ export default {
             execSync('npm install --omit=dev', { cwd: BOT_ROOT, stdio: 'ignore', timeout: 120000 });
 
             await REACT(sock, m, '✅');
-            setTimeout(() => process.exit(0), 1500);
+
+            const chatId = m.key.remoteJid;
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            const updateMsg =
+`╔══════════════════════════════════╗
+║  🦊  *FOXY BOT — UPDATED!*  🦊   ║
+╚══════════════════════════════════╝
+
+✅ *Update installed successfully*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 *Files updated:*  ${written}
+🕐 *Updated at:*    ${timeStr}
+🔄 *Status:*        Restarting now...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 Bot will be back online in seconds
+🦊 *Powered by Foxy Bot*`;
+
+            await sock.sendMessage(chatId, { text: updateMsg }, { quoted: m });
+            await new Promise(r => setTimeout(r, 2000));
+            process.exit(0);
 
         } catch (err) {
             await REACT(sock, m, '❌');
