@@ -119,7 +119,8 @@ const COMMANDS = {
     // Automation Commands
     automation: [
         'autoreact', 'autoread', 'autorecording',
-        'autostatus', 'autotyping', 'autoviewstatus'
+        'autostatus', 'autotyping', 'autorecordtype',
+        'autoviewstatus', 'autoreactstatus'
     ],
 
     // Games Commands
@@ -130,14 +131,15 @@ const COMMANDS = {
 
     // Fun Commands
     fun: [
-        'attp', 'compliment', 'meme', 'take'
+        'attp', 'compliment', 'meme', 'take', 'truthdetect'
     ],
 
     // Group Commands
     group: [
-        'add', 'antilink', 'demote', 'gcs', 'groupinfo', 'hidetag',
-        'kick', 'listadmins', 'mute', 'promote', 'setdesc', 'setgname',
-        'setgpp', 'tagall', 'togstatus', 'unmute'
+        'add', 'antilink', 'antibadword', 'antispam', 'demote', 'gcs',
+        'groupinfo', 'hidetag', 'kick', 'listadmins', 'mute', 'promote',
+        'resetwarn', 'setdesc', 'setgname', 'setgpp', 'setwarn',
+        'tagall', 'togstatus', 'unmute', 'warn', 'warnings'
     ],
 
     // Tools Commands
@@ -156,7 +158,7 @@ const COMMANDS = {
 
     // General Commands
     general: [
-        'bible', 'goodmorning', 'goodnight', 'ping', 'quran', 'uptime'
+        'alive', 'bible', 'goodmorning', 'goodnight', 'ping', 'quran', 'uptime'
     ],
 
     // Owner Commands
