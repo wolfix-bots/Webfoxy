@@ -1618,72 +1618,8 @@ const defibrillator = new ProfessionalDefibrillator();
 
 // ====== CONNECT COMMAND HANDLER (OPTIMIZED) ======
 async function handleConnectCommand(sock, msg, args, cleaned) {
-    try {
-        const chatJid = msg.key.remoteJid || cleaned.cleanJid;
-        const start = Date.now();
-        const currentPrefix = getCurrentPrefix();
-        const platform = detectPlatform();
-        
-        const loadingMessage = await sock.sendMessage(chatJid, {
-            text: `🦊 *${BOT_NAME}* is checking connection... █▒▒▒▒▒▒▒▒▒`
-        }, { quoted: msg });
-
-        const latency = Date.now() - start;
-        
-        const uptime = process.uptime();
-        const hours = Math.floor(uptime / 3600);
-        const minutes = Math.floor((uptime % 3600) / 60);
-        const seconds = Math.floor(uptime % 60);
-        const uptimeText = `${hours}h ${minutes}m ${seconds}s`;
-        
-        const isOwnerUser = jidManager.isOwner(msg);
-        const ultimatefixStatus = isOwnerUser ? '✅' : '❌';
-        
-        let statusEmoji, statusText, mood;
-        if (latency <= 100) {
-            statusEmoji = "🟢";
-            statusText = "Excellent";
-            mood = "⚡Superb Connection";
-        } else if (latency <= 300) {
-            statusEmoji = "🟡";
-            statusText = "Good";
-            mood = "📡Stable Link";
-        } else {
-            statusEmoji = "🔴";
-            statusText = "Slow";
-            mood = "🌑Needs Optimization";
-        }
-        
-        const timePassed = Date.now() - start;
-        const remainingTime = Math.max(500, 1000 - timePassed);
-        if (remainingTime > 0) {
-            await delay(remainingTime);
-        }
-
-        await sock.sendMessage(chatJid, {
-            text: `
-╭━━🌕 *CONNECTION STATUS* 🌕━━╮
-┃  ⚡ *User:* ${cleaned.cleanNumber}
-┃  🔴 *Prefix:* "${currentPrefix}"
-┃  🦊 *Ultimatefix:* ${ultimatefixStatus}
-┃  🏗️ *Platform:* ${platform}
-┃  ⏱️ *Latency:* ${latency}ms ${statusEmoji}
-┃  ⏰ *Uptime:* ${uptimeText}
-┃  🔗 *Status:* ${statusText}
-┃  🎯 *Mood:* ${mood}
-┃  👑 *Owner:* ${isOwnerUser ? '✅ Yes' : '❌ No'}
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
-_🦊 The Fox Watches — ..._
-`,
-            edit: loadingMessage.key
-        }, { quoted: msg });
-        
-        UltraCleanLogger.command(`Connect from ${cleaned.cleanNumber}`);
-        
-        return true;
-    } catch {
-        return false;
-    }
+    // Suppressed — status info is only shown via the status command
+    return true;
 }
 
 // ====== STATUS DETECTOR ======
