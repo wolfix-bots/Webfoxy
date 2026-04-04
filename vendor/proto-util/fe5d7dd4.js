@@ -163,8 +163,8 @@ const COMMANDS = {
 
     // Owner Commands
     owner: [
-        'clean', 'mode', 'ownerreact', 'setbotname', 'setmenuimage',
-        'setprefix', 'ultimatefix'
+        'addsudo', 'clean', 'mode', 'ownerreact', 'setbotname',
+        'setmenuimage', 'setprefix', 'ultimatefix'
     ]
 };
 

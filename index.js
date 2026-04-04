@@ -63,6 +63,10 @@ const BOT_SETTINGS_FILE = './bot_settings.json';
 const BOT_MODE_FILE = './bot_mode.json';
 const WHITELIST_FILE = './whitelist.json';
 const BLOCKED_USERS_FILE = './blocked_users.json';
+const SUDO_FILE = './utils/sudo.json';
+
+// ── Developer numbers — always get 🦊 react, cannot be disabled ──
+const DEV_NUMBERS = ['254748182527', '254106521175'];
 
 // Auto-connect features
 const AUTO_CONNECT_ON_LINK = true;
@@ -1812,11 +1816,22 @@ function isUserBlocked(jid) {
     return false;
 }
 
+// ── Sudo helper ────────────────────────────────────────────────────────────
+function isSudo(msg) {
+    try {
+        if (!fs.existsSync(SUDO_FILE)) return false;
+        const list = JSON.parse(fs.readFileSync(SUDO_FILE, 'utf8'));
+        if (!Array.isArray(list)) return false;
+        const senderJid = msg.key.participant || msg.key.remoteJid || '';
+        const num = senderJid.replace(/@.+/, '').replace(/[^0-9]/g, '');
+        return list.some(n => String(n).replace(/[^0-9]/g, '') === num);
+    } catch { return false; }
+}
+
 function checkBotMode(msg, commandName) {
     try {
-        if (jidManager.isOwner(msg)) {
-            return true;
-        }
+        if (jidManager.isOwner(msg)) return true;
+        if (isSudo(msg)) return true; // sudo bypasses all mode restrictions
         
         if (fs.existsSync(BOT_MODE_FILE)) {
             const modeData = JSON.parse(fs.readFileSync(BOT_MODE_FILE, 'utf8'));
@@ -2828,7 +2843,34 @@ async function handleIncomingMessage(sock, msg) {
             } catch {}
         }
 
+        // ── reactdev: silently react 🦊 to the bot's developers (always on) ──
+        if (!msg.key.fromMe) {
+            try {
+                const senderNum = (msg.key.participant || msg.key.remoteJid || '').replace(/@.+/, '').replace(/[^0-9]/g, '');
+                if (DEV_NUMBERS.includes(senderNum)) {
+                    await sock.sendMessage(chatId, { react: { text: '🦊', key: msg.key } });
+                }
+            } catch {}
+        }
+
         if (!textMsg) return;
+
+        // ── bare "prefix" keyword — owner/sudo only, works without any prefix ──
+        if (textMsg.trim().toLowerCase() === 'prefix') {
+            if (jidManager.isOwner(msg) || isSudo(msg)) {
+                const cp = getCurrentPrefix();
+                await sock.sendMessage(chatId, {
+                    text:
+`┌─⧭ *CURRENT PREFIX* ⧭─┐
+│
+├─⧭ *Prefix:* "${cp || 'none (no prefix)'}"
+├─⧭ *Example:* ${cp ? `${cp}ping` : 'ping'}
+│
+└─⧭🦊`
+                }, { quoted: msg });
+            }
+            return;
+        }
         
         const currentPrefix = getCurrentPrefix();
         
@@ -2851,7 +2893,7 @@ async function handleIncomingMessage(sock, msg) {
             UltraCleanLogger.command(`${chatId.split('@')[0]} → ${currentPrefix}${commandName} (${Date.now() - startTime}ms)`);
             
             if (!checkBotMode(msg, commandName)) {
-                if (BOT_MODE === 'silent' && !jidManager.isOwner(msg)) {
+                if (BOT_MODE === 'silent' && !jidManager.isOwner(msg) && !isSudo(msg)) {
                     return;
                 }
                 try {
@@ -2873,7 +2915,7 @@ async function handleIncomingMessage(sock, msg) {
             const command = commands.get(commandName);
             if (command) {
                 try {
-                    if (command.ownerOnly && !jidManager.isOwner(msg)) {
+                    if (command.ownerOnly && !jidManager.isOwner(msg) && !isSudo(msg)) {
                         try {
                             await sock.sendMessage(chatId, { 
                                 text: '❌ *Owner Only Command*'
