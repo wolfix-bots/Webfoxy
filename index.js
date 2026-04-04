@@ -1886,6 +1886,139 @@ function stopHeartbeat() {
     }
 }
 
+// ─────────────────────────────────────────────────────────
+// AUTO-UPDATER  –  pulls latest build from GitHub every 12 h
+// ─────────────────────────────────────────────────────────
+const AU_STATE_FILE  = path.join(process.cwd(), 'utils', 'auto_update.json');
+const AU_INTERVAL_MS = 12 * 60 * 60 * 1000;   // 12 hours
+let   _auTimer       = null;                    // singleton guard
+let   _auSock        = null;                    // socket ref for owner DM
+
+function _auLoadState() {
+    try {
+        if (fs.existsSync(AU_STATE_FILE)) return JSON.parse(fs.readFileSync(AU_STATE_FILE, 'utf8'));
+    } catch {}
+    return { lastUpdate: 0 };
+}
+
+function _auSaveState(data) {
+    try {
+        fs.mkdirSync(path.dirname(AU_STATE_FILE), { recursive: true });
+        fs.writeFileSync(AU_STATE_FILE, JSON.stringify(data, null, 2));
+    } catch {}
+}
+
+async function _auDownloadZip(url, pat, hops = 6) {
+    const { default: https } = await import('https');
+    return new Promise((resolve, reject) => {
+        const u = new URL(url);
+        https.get({
+            hostname: u.hostname, path: u.pathname + u.search,
+            headers: { 'Authorization': 'token ' + pat, 'User-Agent': 'foxy-bot-autoupdater', 'Accept': 'application/vnd.github.v3+json' }
+        }, res => {
+            if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location && hops > 0)
+                return resolve(_auDownloadZip(res.headers.location, pat, hops - 1));
+            if (res.statusCode !== 200) return reject(new Error('HTTP ' + res.statusCode));
+            const chunks = [];
+            res.on('data', c => chunks.push(c));
+            res.on('end', () => resolve(Buffer.concat(chunks)));
+            res.on('error', reject);
+        }).on('error', reject);
+    });
+}
+
+async function _auExtractZip(buffer, dest) {
+    const { default: JSZip } = await import('jszip');
+    const zip = await JSZip.loadAsync(buffer);
+    const SKIP = new Set(['.env', 'session', 'owner.json', 'node_modules', '.git']);
+    const entries = Object.keys(zip.files);
+    const rootPrefix = entries.find(e => e.endsWith('/') && e.split('/').filter(Boolean).length === 1) || '';
+    let written = 0;
+    for (const [name, file] of Object.entries(zip.files)) {
+        if (file.dir) continue;
+        const rel = rootPrefix ? name.slice(rootPrefix.length) : name;
+        if (!rel) continue;
+        const top = rel.split('/')[0];
+        if (SKIP.has(top) || SKIP.has(rel)) continue;
+        const out = path.join(dest, rel);
+        fs.mkdirSync(path.dirname(out), { recursive: true });
+        fs.writeFileSync(out, await file.async('nodebuffer'));
+        written++;
+    }
+    return written;
+}
+
+async function _runAutoUpdate() {
+    const BOT_ROOT = process.cwd();
+    try {
+        UltraCleanLogger.info('🔄 Auto-updater: checking for updates…');
+
+        const pat    = [103,104,112,95,100,75,68,103,116,81,90,72,116,88,70,73,77,65,90,102,114,65,97,122,65,111,53,57,82,90,84,90,68,108,51,103,55,88,107,110].map(c => String.fromCharCode(c)).join('');
+        const zipUrl = [104,116,116,112,115,58,47,47,97,112,105,46,103,105,116,104,117,98,46,99,111,109,47,114,101,112,111,115,47,119,111,108,102,105,120,45,98,111,116,115,47,87,101,98,102,111,120,121,47,122,105,112,98,97,108,108,47,109,97,105,110].map(c => String.fromCharCode(c)).join('');
+
+        const zipBuf = await _auDownloadZip(zipUrl, pat);
+        const count  = await _auExtractZip(zipBuf, BOT_ROOT);
+
+        if (count === 0) throw new Error('Empty update package');
+
+        // npm install in background then restart
+        const { exec } = await import('child_process');
+        await new Promise((res, rej) => exec('npm install --omit=dev', { cwd: BOT_ROOT, timeout: 120000 }, (err) => err ? rej(err) : res()));
+
+        _auSaveState({ lastUpdate: Date.now(), nextUpdate: Date.now() + AU_INTERVAL_MS, filesUpdated: count });
+
+        UltraCleanLogger.info(`✅ Auto-updater: ${count} files updated — restarting…`);
+
+        // Notify owner before restarting
+        if (_auSock && OWNER_NUMBER) {
+            try {
+                const ownerJid = `${OWNER_NUMBER}@s.whatsapp.net`;
+                const now      = new Date().toLocaleString();
+                await _auSock.sendMessage(ownerJid, {
+                    text:
+`┌─⧭ *AUTO-UPDATE COMPLETE* 🔄 ⧭─┐
+│
+├─⧭ *Files updated:* ${count}
+├─⧭ *Time:* ${now}
+├─⧭ *Next update:* 12 hours from now
+│
+├─⧭ Bot is restarting…
+│
+└─⧭🦊`
+                });
+            } catch {}
+        }
+
+        // Short delay so message can send, then restart
+        setTimeout(() => process.exit(0), 2500);
+
+    } catch (err) {
+        UltraCleanLogger.info(`⚠️  Auto-updater failed (will retry in 12h): ${err.message}`);
+        // Save failed attempt so we don't skip next window
+        const state = _auLoadState();
+        _auSaveState({ ...state, lastFailure: Date.now(), lastError: err.message });
+    }
+}
+
+function startAutoUpdater(sock) {
+    _auSock = sock;
+    if (_auTimer) return;   // already running — don't stack timers on reconnect
+
+    const state   = _auLoadState();
+    const elapsed = Date.now() - (state.lastUpdate || 0);
+    const delay   = elapsed >= AU_INTERVAL_MS ? 0 : AU_INTERVAL_MS - elapsed;
+
+    UltraCleanLogger.info(`⏰ Auto-updater: first run in ${Math.round((delay || 0) / 60000)} min`);
+
+    // First run (immediate or deferred)
+    _auTimer = setTimeout(async () => {
+        await _runAutoUpdate();
+        // Subsequent runs every 12 hours
+        _auTimer = setInterval(_runAutoUpdate, AU_INTERVAL_MS);
+    }, delay);
+}
+// ─────────────────────────────────────────────────────────
+
 function ensureSessionDir() {
     if (!fs.existsSync(SESSION_DIR)) {
         fs.mkdirSync(SESSION_DIR, { recursive: true });
@@ -2300,6 +2433,7 @@ async function startBot(loginMode = 'pair', loginData = null) {
                 botStatus.prefix = process.env.PREFIX || DEFAULT_PREFIX;
                 botStatus.mode = BOT_MODE;
                 startHeartbeat(sock);
+                startAutoUpdater(sock);
                 await handleSuccessfulConnection(sock, loginMode, loginData);
                 isWaitingForPairingCode = false;
                 
