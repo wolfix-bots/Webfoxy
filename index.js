@@ -2524,6 +2524,25 @@ async function startBot(loginMode = 'pair', loginData = null) {
         });
         
         sock.ev.on('creds.update', saveCreds);
+
+        // ====== ANTICALL ======
+        sock.ev.on('call', async ([call]) => {
+            try {
+                const settingsPath = './utils/anticall.json';
+                const settings = fs.existsSync(settingsPath)
+                    ? JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
+                    : { enabled: false, notify: true };
+                if (settings.enabled && call.status === 'offer') {
+                    await sock.rejectCall(call.id, call.from);
+                    UltraCleanLogger.info(`📵 Call rejected from ${call.from.split('@')[0]}`);
+                    if (settings.notify) {
+                        await sock.sendMessage(call.from, {
+                            text: settings.message || '📵 This bot does not accept calls. Your call has been declined automatically.'
+                        });
+                    }
+                }
+            } catch {}
+        });
         
         sock.ev.on('messages.upsert', async ({ messages, type }) => {
             if (type !== 'notify') return;
@@ -2731,7 +2750,84 @@ async function handleIncomingMessage(sock, msg) {
                        msg.message.extendedTextMessage?.text || 
                        msg.message.imageMessage?.caption || 
                        msg.message.videoMessage?.caption || '';
-        
+
+        // ====== AUTOMATION HOOKS ======
+        const isGroup = chatId.endsWith('@g.us');
+        if (isGroup && textMsg) {
+            // --- ANTILINK ---
+            try {
+                const alPath = './utils/antilink.json';
+                const alSettings = fs.existsSync(alPath) ? JSON.parse(fs.readFileSync(alPath, 'utf8')) : {};
+                if (alSettings[chatId]) {
+                    const linkPattern = /https?:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+/i;
+                    if (linkPattern.test(textMsg)) {
+                        const isOwnerSender = jidManager.isOwner(msg);
+                        let isAdmin = false;
+                        try {
+                            const meta = await sock.groupMetadata(chatId);
+                            isAdmin = meta.participants.find(p => p.id === senderJid)?.admin != null;
+                        } catch {}
+                        if (!isOwnerSender && !isAdmin) {
+                            await sock.sendMessage(chatId, { delete: msg.key });
+                            await sock.sendMessage(chatId, {
+                                text: `⛔ @${senderJid.split('@')[0]} Group links are not allowed here!`,
+                                mentions: [senderJid]
+                            });
+                        }
+                    }
+                }
+            } catch {}
+
+            // --- ANTIBADWORD ---
+            try {
+                const abwPath = './utils/antibadword.json';
+                const abwSettings = fs.existsSync(abwPath) ? JSON.parse(fs.readFileSync(abwPath, 'utf8')) : {};
+                const abwGroup = abwSettings[chatId];
+                if (abwGroup?.enabled && abwGroup.words?.length) {
+                    const lower = textMsg.toLowerCase();
+                    const hit = abwGroup.words.find(w => lower.includes(w.toLowerCase()));
+                    if (hit) {
+                        const isOwnerSender = jidManager.isOwner(msg);
+                        if (!isOwnerSender) {
+                            await sock.sendMessage(chatId, { delete: msg.key });
+                            await sock.sendMessage(chatId, {
+                                text: `⚠️ @${senderJid.split('@')[0]} Watch your language! That word is not allowed here.`,
+                                mentions: [senderJid]
+                            });
+                        }
+                    }
+                }
+            } catch {}
+        }
+
+        // --- ANTISPAM (all chats) ---
+        if (!msg.key.fromMe) {
+            try {
+                const asPath = './utils/antispam.json';
+                const asSettings = fs.existsSync(asPath) ? JSON.parse(fs.readFileSync(asPath, 'utf8')) : {};
+                const scope = isGroup ? chatId : 'private';
+                if (asSettings[scope] || asSettings.enabled) {
+                    if (!global._spamTracker) global._spamTracker = {};
+                    const key = `${senderJid}:${chatId}`;
+                    const now = Date.now();
+                    if (!global._spamTracker[key]) global._spamTracker[key] = [];
+                    global._spamTracker[key] = global._spamTracker[key].filter(t => now - t < 10000);
+                    global._spamTracker[key].push(now);
+                    const limit = asSettings.limit || 7;
+                    if (global._spamTracker[key].length >= limit) {
+                        const isOwnerSender = jidManager.isOwner(msg);
+                        if (!isOwnerSender) {
+                            global._spamTracker[key] = [];
+                            await sock.sendMessage(chatId, {
+                                text: `🚫 @${senderJid.split('@')[0]} Slow down! You're sending messages too fast.`,
+                                mentions: [senderJid]
+                            });
+                        }
+                    }
+                }
+            } catch {}
+        }
+
         if (!textMsg) return;
         
         const currentPrefix = getCurrentPrefix();
