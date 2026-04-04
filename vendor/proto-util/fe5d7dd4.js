@@ -126,7 +126,7 @@ const COMMANDS = {
     // Games Commands
     games: [
         '8ball', 'fact', 'flip', 'hangman', 'hug', 'joke',
-        'quote', 'roll', 'slap', 'tictactoe', 'trivia'
+        'quote', 'roll', 'slap', 'tictactoe', 'tod', 'trivia'
     ],
 
     // Fun Commands

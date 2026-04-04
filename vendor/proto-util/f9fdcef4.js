@@ -140,22 +140,30 @@ export default {
         // Send the dictionary result
         await sendMessage(message);
         
-        // Send audio pronunciation if available
+        // Send audio pronunciation if available — download as buffer first
         if (result.phonetics && result.phonetics.length > 0) {
-          const audio = result.phonetics.find(p => p.audio)?.audio;
-          if (audio) {
+          const audioUrl = result.phonetics.find(p => p.audio && p.audio.startsWith('http'))?.audio;
+          if (audioUrl) {
             setTimeout(async () => {
               try {
-                await sock.sendMessage(chatId, {
-                  audio: { url: audio },
-                  mimetype: 'audio/mpeg',
-                  ptt: true,
-                  fileName: `${result.word}.mp3`
+                const audioResp = await axios.get(audioUrl, {
+                  responseType: 'arraybuffer',
+                  timeout: 8000,
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
                 });
-              } catch (audioError) {
-                // Silent fail
+                const audioBuffer = Buffer.from(audioResp.data);
+                if (audioBuffer.length > 2000) {
+                  await sock.sendMessage(chatId, {
+                    audio: audioBuffer,
+                    mimetype: 'audio/mpeg',
+                    ptt: false,
+                    fileName: `${result.word}_pronunciation.mp3`
+                  }, { quoted: m });
+                }
+              } catch {
+                // Audio unavailable — silent skip, text phonetics already shown
               }
-            }, 500);
+            }, 600);
           }
         }
         
