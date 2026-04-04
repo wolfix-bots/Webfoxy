@@ -57,7 +57,7 @@ const __dirname = dirname(__filename);
 // ====== CONFIGURATION ======
 const SESSION_DIR = './session';
 const BOT_NAME = process.env.BOT_NAME || 'FOXY BOT'; // Changed from WOLFBOT to FOXY BOT
-const VERSION = '1.2.0'; // FOXY_ triple-prefix: FOXY_, FOXY-BOT:, WOLF-BOT:
+const VERSION = '1.3.0'; // Full prefix support: FOX-BOT:~, FOXY:~, FOXY-BOT:, WOLF-BOT:, FOXY_
 const DEFAULT_PREFIX = process.env.PREFIX || '.';
 const OWNER_FILE = './utils/owner.json';
 const PREFIX_CONFIG_FILE = './prefix_config.json';
@@ -2154,16 +2154,17 @@ function parseFoxyBotSession(sessionString) {
             }
         }
 
-        // ── FIRST PREFIX: FOXY-BOT: (plain base64 JSON) ──
-        // ── SECOND PREFIX: WOLF-BOT: (plain base64 JSON) ──
-        const foxyPrefix = 'FOXY-BOT:';
-        const wolfPrefix = 'WOLF-BOT:';
+        // ── FIRST PREFIX: FOX-BOT:~ (pairing site format, base64 of creds.json) ──
+        // ── SECOND PREFIX: FOXY:~ (pairing site format, base64 of creds.json) ──
+        // ── THIRD PREFIX: FOXY-BOT: (legacy plain base64 JSON) ──
+        // ── FOURTH PREFIX: WOLF-BOT: (legacy plain base64 JSON) ──
+        const knownPrefixes = ['FOX-BOT:~', 'FOXY:~', 'FOXY-BOT:', 'WOLF-BOT:'];
+        const matchedPrefix = knownPrefixes.find(p => cleanedSession.startsWith(p));
 
-        if (cleanedSession.startsWith(foxyPrefix) || cleanedSession.startsWith(wolfPrefix)) {
-            const detectedPrefix = cleanedSession.startsWith(foxyPrefix) ? foxyPrefix : wolfPrefix;
-            UltraCleanLogger.info(`🔍 Detected ${detectedPrefix} prefix`);
-            const base64Part = cleanedSession.substring(detectedPrefix.length).trim();
-            if (!base64Part) throw new Error(`No data found after ${detectedPrefix}`);
+        if (matchedPrefix) {
+            UltraCleanLogger.info(`🔍 Detected ${matchedPrefix} prefix`);
+            const base64Part = cleanedSession.substring(matchedPrefix.length).trim();
+            if (!base64Part) throw new Error(`No data found after ${matchedPrefix}`);
             try {
                 const decodedString = Buffer.from(base64Part, 'base64').toString('utf8');
                 return JSON.parse(decodedString);
@@ -2226,9 +2227,9 @@ async function authenticateWithSessionId(sessionId) {
     } catch (error) {
         UltraCleanLogger.error('❌ Session authentication failed:', error.message);
         
-        if (error.message.includes('FOXY-BOT')) {
-            UltraCleanLogger.info('📝 Expected format: FOXY-BOT:{base64_data}');
-            UltraCleanLogger.info('📝 Or plain base64 encoded session data');
+        if (error.message.includes('FOX-BOT') || error.message.includes('FOXY')) {
+            UltraCleanLogger.info('📝 Supported formats: FOX-BOT:~{base64}, FOXY:~{base64}, FOXY-BOT:{base64}, WOLF-BOT:{base64}');
+            UltraCleanLogger.info('📝 Or: FOXY_ prefix (gzip+base64 multi-file bundle)');
         }
         
         throw error;
