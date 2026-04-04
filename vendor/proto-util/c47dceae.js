@@ -1,6 +1,6 @@
 // setwarn — set the max warnings before auto-kick (admin only)
-const fs   = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const WARN_FILE = path.join(process.cwd(), 'utils', 'warnings.json');
 
@@ -22,7 +22,7 @@ function saveWarns(data) {
 
 function getKey(jid) { return jid.replace(/@.+/, ''); }
 
-module.exports = {
+export default {
     name: 'setwarn',
     alias: ['maxwarn', 'warnlimit', 'warnmax'],
     category: 'group',

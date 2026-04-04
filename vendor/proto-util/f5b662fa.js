@@ -1,6 +1,6 @@
 // warn — issue a warning to a group member (admin only)
-const fs   = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const WARN_FILE = path.join(process.cwd(), 'utils', 'warnings.json');
 
@@ -22,7 +22,7 @@ function saveWarns(data) {
 
 function getKey(jid) { return jid.replace(/@.+/, ''); }
 
-module.exports = {
+export default {
     name: 'warn',
     alias: ['w', 'strike'],
     category: 'group',
@@ -58,9 +58,9 @@ module.exports = {
             }, { quoted: m });
         }
 
-        const db      = loadWarns();
-        const gid     = getKey(chatId);
-        const uid     = getKey(target);
+        const db  = loadWarns();
+        const gid = getKey(chatId);
+        const uid = getKey(target);
 
         if (!db[gid]) db[gid] = {};
         const maxDefault = db[gid]?.__settings?.defaultMax || 3;

@@ -1,6 +1,6 @@
 // warnings — view warn counts for group members
-const fs   = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const WARN_FILE = path.join(process.cwd(), 'utils', 'warnings.json');
 
@@ -13,7 +13,7 @@ function loadWarns() {
 
 function getKey(jid) { return jid.replace(/@.+/, ''); }
 
-module.exports = {
+export default {
     name: 'warnings',
     alias: ['warnlist', 'warns', 'warncount'],
     category: 'group',
