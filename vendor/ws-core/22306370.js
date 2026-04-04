@@ -1,4 +1,4 @@
-// Truth Detector — fun command
+// Truth Detector — fun command (supports reply + typed text)
 export default {
     name: 'truthdetect',
     alias: ['truth', 'liedetect', 'detector', 'trustcheck'],
@@ -8,11 +8,32 @@ export default {
 
     async execute(sock, m, args, PREFIX) {
         const chatId = m.key.remoteJid;
-        const text = args.join(' ').trim();
+
+        // Try typed args first, then fall back to quoted/replied message text
+        let text = args.join(' ').trim();
+
+        if (!text) {
+            const ctx = m.message?.extendedTextMessage?.contextInfo;
+            const q   = ctx?.quotedMessage;
+            if (q) {
+                text =
+                    q.conversation ||
+                    q.extendedTextMessage?.text ||
+                    q.imageMessage?.caption ||
+                    q.videoMessage?.caption ||
+                    q.buttonsResponseMessage?.selectedDisplayText ||
+                    '';
+                text = text.trim();
+            }
+        }
 
         if (!text) {
             return await sock.sendMessage(chatId, {
-                text: `❌ Give me something to scan!\n\nExample:\n${PREFIX}truthdetect I did my homework`
+                text:
+`❌ Give me something to scan!
+
+• Type it: *${PREFIX}truthdetect I did my homework*
+• Or reply to any message with *${PREFIX}truthdetect*`
             }, { quoted: m });
         }
 
