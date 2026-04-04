@@ -3353,6 +3353,15 @@ async function main() {
         UltraCleanLogger.info(`🔐 Session ID support: ✅ ENABLED (FOXY-BOT: format)`);
         UltraCleanLogger.info(`🎯 Background processes: ✅ ENABLED`);
         
+        // Non-interactive mode: set BOT_PHONE env var to skip the login prompt
+        // Used by the Telegram Linker hosting panel to run managed instances
+        if (process.env.BOT_PHONE) {
+            const managedPhone = process.env.BOT_PHONE.replace(/[^0-9]/g, '');
+            UltraCleanLogger.info(`🤖 Managed instance mode — phone: ${managedPhone}`);
+            await startBot('pair', managedPhone);
+            return;
+        }
+
         const loginManager = new LoginManager();
         const loginInfo = await loginManager.selectMode();
         loginManager.close();
