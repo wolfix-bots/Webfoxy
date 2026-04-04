@@ -4,6 +4,7 @@
 // Date: 2024 | Version: 1.1.1 (SESSION ID SUPPORT)
 // New: Session ID authentication from process.env.SESSION_ID
 // New: FOXY-BOT session format support (FOXY-BOT:eyJ...)
+// New: FOXY_ session format support (gzip+base64 multi-file bundle)
 // New: Background authentication processes
 // New: Professional success messaging like FOXYBOT
 
@@ -32,6 +33,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import chalk from 'chalk';
 import readline from 'readline';
+import zlib from 'zlib';
 import { loadCommandsRemotely } from './utils/remoteLoader.js';
 import express from 'express';
 // import { File } from 'megajs';
@@ -55,7 +57,7 @@ const __dirname = dirname(__filename);
 // ====== CONFIGURATION ======
 const SESSION_DIR = './session';
 const BOT_NAME = process.env.BOT_NAME || 'FOXY BOT'; // Changed from WOLFBOT to FOXY BOT
-const VERSION = '1.1.1'; // Updated version for SESSION ID support
+const VERSION = '1.2.0'; // FOXY_ triple-prefix: FOXY_, FOXY-BOT:, WOLF-BOT:
 const DEFAULT_PREFIX = process.env.PREFIX || '.';
 const OWNER_FILE = './utils/owner.json';
 const PREFIX_CONFIG_FILE = './prefix_config.json';
@@ -2133,39 +2135,48 @@ async function loadCommandsFromFolder(folderPath, category = 'general') {
 function parseFoxyBotSession(sessionString) {
     try {
         let cleanedSession = sessionString.trim();
-        
+
         // Remove quotes if present
-        cleanedSession = cleanedSession.replace(/^["']|["']$/g, '');
-        
-        // Support both FOXY-BOT: and WOLF-BOT: prefixes
+        cleanedSession = cleanedSession.replace(/^["']/g, '').replace(/["']$/g, '');
+
+        // ── THIRD PREFIX: FOXY_ (gzip + base64 multi-file bundle) ──
+        if (cleanedSession.startsWith('FOXY_')) {
+            UltraCleanLogger.info('🔍 Detected FOXY_ prefix (multi-file session bundle)');
+            const base64Part = cleanedSession.slice(5);
+            if (!base64Part) throw new Error('No data found after FOXY_');
+            try {
+                const compressed = Buffer.from(base64Part, 'base64');
+                const json = zlib.gunzipSync(compressed).toString('utf8');
+                const files = JSON.parse(json);
+                return { __foxyMultiFile: true, files };
+            } catch (err) {
+                throw new Error('FOXY_ session decode failed: ' + err.message);
+            }
+        }
+
+        // ── FIRST PREFIX: FOXY-BOT: (plain base64 JSON) ──
+        // ── SECOND PREFIX: WOLF-BOT: (plain base64 JSON) ──
         const foxyPrefix = 'FOXY-BOT:';
         const wolfPrefix = 'WOLF-BOT:';
-        
+
         if (cleanedSession.startsWith(foxyPrefix) || cleanedSession.startsWith(wolfPrefix)) {
             const detectedPrefix = cleanedSession.startsWith(foxyPrefix) ? foxyPrefix : wolfPrefix;
             UltraCleanLogger.info(`🔍 Detected ${detectedPrefix} prefix`);
             const base64Part = cleanedSession.substring(detectedPrefix.length).trim();
-            
-            if (!base64Part) {
-                throw new Error(`No data found after ${detectedPrefix}`);
-            }
-            
-            // Try to decode as base64
+            if (!base64Part) throw new Error(`No data found after ${detectedPrefix}`);
             try {
                 const decodedString = Buffer.from(base64Part, 'base64').toString('utf8');
                 return JSON.parse(decodedString);
-            } catch (base64Error) {
-                // If not base64, try as direct JSON
+            } catch {
                 return JSON.parse(base64Part);
             }
         }
-        
-        // Try as direct base64
+
+        // ── Fallback: raw base64 or plain JSON ──
         try {
             const decodedString = Buffer.from(cleanedSession, 'base64').toString('utf8');
             return JSON.parse(decodedString);
-        } catch (base64Error) {
-            // Try as direct JSON
+        } catch {
             return JSON.parse(cleanedSession);
         }
     } catch (error) {
@@ -2192,12 +2203,24 @@ async function authenticateWithSessionId(sessionId) {
             UltraCleanLogger.info('📁 Created session directory');
         }
         
+        // Handle FOXY_ multi-file bundle (third prefix)
+        if (sessionData.__foxyMultiFile) {
+            const files = sessionData.files;
+            for (const [filename, fileContent] of Object.entries(files)) {
+                const filePath = path.join(SESSION_DIR, filename);
+                fs.mkdirSync(path.dirname(filePath), { recursive: true });
+                fs.writeFileSync(filePath, typeof fileContent === 'string' ? fileContent : JSON.stringify(fileContent, null, 2));
+            }
+            UltraCleanLogger.success(`💾 FOXY_ session loaded — ${Object.keys(files).length} files written to ${SESSION_DIR}`);
+            return true;
+        }
+
         const filePath = path.join(SESSION_DIR, 'creds.json');
-        
+
         // Write session data to file
         fs.writeFileSync(filePath, JSON.stringify(sessionData, null, 2));
         UltraCleanLogger.success('💾 Session saved to session/creds.json');
-        
+
         return true;
         
     } catch (error) {
