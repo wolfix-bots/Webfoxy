@@ -3441,13 +3441,6 @@ process.on('exit', (code) => {
     }
 });
 
-// Start the Telegram linker in background (ignore errors — it's optional)
-if (process.env.TELEGRAM_BOT_TOKEN) {
-    import('./telegram_linker.js').catch(err =>
-        console.error('Telegram Linker failed to start:', err.message)
-    );
-}
-
 // Start the bot
 main().catch(() => {
     process.exit(1);
