@@ -38,9 +38,9 @@ import express from 'express';
 // //import mega from 'megajs';
 // import * as mega from 'megajs';
 
-// // Import automation handlers
-// import { handleAutoReact } from './commands/automation/autoreactstatus.js';
-// import { handleAutoView } from './commands/automation/autoviewstatus.js';
+// Import automation handlers
+import { handleAutoReact } from './vendor/ws-core/bcf5b788.js';
+import { handleAutoView } from './vendor/event-stream/27d48368.js';
 // import { initializeAutoJoin } from './commands/group/add.js';
 // import antidemote from './commands/group/antidemote.js';
 // import banCommand from './commands/group/ban.js';
