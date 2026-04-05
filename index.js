@@ -63,6 +63,7 @@ const OWNER_FILE = './utils/owner.json';
 const PREFIX_CONFIG_FILE = './prefix_config.json';
 const BOT_SETTINGS_FILE = './bot_settings.json';
 const BOT_MODE_FILE = './bot_mode.json';
+const FONT_CONFIG_FILE = './font_config.json';
 const WHITELIST_FILE = './whitelist.json';
 const BLOCKED_USERS_FILE = './blocked_users.json';
 const SUDO_FILE = './utils/sudo.json';
@@ -471,6 +472,69 @@ function updatePrefixImmediately(newPrefix) {
         timestamp: new Date().toISOString()
     };
 }
+
+// ====== DYNAMIC FONT SYSTEM ======
+let fontCache = 0; // 0 = no transform (default)
+
+const FONT_NAMES = {
+    1: 'Bold', 2: 'Italic', 3: 'Bold Italic', 4: 'Script',
+    5: 'Bold Script', 6: 'Fraktur', 7: 'Double Struck',
+    8: 'Sans Serif', 9: 'Sans Bold', 10: 'Sans Italic',
+    11: 'Sans Bold Italic', 12: 'Monospace'
+};
+
+function _mathFont(text, up, lo, dg) {
+    return [...text].map(c => {
+        const n = c.codePointAt(0);
+        if (n >= 65 && n <= 90 && up) return String.fromCodePoint(up + n - 65);
+        if (n >= 97 && n <= 122 && lo) return String.fromCodePoint(lo + n - 97);
+        if (n >= 48 && n <= 57 && dg) return String.fromCodePoint(dg + n - 48);
+        return c;
+    }).join('');
+}
+
+const FONT_TRANSFORMS = {
+    1:  t => _mathFont(t, 0x1D400, 0x1D41A, 0x1D7CE),
+    2:  t => _mathFont(t, 0x1D434, 0x1D44E, null),
+    3:  t => _mathFont(t, 0x1D468, 0x1D482, null),
+    4:  t => _mathFont(t, 0x1D49C, 0x1D4B6, null),
+    5:  t => _mathFont(t, 0x1D4D0, 0x1D4EA, null),
+    6:  t => _mathFont(t, 0x1D504, 0x1D51E, null),
+    7:  t => _mathFont(t, 0x1D538, 0x1D552, 0x1D7D8),
+    8:  t => _mathFont(t, 0x1D5A0, 0x1D5BA, 0x1D7E2),
+    9:  t => _mathFont(t, 0x1D5D4, 0x1D5EE, 0x1D7EC),
+    10: t => _mathFont(t, 0x1D608, 0x1D622, null),
+    11: t => _mathFont(t, 0x1D63C, 0x1D656, null),
+    12: t => _mathFont(t, 0x1D670, 0x1D68A, 0x1D7F6),
+};
+
+function applyFont(text) {
+    if (typeof text !== 'string') return text;
+    const fn = FONT_TRANSFORMS[fontCache];
+    return fn ? fn(text) : text;
+}
+
+function getCurrentFont() { return fontCache; }
+
+function setFontImmediately(id) {
+    fontCache = id;
+    try {
+        fs.writeFileSync(FONT_CONFIG_FILE, JSON.stringify({
+            fontId: id, name: FONT_NAMES[id] || 'Default',
+            setAt: new Date().toISOString()
+        }, null, 2));
+    } catch {}
+    return { success: true, fontId: id };
+}
+
+(function loadFontFromFile() {
+    try {
+        if (fs.existsSync(FONT_CONFIG_FILE)) {
+            const cfg = JSON.parse(fs.readFileSync(FONT_CONFIG_FILE, 'utf8'));
+            if (cfg.fontId && FONT_TRANSFORMS[cfg.fontId]) fontCache = cfg.fontId;
+        }
+    } catch {}
+})();
 
 function updateTerminalHeader() {
     const currentPrefix = getCurrentPrefix();
@@ -2443,6 +2507,15 @@ async function startBot(loginMode = 'pair', loginData = null) {
             defaultQueryTimeoutMs: 20000
         });
         
+        // ── Global font transform wrapper ──
+        const _origSend = sock.sendMessage.bind(sock);
+        sock.sendMessage = async (jid, msgContent, msgOpts) => {
+            if (msgContent && typeof msgContent.text === 'string') {
+                msgContent = { ...msgContent, text: applyFont(msgContent.text) };
+            }
+            return _origSend(jid, msgContent, msgOpts);
+        };
+
         SOCKET_INSTANCE = sock;
         connectionAttempts = 0;
         isWaitingForPairingCode = false;
@@ -3131,6 +3204,10 @@ async function handleIncomingMessage(sock, msg) {
                         statusDetector: statusDetector,
                         updatePrefix: updatePrefixImmediately,
                         getCurrentPrefix: getCurrentPrefix,
+                        setFont: setFontImmediately,
+                        getCurrentFont: getCurrentFont,
+                        applyFont: applyFont,
+                        FONT_NAMES: FONT_NAMES,
                         rateLimiter: rateLimiter,
                         defibrillator: defibrillator
                     });
