@@ -399,15 +399,15 @@ function loadPrefixFromFiles() {
     try {
         if (fs.existsSync(PREFIX_CONFIG_FILE)) {
             const config = JSON.parse(fs.readFileSync(PREFIX_CONFIG_FILE, 'utf8'));
-            if (config.prefix && config.prefix.trim() !== '') {
-                return config.prefix.trim();
+            if (config.prefix !== undefined && config.prefix !== null) {
+                return typeof config.prefix === 'string' ? config.prefix.trim() : config.prefix;
             }
         }
         
         if (fs.existsSync(BOT_SETTINGS_FILE)) {
             const settings = JSON.parse(fs.readFileSync(BOT_SETTINGS_FILE, 'utf8'));
-            if (settings.prefix && settings.prefix.trim() !== '') {
-                return settings.prefix.trim();
+            if (settings.prefix !== undefined && settings.prefix !== null) {
+                return typeof settings.prefix === 'string' ? settings.prefix.trim() : settings.prefix;
             }
         }
         
@@ -531,7 +531,7 @@ function setFontImmediately(id) {
     try {
         if (fs.existsSync(FONT_CONFIG_FILE)) {
             const cfg = JSON.parse(fs.readFileSync(FONT_CONFIG_FILE, 'utf8'));
-            if (cfg.fontId && FONT_TRANSFORMS[cfg.fontId]) fontCache = cfg.fontId;
+            if (cfg.fontId !== undefined && cfg.fontId !== null) fontCache = cfg.fontId;
         }
     } catch {}
 })();
@@ -2939,7 +2939,7 @@ async function handleSuccessfulConnection(sock, loginMode, loginData) {
 '\u{1F4AC} *Commands:* ' + commands.size + ' loaded\n' +
 '\u{1F550} *Online:*   ' + _time + '\n' + _line + '\n\n' +
 'Type *' + _pfx + 'help* for all commands\n' +
-'\u{1F98A} *Powered by Foxy Bot*'
+'\u{1F98A} *Powered by Foxy Tech*'
             });
         } else {
             await sock.sendMessage(_ownerJid, { text:
@@ -2948,7 +2948,7 @@ async function handleSuccessfulConnection(sock, loginMode, loginData) {
 '\u{1F550} *Time:*     ' + _time + '\n' +
 '\u{1F4AC} *Commands:* ' + commands.size + ' loaded\n' +
 '\u26A1 *Prefix:*   ' + _pfx + '\n' + _line + '\n\n' +
-'\u{1F98A} *Powered by Foxy Bot*'
+'\u{1F98A} *Powered by Foxy Tech*'
             });
         }
     } catch { /* silent */ }
