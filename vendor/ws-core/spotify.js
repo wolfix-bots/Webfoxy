@@ -21,10 +21,13 @@ export default {
             const data = await res.json();
             if (!data.success) throw new Error(data.message || 'Download failed');
 
-            const track = data.track || data;
-            const downloadUrl = track.download_url || track.audio_url || track.mp3 || track.url;
-
+            // xcasper response: { track: { title, artist, cover }, download: { url, format, quality } }
+            const downloadUrl = data.download?.url;
             if (!downloadUrl) throw new Error('No download link in response');
+
+            const track = data.track || {};
+            const title = track.title || 'Unknown Track';
+            const artist = track.artist || 'Unknown Artist';
 
             const audioRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(40000) });
             if (!audioRes.ok) throw new Error('Audio fetch failed');
@@ -32,8 +35,8 @@ export default {
 
             return sock.sendMessage(chatId, {
                 audio: buffer,
-                mimetype: 'audio/mp4',
-                fileName: ((track.title || track.name || 'track') + ' - ' + (track.artist || 'artist')).replace(/[^a-zA-Z0-9\s\-]/g,'').trim() + '.mp3',
+                mimetype: 'audio/mpeg',
+                fileName: `${title} - ${artist}`.replace(/[^a-zA-Z0-9\s\-]/g,'').trim() + '.mp3',
                 ptt: false
             }, { quoted: m });
         } catch (e) {
