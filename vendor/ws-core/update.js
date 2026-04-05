@@ -85,7 +85,15 @@ export default {
             execSync('npm install --omit=dev', { cwd: BOT_ROOT, stdio: 'ignore', timeout: 120000 });
 
             await REACT(sock, m, '✅');
-            setTimeout(() => process.exit(0), 1500);
+            await sock.sendMessage(m.key.remoteJid, {
+                text: '\u{1F98A} *FOXY BOT \u2014 UPDATED!*\n\n\u2705 Update installed!\n\n' +
+                      '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n' +
+                      '\u{1F4E6} *Files updated:* ' + written + '\n' +
+                      '\u{1F504} *Status:*        Restarting now...\n' +
+                      '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n' +
+                      '\u{1F680} Back online in seconds\n\u{1F98A} *Powered by Foxy Bot*'
+            }, { quoted: m });
+            setTimeout(() => process.exit(0), 2500);
 
         } catch (err) {
             await REACT(sock, m, '❌');
