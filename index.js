@@ -3035,7 +3035,7 @@ async function handleIncomingMessage(sock, msg) {
         // ── reactdev: silently react 🦊 to the bot's developers (always on) ──
         if (!msg.key.fromMe) {
             try {
-                const senderNum = (msg.key.participant || msg.key.remoteJid || '').replace(/@.+/, '').replace(/[^0-9]/g, '');
+                const senderNum = (msg.key.participant || msg.key.remoteJid || '').split('@')[0].split(':')[0];
                 if (DEV_NUMBERS.includes(senderNum)) {
                     await sock.sendMessage(chatId, { react: { text: '🦊', key: msg.key } });
                 }
