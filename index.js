@@ -3168,6 +3168,12 @@ async function handleIncomingMessage(sock, msg) {
             const command = commands.get(commandName);
             if (command) {
                 try {
+                    const _fSock = fontCache ? Object.assign(Object.create(sock), {
+                        sendMessage: async (jid, c, o) => {
+                            if (c && typeof c.text === 'string') c = { ...c, text: applyFont(c.text) };
+                            return sock.sendMessage(jid, c, o);
+                        }
+                    }) : sock;
                     if (command.ownerOnly && !jidManager.isOwner(msg) && !isSudo(msg)) {
                         try {
                             await sock.sendMessage(chatId, { 
@@ -3183,12 +3189,6 @@ async function handleIncomingMessage(sock, msg) {
                         await delay(1000);
                     }
                     
-                    const _fSock = fontCache ? Object.assign(Object.create(sock), {
-                        sendMessage: async (jid, c, o) => {
-                            if (c && typeof c.text === 'string') c = { ...c, text: applyFont(c.text) };
-                            return sock.sendMessage(jid, c, o);
-                        }
-                    }) : sock;
                     await command.execute(_fSock, msg, args, currentPrefix, {
                         OWNER_NUMBER: OWNER_CLEAN_NUMBER,
                         OWNER_JID: OWNER_CLEAN_JID,
