@@ -46,12 +46,18 @@ export async function loadCommandsRemotely(commands, commandCategories, log) {
                 const stripped = parts.length > 1 ? parts.slice(1).join('/') : filePath;
                 const category = stripped.includes('/') ? stripped.split('/')[0] : 'general';
 
-                const code = await zipEntry.async('string');
+                const buf = await zipEntry.async('nodebuffer');
                 const destPath = path.join(TMP_DIR, stripped);
                 fs.mkdirSync(path.dirname(destPath), { recursive: true });
-                fs.writeFileSync(destPath, code, 'utf-8');
+                fs.writeFileSync(destPath, buf);
 
-                const commandModule = await import('file://' + destPath);
+                let commandModule;
+                try {
+                    commandModule = await import('file://' + destPath);
+                } catch (importErr) {
+                    log?.warn?.('\u26a0\ufe0f  Skipping ' + stripped + ': ' + importErr.message.split('\n')[0]);
+                    continue;
+                }
                 const command = commandModule.default || commandModule;
 
                 if (command && command.name) {
