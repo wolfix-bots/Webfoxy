@@ -1,16 +1,16 @@
 export default {
     name: 'github',
-    alias: ['gh', 'gitstalk', 'ghstalk', 'githubstalk'],
+    alias: ['gh', 'githubstalk', 'ghstalk'],
     category: 'stalk',
-    desc: 'Look up any GitHub profile',
+    desc: 'Look up any public GitHub profile',
 
     async execute(sock, m, args, PREFIX) {
         const chatId = m.key.remoteJid;
-        const username = args[0]?.trim();
+        const username = (args[0] || '').replace('@', '').trim();
 
         if (!username) {
             return sock.sendMessage(chatId, {
-                text: `🐙 *GITHUB STALK*\n\n*Usage:* ${PREFIX||''}github <username>\n*Example:* ${PREFIX||''}github torvalds`
+                text: `🐙 *GITHUB LOOKUP*\n\n*Usage:* ${PREFIX||''}github <username>\n*Example:* ${PREFIX||''}github torvalds`
             }, { quoted: m });
         }
 
@@ -27,9 +27,10 @@ export default {
                     (data.location ? `📍 *Location:* ${data.location}\n` : '') +
                     `👥 *Followers:* ${data.followers ?? 'N/A'}\n` +
                     `➡️ *Following:* ${data.following ?? 'N/A'}\n` +
-                    `📁 *Repos:* ${data.public_repos ?? 'N/A'}\n` +
+                    // xwolf returns publicRepos (camelCase)
+                    `📁 *Repos:* ${data.publicRepos ?? data.public_repos ?? 'N/A'}\n` +
                     (data.company ? `🏢 *Company:* ${data.company}\n` : '') +
-                    `\n🔗 ${data.html_url || 'https://github.com/' + username}\n${LINE}`
+                    `\n🔗 ${data.profileUrl || data.html_url || 'https://github.com/' + username}\n${LINE}`
             }, { quoted: m });
         } catch (e) {
             return sock.sendMessage(chatId, { text: `❌ Could not find GitHub user *${username}*.` }, { quoted: m });
