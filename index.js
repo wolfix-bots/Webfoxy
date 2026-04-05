@@ -3212,7 +3212,13 @@ async function handleIncomingMessage(sock, msg) {
                     UltraCleanLogger.error(`Command ${commandName} failed: ${error.message}`);
                 }
             } else {
-                await handleDefaultCommands(commandName, _fSock, msg, args, currentPrefix);
+                const _fSockD = fontCache ? Object.assign(Object.create(sock), {
+                    sendMessage: async (jid, c, o) => {
+                        if (c && typeof c.text === 'string') c = { ...c, text: applyFont(c.text) };
+                        return sock.sendMessage(jid, c, o);
+                    }
+                }) : sock;
+                await handleDefaultCommands(commandName, _fSockD, msg, args, currentPrefix);
             }
         }
     } catch (error) {
