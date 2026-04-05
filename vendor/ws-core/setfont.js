@@ -1,114 +1,105 @@
 export default {
-    name: 'font',
-    alias: ['setfont', 'fonts', 'textfont'],
-    category: 'fun',
-    desc: 'Convert text into stylish WhatsApp fonts',
+    name: 'setfont',
+    alias: ['fontset', 'botfont'],
+    category: 'owner',
+    ownerOnly: true,
+    desc: 'Set or reset the global font for all bot responses',
 
-    async execute(sock, m, args, PREFIX) {
+    async execute(sock, m, args, PREFIX, extra) {
         const chatId = m.key.remoteJid;
+        const { setFont, getCurrentFont, FONT_NAMES } = extra;
 
-        // Convert text using code-point arithmetic — zero literal 4-byte chars in source
-        function toMath(text, upOff, loOff, dgOff) {
+        const TOTAL = 12;
+        const LINE = '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501';
+
+        // Helper — preview sample in font id (recomputed here so no circular dep)
+        function mathFont(text, up, lo, dg) {
             return [...text].map(c => {
                 const n = c.codePointAt(0);
-                if (n >= 65 && n <= 90 && upOff) return String.fromCodePoint(upOff + n - 65);
-                if (n >= 97 && n <= 122 && loOff) return String.fromCodePoint(loOff + n - 97);
-                if (n >= 48 && n <= 57 && dgOff) return String.fromCodePoint(dgOff + n - 48);
+                if (n >= 65 && n <= 90 && up) return String.fromCodePoint(up + n - 65);
+                if (n >= 97 && n <= 122 && lo) return String.fromCodePoint(lo + n - 97);
+                if (n >= 48 && n <= 57 && dg) return String.fromCodePoint(dg + n - 48);
                 return c;
             }).join('');
         }
+        const PREVIEWS = {
+            1:  t => mathFont(t, 0x1D400, 0x1D41A, 0x1D7CE),
+            2:  t => mathFont(t, 0x1D434, 0x1D44E, null),
+            3:  t => mathFont(t, 0x1D468, 0x1D482, null),
+            4:  t => mathFont(t, 0x1D49C, 0x1D4B6, null),
+            5:  t => mathFont(t, 0x1D4D0, 0x1D4EA, null),
+            6:  t => mathFont(t, 0x1D504, 0x1D51E, null),
+            7:  t => mathFont(t, 0x1D538, 0x1D552, 0x1D7D8),
+            8:  t => mathFont(t, 0x1D5A0, 0x1D5BA, 0x1D7E2),
+            9:  t => mathFont(t, 0x1D5D4, 0x1D5EE, 0x1D7EC),
+            10: t => mathFont(t, 0x1D608, 0x1D622, null),
+            11: t => mathFont(t, 0x1D63C, 0x1D656, null),
+            12: t => mathFont(t, 0x1D670, 0x1D68A, 0x1D7F6),
+        };
 
-        function toBubble(text) {
-            return [...text].map(c => {
-                const n = c.codePointAt(0);
-                if (n >= 65 && n <= 90) return String.fromCodePoint(0x24B6 + n - 65);
-                if (n >= 97 && n <= 122) return String.fromCodePoint(0x24D0 + n - 97);
-                if (n >= 49 && n <= 57) return String.fromCodePoint(0x2460 + n - 49);
-                if (n === 48) return String.fromCodePoint(0x24EA);
-                return c;
-            }).join('');
-        }
+        const currentId = getCurrentFont ? getCurrentFont() : 0;
+        const input = (args[0] || '').toLowerCase();
 
-        function toWide(text) {
-            return [...text].map(c => {
-                const n = c.codePointAt(0);
-                if (n >= 65 && n <= 90) return String.fromCodePoint(0xFF21 + n - 65);
-                if (n >= 97 && n <= 122) return String.fromCodePoint(0xFF41 + n - 97);
-                if (n >= 48 && n <= 57) return String.fromCodePoint(0xFF10 + n - 48);
-                return c + ' ';
-            }).join('');
-        }
+        // No args — show menu
+        if (!input) {
+            const rows = Object.entries(FONT_NAMES || {}).map(([id, name]) => {
+                const sample = PREVIEWS[id] ? PREVIEWS[id]('Foxy Bot') : 'Foxy Bot';
+                const active = Number(id) === currentId ? ' \u2b50' : '';
+                return id + '. *' + name + '*' + active + '\n   ' + sample;
+            }).join('\n\n');
 
-        function toStrike(text) {
-            return [...text].map(c => c === ' ' ? c : c + '\u0336').join('');
-        }
-
-        function toUnder(text) {
-            return [...text].map(c => c === ' ' ? c : c + '\u0332').join('');
-        }
-
-        const FONTS = [
-            { id: 1,  name: 'Bold',              fn: t => toMath(t, 0x1D400, 0x1D41A, 0x1D7CE) },
-            { id: 2,  name: 'Italic',             fn: t => toMath(t, 0x1D434, 0x1D44E, null)    },
-            { id: 3,  name: 'Bold Italic',        fn: t => toMath(t, 0x1D468, 0x1D482, null)    },
-            { id: 4,  name: 'Script',             fn: t => toMath(t, 0x1D49C, 0x1D4B6, null)    },
-            { id: 5,  name: 'Bold Script',        fn: t => toMath(t, 0x1D4D0, 0x1D4EA, null)    },
-            { id: 6,  name: 'Fraktur',            fn: t => toMath(t, 0x1D504, 0x1D51E, null)    },
-            { id: 7,  name: 'Double Struck',      fn: t => toMath(t, 0x1D538, 0x1D552, 0x1D7D8) },
-            { id: 8,  name: 'Sans Serif',         fn: t => toMath(t, 0x1D5A0, 0x1D5BA, 0x1D7E2) },
-            { id: 9,  name: 'Sans Bold',          fn: t => toMath(t, 0x1D5D4, 0x1D5EE, 0x1D7EC) },
-            { id: 10, name: 'Sans Italic',        fn: t => toMath(t, 0x1D608, 0x1D622, null)    },
-            { id: 11, name: 'Sans Bold Italic',   fn: t => toMath(t, 0x1D63C, 0x1D656, null)    },
-            { id: 12, name: 'Monospace',          fn: t => toMath(t, 0x1D670, 0x1D68A, 0x1D7F6) },
-            { id: 13, name: 'Bubble',             fn: t => toBubble(t)                           },
-            { id: 14, name: 'Fullwidth',          fn: t => toWide(t)                             },
-            { id: 15, name: 'Strikethrough',      fn: t => toStrike(t)                           },
-            { id: 16, name: 'Underline',          fn: t => toUnder(t)                            },
-        ];
-
-        const SAMPLE = 'Foxy Bot';
-
-        // No args — show font menu
-        if (!args[0]) {
-            const menu = FONTS.map(f =>
-                f.id + '. *' + f.name + '*\n   ' + f.fn(SAMPLE)
-            ).join('\n\n');
+            const current = currentId === 0
+                ? 'Default (no font)'
+                : (FONT_NAMES[currentId] || 'Unknown');
 
             return sock.sendMessage(chatId, {
                 text:
-'\u{1F98A} *FONT CONVERTER*\n\n' +
-'Choose a style:\n\n' + menu + '\n\n' +
-'*Usage:* ' + (PREFIX||'') + 'font <number> <text>\n' +
-'*Example:* ' + (PREFIX||'') + 'font 1 Hello World'
+'\u{1F98A} *BOT FONT SETTINGS*\n\n' +
+LINE + '\n' +
+'*Current font:* ' + current + '\n' +
+LINE + '\n\n' +
+rows + '\n\n' +
+LINE + '\n' +
+'*Set:*   ' + (PREFIX||'') + 'setfont <1-' + TOTAL + '>\n' +
+'*Reset:* ' + (PREFIX||'') + 'setfont reset\n' +
+LINE
             }, { quoted: m });
         }
 
-        const num = parseInt(args[0]);
-        const text = args.slice(1).join(' ');
-
-        // Show menu if no text provided
-        if (!text) {
-            const font = FONTS.find(f => f.id === num);
-            if (!font) {
-                return sock.sendMessage(chatId, {
-                    text: 'Invalid font number. Use ' + (PREFIX||'') + 'font to see options.'
-                }, { quoted: m });
-            }
+        // Reset
+        if (input === 'reset' || input === '0' || input === 'none' || input === 'default') {
+            if (setFont) setFont(0);
             return sock.sendMessage(chatId, {
-                text: '*' + font.name + ' font — send text after the number*\n\nExample: ' + (PREFIX||'') + 'font ' + num + ' Hello World'
+                text:
+'\u{1F98A} *FONT RESET*\n\n' +
+LINE + '\n' +
+'\u2705 Bot font reset to *Default*\n' +
+'All responses are now in normal text.\n' +
+LINE
             }, { quoted: m });
         }
 
-        const font = FONTS.find(f => f.id === num);
-        if (!font) {
+        // Set font by number
+        const id = parseInt(input);
+        if (isNaN(id) || id < 1 || id > TOTAL) {
             return sock.sendMessage(chatId, {
-                text: 'Font *' + num + '* not found. Use ' + (PREFIX||'') + 'font to see all ' + FONTS.length + ' options.'
+                text: 'Invalid option. Use 1-' + TOTAL + ' or "reset".\nType ' + (PREFIX||'') + 'setfont to see the menu.'
             }, { quoted: m });
         }
 
-        const converted = font.fn(text);
+        if (setFont) setFont(id);
+        const name = (FONT_NAMES && FONT_NAMES[id]) || ('Font ' + id);
+        const preview = PREVIEWS[id] ? PREVIEWS[id]('Foxy Bot is now using ' + name + ' font!') : '';
+
         return sock.sendMessage(chatId, {
-            text: '*' + font.name + ':*\n' + converted
+            text:
+'\u{1F98A} *FONT CHANGED*\n\n' +
+LINE + '\n' +
+'\u2705 Font set to *' + name + '*\n\n' +
+'Preview:\n' + preview + '\n' +
+LINE + '\n' +
+'Every bot response will now use this style.\n' +
+'Type ' + (PREFIX||'') + 'setfont reset to go back to normal.'
         }, { quoted: m });
     }
 };
