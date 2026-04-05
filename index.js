@@ -2507,15 +2507,6 @@ async function startBot(loginMode = 'pair', loginData = null) {
             defaultQueryTimeoutMs: 20000
         });
         
-        // ── Global font transform wrapper ──
-        const _origSend = sock.sendMessage.bind(sock);
-        sock.sendMessage = async (jid, msgContent, msgOpts) => {
-            if (msgContent && typeof msgContent.text === 'string') {
-                msgContent = { ...msgContent, text: applyFont(msgContent.text) };
-            }
-            return _origSend(jid, msgContent, msgOpts);
-        };
-
         SOCKET_INSTANCE = sock;
         connectionAttempts = 0;
         isWaitingForPairingCode = false;
@@ -3192,7 +3183,13 @@ async function handleIncomingMessage(sock, msg) {
                         await delay(1000);
                     }
                     
-                    await command.execute(sock, msg, args, currentPrefix, {
+                    const _fSock = fontCache ? Object.assign(Object.create(sock), {
+                        sendMessage: async (jid, c, o) => {
+                            if (c && typeof c.text === 'string') c = { ...c, text: applyFont(c.text) };
+                            return sock.sendMessage(jid, c, o);
+                        }
+                    }) : sock;
+                    await command.execute(_fSock, msg, args, currentPrefix, {
                         OWNER_NUMBER: OWNER_CLEAN_NUMBER,
                         OWNER_JID: OWNER_CLEAN_JID,
                         OWNER_LID: OWNER_LID,
@@ -3215,7 +3212,7 @@ async function handleIncomingMessage(sock, msg) {
                     UltraCleanLogger.error(`Command ${commandName} failed: ${error.message}`);
                 }
             } else {
-                await handleDefaultCommands(commandName, sock, msg, args, currentPrefix);
+                await handleDefaultCommands(commandName, _fSock, msg, args, currentPrefix);
             }
         }
     } catch (error) {
