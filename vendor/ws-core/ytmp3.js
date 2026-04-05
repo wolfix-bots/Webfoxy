@@ -21,9 +21,11 @@ export default {
                 signal: AbortSignal.timeout(40000)
             });
             const data = await res.json();
-            if (!data.success || !data.download_url) throw new Error(data.error || 'No download link');
+            // xwolf returns downloadUrl (camelCase)
+            const dlUrl = data.downloadUrl || data.download_url;
+            if (!data.success || !dlUrl) throw new Error(data.error || 'No download link');
 
-            const audioRes = await fetch(data.download_url, { signal: AbortSignal.timeout(40000) });
+            const audioRes = await fetch(dlUrl, { signal: AbortSignal.timeout(40000) });
             if (!audioRes.ok) throw new Error('Audio fetch failed');
             const buffer = Buffer.from(await audioRes.arrayBuffer());
 
