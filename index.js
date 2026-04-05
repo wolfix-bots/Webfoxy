@@ -420,9 +420,8 @@ function loadPrefixFromFiles() {
 function updatePrefixImmediately(newPrefix) {
     const oldPrefix = prefixCache;
     
-    if (!newPrefix || newPrefix.trim() === '') {
-        UltraCleanLogger.error('Cannot set empty prefix');
-        return { success: false, error: 'Empty prefix' };
+    if (newPrefix === null || newPrefix === undefined) {
+        return { success: false, error: 'Invalid prefix' };
     }
     
     if (newPrefix.length > 5) {
@@ -430,7 +429,7 @@ function updatePrefixImmediately(newPrefix) {
         return { success: false, error: 'Prefix too long' };
     }
     
-    const trimmedPrefix = newPrefix.trim();
+    const trimmedPrefix = typeof newPrefix === 'string' ? newPrefix.trim() : '';
     
     // Update memory cache
     prefixCache = trimmedPrefix;
@@ -1825,7 +1824,7 @@ function isSudo(msg) {
         const list = JSON.parse(fs.readFileSync(SUDO_FILE, 'utf8'));
         if (!Array.isArray(list)) return false;
         const senderJid = msg.key.participant || msg.key.remoteJid || '';
-        const num = senderJid.replace(/@.+/, '').replace(/[^0-9]/g, '');
+        const num = senderJid.split('@')[0].split(':')[0];
         return list.some(n => String(n).replace(/[^0-9]/g, '') === num);
     } catch { return false; }
 }
@@ -2850,6 +2849,37 @@ async function handleSuccessfulConnection(sock, loginMode, loginData) {
 ╚══════════════════════════════════════════════════════════════════════╝
 `));
     
+    // ── WhatsApp notify owner on connect ──
+    try {
+        const _ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
+        const _now = new Date();
+        const _time = _now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const _pfx = currentPrefix || 'none';
+        const _line = '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501';
+        if (isFirstConnection) {
+            await sock.sendMessage(_ownerJid, { text:
+'\u{1F98A} *FOXY BOT \u2014 ONLINE!*\n\n' +
+'\u2705 First deployment complete!\n\n' + _line + '\n' +
+'\u{1F464} *Owner:*    +' + ownerInfo.ownerNumber + '\n' +
+'\u26A1 *Prefix:*   ' + _pfx + '\n' +
+'\u{1F310} *Platform:* ' + platform + '\n' +
+'\u{1F4AC} *Commands:* ' + commands.size + ' loaded\n' +
+'\u{1F550} *Online:*   ' + _time + '\n' + _line + '\n\n' +
+'Type *' + _pfx + 'help* for all commands\n' +
+'\u{1F98A} *Powered by Foxy Bot*'
+            });
+        } else {
+            await sock.sendMessage(_ownerJid, { text:
+'\u{1F98A} *FOXY BOT \u2014 RESTARTED!*\n\n' +
+'\u{1F504} Bot is back online\n\n' + _line + '\n' +
+'\u{1F550} *Time:*     ' + _time + '\n' +
+'\u{1F4AC} *Commands:* ' + commands.size + ' loaded\n' +
+'\u26A1 *Prefix:*   ' + _pfx + '\n' + _line + '\n\n' +
+'\u{1F98A} *Powered by Foxy Bot*'
+            });
+        }
+    } catch { /* silent */ }
+
     if (isFirstConnection && !hasSentWelcomeMessage) {
         try {
             hasSentWelcomeMessage = true;
