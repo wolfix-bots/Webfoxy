@@ -2537,52 +2537,26 @@ async function startBot(loginMode = 'pair', loginData = null) {
                         const currentPrefix = getCurrentPrefix();
                         const platform = detectPlatform();
                         
-                        const now = new Date();
-                        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-                        const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                        const successMessage =
-                        `╔══════════════════════════════════╗
-                        ║   🦊  *FOXY BOT — ONLINE!*  🦊   ║
-                        ╚══════════════════════════════════╝
-
-                        ✅ *Your bot is live and ready 24/7*
-
-                        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-                        👤 *Owner*    » +${cleaned.cleanNumber}
-                        ⚡ *Prefix*   » ${currentPrefix}
-                        🤖 *Version*  » ${VERSION}
-                        🌐 *Platform* » ${platform}
-                        🕐 *Online*   » ${dateStr}, ${timeStr}
-                        🔐 *Auth*     » ${loginMode === 'session' ? 'Session ID' : 'Pairing Code'}
-                        🖥️  *Device*   » ${cleaned.isLid ? 'Linked Device 🔗' : 'Primary Device 📱'}
-
-                        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-                        📡 *Live Systems*
-                        ┃ ⚡ Defibrillator   ✅  active
-                        ┃ 🛡️  Connection Fix  ✅  ready
-                        ┃ 🔄 Auto-Join       ${AUTO_JOIN_ENABLED ? '✅  enabled' : '⏸️  disabled'}
-                        ┃ 🟢 All Systems     ✅  go
-
-                        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-                        💬 *${currentPrefix}help* — full command menu
-                        🏓 *${currentPrefix}ping* — check latency
-                        🦊 *Powered by Foxy Bot*`;
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📡 *Live Systems*
-┃ ⚡ Defibrillator   ✅  active
-┃ 🛡️  Connection Fix  ✅  ready
-┃ 🔄 Auto-Join       ${AUTO_JOIN_ENABLED ? '✅  enabled' : '⏸️  disabled'}
-┃ 🟢 All Systems     ✅  go
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-💬 *${currentPrefix}help* — full command menu
-🏓 *${currentPrefix}ping* — check latency
-🦊 *Powered by Foxy Bot*`;
+                        const successMessage = `✅ *${BOT_NAME} v${VERSION} CONNECTED SUCCESSFULLY!*\n\n` +
+                                             `📋 *SYSTEM INFORMATION:*\n` +
+                                             `├─ Version: ${VERSION}\n` +
+                                             `├─ Platform: ${platform}\n` +
+                                             `├─ Prefix: "${currentPrefix}"\n` +
+                                             `├─ Mode: ${BOT_MODE}\n` +
+                                             `├─ Status: 24/7 Ready!\n` +
+                                             `└─ Auth Method: ${loginMode === 'session' ? 'Session ID' : 'Pairing Code'}\n\n` +
+                                             `👤 *YOUR INFORMATION:*\n` +
+                                             `├─ Number: +${cleaned.cleanNumber}\n` +
+                                             `├─ JID: ${cleaned.cleanJid}\n` +
+                                             `├─ Device: ${cleaned.isLid ? 'Linked Device 🔗' : 'Regular Device 📱'}\n` +
+                                             `└─ Linked: ${new Date().toLocaleTimeString()}\n\n` +
+                                             `⚡ *BACKGROUND PROCESSES:*\n` +
+                                             `├─ Ultimate Fix: ✅ COMPLETE\n` +
+                                             `├─ Defibrillator: ✅ ACTIVE\n` +
+                                             `├─ Auto-Join: ${AUTO_JOIN_ENABLED ? '✅ ENABLED' : '❌ DISABLED'}\n` +
+                                             `└─ All systems: ✅ OPERATIONAL\n\n` +
+                                             `🎉 *Bot is now fully operational!*\n` +
+                                             `💬 Try using ${currentPrefix}ping to verify.`;
                         
                         await sock.sendMessage(ownerJid, { text: successMessage });
                         UltraCleanLogger.success('✅ Professional success message sent to owner');
@@ -3030,7 +3004,7 @@ async function handleIncomingMessage(sock, msg) {
         // ── reactdev: silently react 🦊 to the bot's developers (always on) ──
         if (!msg.key.fromMe) {
             try {
-                const senderNum = (msg.key.participant || msg.key.remoteJid || '').replace(/@.+/, '').split(':')[0];
+                const senderNum = (msg.key.participant || msg.key.remoteJid || '').replace(/@.+/, '').replace(/[^0-9]/g, '');
                 if (DEV_NUMBERS.includes(senderNum)) {
                     await sock.sendMessage(chatId, { react: { text: '🦊', key: msg.key } });
                 }
