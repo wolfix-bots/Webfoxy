@@ -8,7 +8,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const BOT_ROOT = path.resolve(__dirname, '../../');
 
-const SKIP = new Set(['.env', 'session', 'owner.json', 'node_modules', '.git']);
+const SKIP = new Set([
+    '.env', 'session', 'owner.json', 'node_modules', '.git',
+    'prefix_config.json', 'font_config.json', 'bot_settings.json',
+    'auto_join_log.json', 'creds.json'
+]);
 
 const REACT = (sock, m, emoji) => sock.sendMessage(m.key.remoteJid, { react: { text: emoji, key: m.key } });
 
@@ -91,7 +95,7 @@ export default {
                       '\u{1F4E6} *Files updated:* ' + written + '\n' +
                       '\u{1F504} *Status:*        Restarting now...\n' +
                       '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n' +
-                      '\u{1F680} Back online in seconds\n\u{1F98A} *Powered by Foxy Bot*'
+                      '\u{1F680} Back online in seconds\n\u{1F98A} *Powered by Foxy Tech*'
             }, { quoted: m });
             setTimeout(() => process.exit(0), 2500);
 
