@@ -84,28 +84,28 @@ export default {
 
             execSync('npm install --omit=dev', { cwd: BOT_ROOT, stdio: 'ignore', timeout: 120000 });
 
-            await REACT(sock, m, '✅');
+            await REACT(sock, m, '\u2705');
 
             const chatId = m.key.remoteJid;
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
             const updateMsg =
-`╔══════════════════════════════════╗
-║  🦊  *FOXY BOT — UPDATED!*  🦊   ║
-╚══════════════════════════════════╝
+`\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557
+\u2551  \u{1F98A}  *FOXY BOT — UPDATED!*  \u{1F98A}   \u2551
+\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255D
 
-✅ *Update installed successfully*
+\u2705 *Update installed successfully*
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
 
-📦 *Files updated:*  ${written}
-🕐 *Updated at:*    ${timeStr}
-🔄 *Status:*        Restarting now...
+\u{1F4E6} *Files updated:*  ${written}
+\u{1F550} *Updated at:*    ${timeStr}
+\u{1F504} *Status:*        Restarting now...
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501
 
-🚀 Bot will be back online in seconds
-🦊 *Powered by Foxy Bot*`;
+\u{1F680} Bot will be back online in seconds
+\u{1F98A} *Powered by Foxy Bot*`;
 
             await sock.sendMessage(chatId, { text: updateMsg }, { quoted: m });
             await new Promise(r => setTimeout(r, 2200));
