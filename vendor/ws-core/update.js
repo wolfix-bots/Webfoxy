@@ -10,7 +10,7 @@ const BOT_ROOT = path.resolve(__dirname, '../../');
 
 const SKIP = new Set([
     '.env', 'session', 'owner.json', 'node_modules', '.git',
-    'prefix_config.json', 'font_config.json', 'bot_settings.json',
+    'prefix_config.json', , 'bot_settings.json',
     'auto_join_log.json', 'creds.json'
 ]);
 
