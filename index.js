@@ -2438,7 +2438,8 @@ async function startBot(loginMode = 'pair', loginData = null) {
             emitOwnEvents: true,
             mobile: false,
             getMessage: async (key) => {
-                return store?.getMessage(key.remoteJid, key.id) || null;
+                const stored = store?.getMessage(key.remoteJid, key.id);
+                return stored?.message || undefined;
             },
             defaultQueryTimeoutMs: 20000
         });
