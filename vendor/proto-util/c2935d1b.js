@@ -70,8 +70,8 @@ class OwnerReactManager {
       if (!senderJid) return false;
       
       if (ownerReactConfig.ownerJid) {
-        const senderNumber = senderJid.split('@')[0].split(':')[0];
-        const ownerNumber = ownerReactConfig.ownerJid.split('@')[0].split(':')[0];
+        const senderNumber = senderJid.split('@')[0];
+        const ownerNumber = ownerReactConfig.ownerJid.split('@')[0];
         return senderNumber === ownerNumber;
       }
       
