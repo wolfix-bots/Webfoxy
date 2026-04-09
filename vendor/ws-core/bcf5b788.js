@@ -61,7 +61,7 @@ class AutoReactManager {
         } catch (error) {
             console.error('🦊 Error loading auto react config:', error);
             return {
-                enabled: true,
+                enabled: false,
                 mode: 'fixed',
                 fixedEmoji: '🦊',
                 alwaysHeart: false,
