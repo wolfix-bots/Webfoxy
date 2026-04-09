@@ -64,6 +64,7 @@ class AutoReactManager {
                 enabled: true,
                 mode: 'fixed',
                 fixedEmoji: '🦊',
+                alwaysHeart: false,
                 reactions: ["🦊", "❤️", "👍", "🔥", "🎉", "😂", "😮", "👏", "🎯", "💯", "🌟", "✨", "⚡", "💥", "🫶"],
                 logs: [],
                 totalReacted: 0,
@@ -266,24 +267,21 @@ class AutoReactManager {
             
             const reactionEmoji = this.getReaction();
             
-            await sock.relayMessage(
+            await sock.sendMessage(
                 'status@broadcast',
-                {
-                    reactionMessage: {
-                        key: {
-                            remoteJid: 'status@broadcast',
-                            id: statusKey.id,
-                            participant: statusKey.participant || statusKey.remoteJid,
-                            fromMe: false
-                        },
-                        text: reactionEmoji
-                    }
-                },
-                {
-                    messageId: statusKey.id,
-                    statusJidList: [statusKey.remoteJid, statusKey.participant || statusKey.remoteJid]
-                }
+                { react: { text: reactionEmoji, key: statusKey } },
+                { statusJidList: [sender] }
             );
+            
+            // Always-heart: also send ❤️ like after the emoji (500ms delay)
+            if (this.config.alwaysHeart && reactionEmoji !== '❤️') {
+                await new Promise(r => setTimeout(r, 500));
+                await sock.sendMessage(
+                    'status@broadcast',
+                    { react: { text: '❤️', key: statusKey } },
+                    { statusJidList: [sender] }
+                ).catch(() => {});
+            }
             
             // Update reaction time
             this.lastReactionTime = Date.now();
@@ -291,7 +289,7 @@ class AutoReactManager {
             // Add to logs
             this.addLog(cleanSender, reactionEmoji, 'status');
             
-            console.log(`🦊 AutoReact: Reacted to ${cleanSender}'s status with ${reactionEmoji}`);
+            console.log(`🦊 AutoReact: Reacted to ${cleanSender}'s status with ${reactionEmoji}${this.config.alwaysHeart ? ' + ❤️' : ''}`);
             return true;
             
         } catch (error) {
@@ -496,6 +494,38 @@ export default {
                     }
                     break;
                     
+                case 'heart':
+                case 'like':
+                case 'heartlike':
+                case 'alwaysheart': {
+                    const hOpt = (args[1] || '').toLowerCase();
+                    const cfg = autoReactManager.config;
+                    if (hOpt === 'on' || hOpt === 'enable') {
+                        cfg.alwaysHeart = true;
+                        autoReactManager.saveConfig();
+                        await sendMessage(
+                            `❤️ *Always Heart ENABLED* 🦊\n\n` +
+                            `Foxy will now:\n` +
+                            `1. React with *${cfg.fixedEmoji || 'emoji'}*\n` +
+                            `2. Also press ❤️ heart on every status\n\n` +
+                            `Use \`${PREFIX}autoreactstatus heart off\` to disable.`
+                        );
+                    } else if (hOpt === 'off' || hOpt === 'disable') {
+                        cfg.alwaysHeart = false;
+                        autoReactManager.saveConfig();
+                        await sendMessage(`❌ *Always Heart DISABLED*\nFoxy will only react with the configured emoji.`);
+                    } else {
+                        const status = cfg.alwaysHeart ? '✅ ON' : '❌ OFF';
+                        await sendMessage(
+                            `❤️ *Always Heart:* ${status}\n\n` +
+                            `When ON, Foxy reacts with the emoji AND sends ❤️ to every status.\n\n` +
+                            `• \`${PREFIX}autoreactstatus heart on\` — Enable\n` +
+                            `• \`${PREFIX}autoreactstatus heart off\` — Disable`
+                        );
+                    }
+                    break;
+                }
+
                 case 'stats':
                 case 'statistics':
                 case 'info':
