@@ -59,7 +59,7 @@ class AutoViewManager {
         } catch (error) {
             console.error('Error loading auto view config:', error);
             return {
-                enabled: true,
+                enabled: false,
                 logs: [],
                 totalViewed: 0,
                 lastViewed: null,
