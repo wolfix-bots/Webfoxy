@@ -1,4 +1,3 @@
-import { foxCanUse, foxMode } from '../../utils/foxMaster.js';
 import https from 'https';
 
 function fetchJson(url) {
@@ -18,30 +17,25 @@ export default {
     description: 'Chat with DeepSeek AI 🔍',
 
     async execute(sock, msg, args, PREFIX) {
-        if (!foxCanUse(msg, 'deepseek')) {
-            const m = foxMode.getMessage();
-            if (m) await sock.sendMessage(msg.key.remoteJid, { text: m });
-            return;
-        }
+        const jid = msg.key.remoteJid;
 
         const query = args.join(' ').trim();
         if (!query) {
-            return sock.sendMessage(msg.key.remoteJid, {
+            return sock.sendMessage(jid, {
                 text: `❌ Usage: ${PREFIX}deepseek <your question>`
             }, { quoted: msg });
         }
 
-        await sock.sendMessage(msg.key.remoteJid, { react: { text: '⏳', key: msg.key } });
+        await sock.sendMessage(jid, { react: { text: '🦊', key: msg.key } });
 
-        const url = `https://apis.xwolf.space/api/ai/deepseek?q=${encodeURIComponent(query)}`;
-        const json = await fetchJson(url);
-
-        if (!json || !json.status || !json.result) {
-            await sock.sendMessage(msg.key.remoteJid, { react: { text: '❌', key: msg.key } });
-            return sock.sendMessage(msg.key.remoteJid, { text: '❌ DeepSeek failed to respond. Try again.' }, { quoted: msg });
+        try {
+            const json = await fetchJson(
+                `https://apis.xwolf.space/api/ai/deepseek?q=${encodeURIComponent(query)}`
+            );
+            const answer = json?.result || json?.message || '❌ DeepSeek failed to respond. Try again.';
+            await sock.sendMessage(jid, { text: `🔍 *DeepSeek:*\n\n${answer}` }, { quoted: msg });
+        } catch {
+            await sock.sendMessage(jid, { text: '❌ DeepSeek unavailable. Try again later.' }, { quoted: msg });
         }
-
-        await sock.sendMessage(msg.key.remoteJid, { react: { text: '✅', key: msg.key } });
-        await sock.sendMessage(msg.key.remoteJid, { text: `🔍 *DeepSeek:*\n\n${json.result}` }, { quoted: msg });
     }
 };
