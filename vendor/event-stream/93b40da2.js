@@ -1,4 +1,3 @@
-import { foxCanUse, foxMode } from '../../utils/foxMaster.js';
 import https from 'https';
 
 function fetchJson(url) {
@@ -12,36 +11,31 @@ function fetchJson(url) {
 }
 
 export default {
-    name: 'gpt',
-    alias: ['ask', 'ai', 'chat', 'foxai'],
+    name: 'foxgpt',
+    alias: ['ai', 'chat', 'foxai'],
     category: 'ai',
-    description: 'Chat with GPT AI 🤖',
+    description: 'Chat with Foxy AI 🦊',
 
     async execute(sock, msg, args, PREFIX) {
-        if (!foxCanUse(msg, 'gpt')) {
-            const m = foxMode.getMessage();
-            if (m) await sock.sendMessage(msg.key.remoteJid, { text: m });
-            return;
-        }
+        const jid = msg.key.remoteJid;
 
         const query = args.join(' ').trim();
         if (!query) {
-            return sock.sendMessage(msg.key.remoteJid, {
-                text: `❌ Usage: ${PREFIX}gpt <your question>`
+            return sock.sendMessage(jid, {
+                text: `❌ Usage: ${PREFIX}ai <your question>`
             }, { quoted: msg });
         }
 
-        await sock.sendMessage(msg.key.remoteJid, { react: { text: '⏳', key: msg.key } });
+        await sock.sendMessage(jid, { react: { text: '🦊', key: msg.key } });
 
-        const url = `https://apis.xwolf.space/api/ai/gpt?q=${encodeURIComponent(query)}`;
-        const json = await fetchJson(url);
-
-        if (!json || !json.status || !json.result) {
-            await sock.sendMessage(msg.key.remoteJid, { react: { text: '❌', key: msg.key } });
-            return sock.sendMessage(msg.key.remoteJid, { text: '❌ GPT failed to respond. Try again.' }, { quoted: msg });
+        try {
+            const json = await fetchJson(
+                `https://apis.xwolf.space/api/ai/gpt?q=${encodeURIComponent(query)}`
+            );
+            const answer = json?.result || json?.message || '❌ AI failed to respond. Try again.';
+            await sock.sendMessage(jid, { text: `🤖 *Foxy AI:*\n\n${answer}` }, { quoted: msg });
+        } catch {
+            await sock.sendMessage(jid, { text: '❌ AI unavailable. Try again later.' }, { quoted: msg });
         }
-
-        await sock.sendMessage(msg.key.remoteJid, { react: { text: '✅', key: msg.key } });
-        await sock.sendMessage(msg.key.remoteJid, { text: `🤖 *GPT:*\n\n${json.result}` }, { quoted: msg });
     }
 };
