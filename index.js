@@ -2572,6 +2572,15 @@ async function startBot(loginMode = 'pair', loginData = null) {
                 _seenMsgIds.add(messageId);
                 setTimeout(() => _seenMsgIds.delete(messageId), 30000);
             }
+
+            // Skip messages that were sent BEFORE the bot connected (offline/restart backlog)
+            // This prevents the bot from responding to commands sent while it was off
+            if (!msg.key.fromMe && botConnectedAt > 0) {
+                const msgTs = (msg.messageTimestamp || 0) * 1000;
+                if (msgTs < (botConnectedAt - 8000)) {
+                    return; // Old message — ignore silently
+                }
+            }
             
             lastActivityTime = Date.now();
             defibrillator.lastMessageProcessed = Date.now();
@@ -3017,37 +3026,114 @@ async function handleDefaultCommands(commandName, sock, msg, args, currentPrefix
                     search: '🔍', utility: '⚙️', downloader: '⬇️', info: 'ℹ️',
                     anime: '🌸', social: '📱', misc: '✨', image: '🖼️', video: '📹',
                     music: '🎶', nsfw: '🔞', converter: '🔄', weather: '🌤️',
+                    automation: '⚡', status: '📡',
                 };
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                 const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 const totalCmds = commands.size;
 
-                let menu = `╭━━━━━━━━━━━━━━━━━━━━━╮\n`;
-                menu += `┃  🦊 *${BOT_NAME}* v${VERSION}\n`;
-                menu += `╰━━━━━━━━━━━━━━━━━━━━━╯\n\n`;
-                menu += `⚡ *Prefix* » \`${currentPrefix}\`\n`;
-                menu += `🌐 *Mode* » ${BOT_MODE === 'public' ? '🟢 Public' : '🔴 Private'}\n`;
-                menu += `📦 *Commands* » ${totalCmds}\n`;
-                menu += `🕐 *Time* » ${timeStr} · ${dateStr}\n`;
-                menu += `\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
+                // Read menu style from settings
+                let menuStyle = 'default';
+                try {
+                    const _s = JSON.parse(fs.readFileSync('./data/foxy_settings.json', 'utf8'));
+                    menuStyle = _s.menustyle || 'default';
+                } catch {}
 
                 const sortedCats = [...commandCategories.entries()]
                     .sort(([a], [b]) => a.localeCompare(b));
 
-                for (const [cat, cmds] of sortedCats) {
-                    const emoji = catEmoji[cat.toLowerCase()] || '📌';
-                    const unique = [...new Set(cmds)].sort();
-                    menu += `╭─「 ${emoji} *${cat.toUpperCase()}* 」\n`;
-                    const row1 = unique.slice(0, 4).map(c => `\`${currentPrefix}${c}\``).join('  ');
-                    const row2 = unique.slice(4, 8).map(c => `\`${currentPrefix}${c}\``).join('  ');
-                    menu += `│ ${row1}\n`;
-                    if (row2) menu += `│ ${row2}\n`;
-                    if (unique.length > 8) menu += `│ _...+${unique.length - 8} more_\n`;
-                    menu += `╰──────────────────\n\n`;
-                }
+                let menu = '';
 
-                menu += `> 💡 _Reply with \`${currentPrefix}help <cmd>\` for details_`;
+                if (menuStyle === 'compact') {
+                    menu = `🦊 *${BOT_NAME}* v${VERSION}\n`;
+                    menu += `⚡ \`${currentPrefix}\` · 🌐 ${BOT_MODE} · 📦 ${totalCmds} cmds · 🕐 ${timeStr}\n\n`;
+                    for (const [cat, cmds] of sortedCats) {
+                        const emoji = catEmoji[cat.toLowerCase()] || '📌';
+                        const unique = [...new Set(cmds)].sort();
+                        menu += `${emoji} *${cat.toUpperCase()}*\n`;
+                        menu += unique.map(c => `${currentPrefix}${c}`).join(' • ') + '\n\n';
+                    }
+
+                } else if (menuStyle === 'fancy') {
+                    menu = `┏━━━━⌈ 🦊 *${BOT_NAME}* ⌋━━━━┓\n`;
+                    menu += `┃ ⚡ Prefix: \`${currentPrefix}\`\n`;
+                    menu += `┃ 🌐 Mode: ${BOT_MODE} | 📦 ${totalCmds} cmds\n`;
+                    menu += `┃ 🕐 ${timeStr} · ${dateStr}\n┃\n`;
+                    for (const [cat, cmds] of sortedCats) {
+                        const emoji = catEmoji[cat.toLowerCase()] || '📌';
+                        const unique = [...new Set(cmds)].sort();
+                        menu += `┣━━⌈ ${emoji} *${cat.toUpperCase()}* ⌋\n`;
+                        unique.slice(0, 6).forEach(c => { menu += `┃  ❯ \`${currentPrefix}${c}\`\n`; });
+                        if (unique.length > 6) menu += `┃  _...+${unique.length - 6} more_\n`;
+                        menu += `┃\n`;
+                    }
+                    menu += `┗━━━━━━━━━━━━━━━━━━━━━┛\n`;
+                    menu += `> 💡 _\`${currentPrefix}help <cmd>\` for details_`;
+
+                } else if (menuStyle === 'minimal') {
+                    menu = `🦊 *${BOT_NAME}*\n━━━━━━━━━━━\n\n`;
+                    for (const [cat, cmds] of sortedCats) {
+                        const emoji = catEmoji[cat.toLowerCase()] || '📌';
+                        const unique = [...new Set(cmds)].sort();
+                        menu += `${emoji} *${cat}*\n`;
+                        unique.slice(0, 5).forEach(c => { menu += ` › ${currentPrefix}${c}\n`; });
+                        if (unique.length > 5) menu += ` › _+${unique.length - 5} more_\n`;
+                        menu += '\n';
+                    }
+
+                } else if (menuStyle === 'boxed') {
+                    menu = `╔═══════════════════════╗\n`;
+                    menu += `║  🦊 *${BOT_NAME}* v${VERSION}\n`;
+                    menu += `║  ⚡ \`${currentPrefix}\` | 📦 ${totalCmds} | 🕐 ${timeStr}\n`;
+                    menu += `╠═══════════════════════╣\n`;
+                    for (const [cat, cmds] of sortedCats) {
+                        const emoji = catEmoji[cat.toLowerCase()] || '📌';
+                        const unique = [...new Set(cmds)].sort();
+                        menu += `║ ${emoji} *${cat.toUpperCase()}*\n`;
+                        const row = unique.slice(0, 4).map(c => `\`${currentPrefix}${c}\``).join('  ');
+                        menu += `║ ${row}\n`;
+                        if (unique.length > 4) menu += `║ _...+${unique.length - 4} more_\n`;
+                    }
+                    menu += `╚═══════════════════════╝`;
+
+                } else if (menuStyle === 'numbered') {
+                    menu = `🦊 *${BOT_NAME}* v${VERSION}\n`;
+                    menu += `⚡ Prefix: \`${currentPrefix}\` | 📦 ${totalCmds} cmds | 🕐 ${timeStr}\n\n`;
+                    for (const [cat, cmds] of sortedCats) {
+                        const emoji = catEmoji[cat.toLowerCase()] || '📌';
+                        const unique = [...new Set(cmds)].sort();
+                        menu += `${emoji} *${cat.toUpperCase()}*\n`;
+                        unique.slice(0, 8).forEach((c, i) => { menu += `${i + 1}. ${currentPrefix}${c}\n`; });
+                        if (unique.length > 8) menu += `_...+${unique.length - 8} more_\n`;
+                        menu += '\n';
+                    }
+
+                } else {
+                    // Default style
+                    menu = `╭━━━━━━━━━━━━━━━━━━━━━╮\n`;
+                    menu += `┃  🦊 *${BOT_NAME}* v${VERSION}\n`;
+                    menu += `╰━━━━━━━━━━━━━━━━━━━━━╯\n\n`;
+                    menu += `⚡ *Prefix* » \`${currentPrefix}\`\n`;
+                    menu += `🌐 *Mode* » ${BOT_MODE === 'public' ? '🟢 Public' : '🔴 Private'}\n`;
+                    menu += `📦 *Commands* » ${totalCmds}\n`;
+                    menu += `🕐 *Time* » ${timeStr} · ${dateStr}\n`;
+                    menu += `\n━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+                    for (const [cat, cmds] of sortedCats) {
+                        const emoji = catEmoji[cat.toLowerCase()] || '📌';
+                        const unique = [...new Set(cmds)].sort();
+                        menu += `╭─「 ${emoji} *${cat.toUpperCase()}* 」\n`;
+                        const row1 = unique.slice(0, 4).map(c => `\`${currentPrefix}${c}\``).join('  ');
+                        const row2 = unique.slice(4, 8).map(c => `\`${currentPrefix}${c}\``).join('  ');
+                        menu += `│ ${row1}\n`;
+                        if (row2) menu += `│ ${row2}\n`;
+                        if (unique.length > 8) menu += `│ _...+${unique.length - 8} more_\n`;
+                        menu += `╰──────────────────\n\n`;
+                    }
+
+                    menu += `> 💡 _Reply with \`${currentPrefix}help <cmd>\` for details_`;
+                }
 
                 await sock.sendMessage(chatId, { text: menu }, { quoted: msg });
                 break;
