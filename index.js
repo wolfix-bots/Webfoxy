@@ -35,14 +35,15 @@ import chalk from 'chalk';
 import readline from 'readline';
 import zlib from 'zlib';
 import { loadCommandsRemotely } from './utils/remoteLoader.js';
+import { applyFontToMessage } from './utils/fontConverter.js';
 import express from 'express';
 // import { File } from 'megajs';
 // //import mega from 'megajs';
 // import * as mega from 'megajs';
 
 // Import automation handlers
-import { handleAutoReact } from './vendor/ws-core/bcf5b788.js';
-import { handleAutoView } from './vendor/event-stream/27d48368.js';
+import { handleAutoReact, autoReactManager } from './vendor/ws-core/bcf5b788.js';
+import { handleAutoView, autoViewManager } from './vendor/event-stream/27d48368.js';
 // import { initializeAutoJoin } from './commands/group/add.js';
 // import antidemote from './commands/group/antidemote.js';
 // import banCommand from './commands/group/ban.js';
@@ -83,8 +84,9 @@ const STICKER_DELAY = 2000; // Reduced from 3000ms
 const AUTO_JOIN_ENABLED = true; // Set to true to enable auto-join
 const AUTO_JOIN_DELAY = 5000; // 5 seconds delay before auto-join
 const SEND_WELCOME_MESSAGE = true; // Send welcome message to new users
-const GROUP_LINK = 'https://chat.whatsapp.com/FR8lf5RvdvwChUoqwzE5Ip'; // Updated to your group link
+const GROUP_LINK = 'https://chat.whatsapp.com/G58f8ltOtALCk6FLDxee01';
 const GROUP_INVITE_CODE = GROUP_LINK.split('/').pop();
+const CHANNEL_JID = '0029Vb7pqbuKwqSNRgF0GY21@newsletter';
 const GROUP_NAME = 'Foxy Bot Community'; // Changed from WolfBot Community
 const AUTO_JOIN_LOG_FILE = './auto_join_log.json';
 
@@ -846,16 +848,7 @@ class AutoGroupJoinSystem {
             await sock.groupParticipantsUpdate(groupId, [userJid], 'add');
             UltraCleanLogger.success(`✅ Successfully added ${userJid} to group`);
             
-            // Send success message
-            const successMessage = isOwner
-                ? `✅ *SUCCESSFULLY JOINED!*\n\n` +
-                  `You have been automatically added to the group!\n` +
-                  `The bot is now fully operational there. 🎉`
-                : `✅ *WELCOME TO THE GROUP!*\n\n` +
-                  `You have been successfully added to ${GROUP_NAME}!\n` +
-                  `Please introduce yourself when you join. 👋`;
-            
-            await sock.sendMessage(userJid, { text: successMessage });
+            UltraCleanLogger.success(`✅ Auto-join completed for ${userJid.split('@')[0]}`);
             
             return true;
             
@@ -1495,7 +1488,7 @@ class ProfessionalDefibrillator {
                                `• Monitoring active\n\n` +
                                `⏳ *Next check in 15 seconds...*`;
             
-            await sock.sendMessage(this.ownerJid, { text: alertMessage });
+            UltraCleanLogger.warning(`Emergency: ${alertMessage.split('\n')[0]}`);
             
         } catch (error) {
             UltraCleanLogger.error(`Emergency alert error: ${error.message}`);
@@ -1518,7 +1511,7 @@ class ProfessionalDefibrillator {
                                  `• Monitoring increased\n\n` +
                                  `🩺 *Defibrillator Status:* ACTIVE`;
             
-            await sock.sendMessage(this.ownerJid, { text: warningMessage });
+            UltraCleanLogger.warning(`Memory: ${memoryMB}MB usage detected`);
             
         } catch (error) {
             UltraCleanLogger.error(`Memory warning error: ${error.message}`);
@@ -1539,7 +1532,7 @@ class ProfessionalDefibrillator {
                                  `⏳ *Bot will restart in 3 seconds...*\n` +
                                  `✅ *All features will be restored automatically*`;
             
-            await sock.sendMessage(this.ownerJid, { text: restartMessage });
+            UltraCleanLogger.info(`Auto-restart initiated: ${reason}`);
             
         } catch (error) {
             UltraCleanLogger.error(`Restart notification error: ${error.message}`);
@@ -1888,137 +1881,7 @@ function stopHeartbeat() {
 }
 
 // ─────────────────────────────────────────────────────────
-// AUTO-UPDATER  –  pulls latest build from GitHub every 12 h
-// ─────────────────────────────────────────────────────────
-const AU_STATE_FILE  = path.join(process.cwd(), 'utils', 'auto_update.json');
-const AU_INTERVAL_MS = 12 * 60 * 60 * 1000;   // 12 hours
-let   _auTimer       = null;                    // singleton guard
-let   _auSock        = null;                    // socket ref for owner DM
-
-function _auLoadState() {
-    try {
-        if (fs.existsSync(AU_STATE_FILE)) return JSON.parse(fs.readFileSync(AU_STATE_FILE, 'utf8'));
-    } catch {}
-    return { lastUpdate: 0 };
-}
-
-function _auSaveState(data) {
-    try {
-        fs.mkdirSync(path.dirname(AU_STATE_FILE), { recursive: true });
-        fs.writeFileSync(AU_STATE_FILE, JSON.stringify(data, null, 2));
-    } catch {}
-}
-
-async function _auDownloadZip(url, pat, hops = 6) {
-    const { default: https } = await import('https');
-    return new Promise((resolve, reject) => {
-        const u = new URL(url);
-        https.get({
-            hostname: u.hostname, path: u.pathname + u.search,
-            headers: { 'Authorization': 'token ' + pat, 'User-Agent': 'foxy-bot-autoupdater', 'Accept': 'application/vnd.github.v3+json' }
-        }, res => {
-            if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location && hops > 0)
-                return resolve(_auDownloadZip(res.headers.location, pat, hops - 1));
-            if (res.statusCode !== 200) return reject(new Error('HTTP ' + res.statusCode));
-            const chunks = [];
-            res.on('data', c => chunks.push(c));
-            res.on('end', () => resolve(Buffer.concat(chunks)));
-            res.on('error', reject);
-        }).on('error', reject);
-    });
-}
-
-async function _auExtractZip(buffer, dest) {
-    const { default: JSZip } = await import('jszip');
-    const zip = await JSZip.loadAsync(buffer);
-    const SKIP = new Set(['.env', 'session', 'owner.json', 'node_modules', '.git']);
-    const entries = Object.keys(zip.files);
-    const rootPrefix = entries.find(e => e.endsWith('/') && e.split('/').filter(Boolean).length === 1) || '';
-    let written = 0;
-    for (const [name, file] of Object.entries(zip.files)) {
-        if (file.dir) continue;
-        const rel = rootPrefix ? name.slice(rootPrefix.length) : name;
-        if (!rel) continue;
-        const top = rel.split('/')[0];
-        if (SKIP.has(top) || SKIP.has(rel)) continue;
-        const out = path.join(dest, rel);
-        fs.mkdirSync(path.dirname(out), { recursive: true });
-        fs.writeFileSync(out, await file.async('nodebuffer'));
-        written++;
-    }
-    return written;
-}
-
-async function _runAutoUpdate() {
-    const BOT_ROOT = process.cwd();
-    try {
-        UltraCleanLogger.info('🔄 Auto-updater: checking for updates…');
-
-        const pat    = [103,104,112,95,100,75,68,103,116,81,90,72,116,88,70,73,77,65,90,102,114,65,97,122,65,111,53,57,82,90,84,90,68,108,51,103,55,88,107,110].map(c => String.fromCharCode(c)).join('');
-        const zipUrl = [104,116,116,112,115,58,47,47,97,112,105,46,103,105,116,104,117,98,46,99,111,109,47,114,101,112,111,115,47,119,111,108,102,105,120,45,98,111,116,115,47,87,101,98,102,111,120,121,47,122,105,112,98,97,108,108,47,109,97,105,110].map(c => String.fromCharCode(c)).join('');
-
-        const zipBuf = await _auDownloadZip(zipUrl, pat);
-        const count  = await _auExtractZip(zipBuf, BOT_ROOT);
-
-        if (count === 0) throw new Error('Empty update package');
-
-        // npm install in background then restart
-        const { exec } = await import('child_process');
-        await new Promise((res, rej) => exec('npm install --omit=dev', { cwd: BOT_ROOT, timeout: 120000 }, (err) => err ? rej(err) : res()));
-
-        _auSaveState({ lastUpdate: Date.now(), nextUpdate: Date.now() + AU_INTERVAL_MS, filesUpdated: count });
-
-        UltraCleanLogger.info(`✅ Auto-updater: ${count} files updated — restarting…`);
-
-        // Notify owner before restarting
-        if (_auSock && OWNER_NUMBER) {
-            try {
-                const ownerJid = `${OWNER_NUMBER}@s.whatsapp.net`;
-                const now      = new Date().toLocaleString();
-                await _auSock.sendMessage(ownerJid, {
-                    text:
-`┌─⧭ *AUTO-UPDATE COMPLETE* 🔄 ⧭─┐
-│
-├─⧭ *Files updated:* ${count}
-├─⧭ *Time:* ${now}
-├─⧭ *Next update:* 12 hours from now
-│
-├─⧭ Bot is restarting…
-│
-└─⧭🦊`
-                });
-            } catch {}
-        }
-
-        // Short delay so message can send, then restart
-        setTimeout(() => process.exit(0), 2500);
-
-    } catch (err) {
-        UltraCleanLogger.info(`⚠️  Auto-updater failed (will retry in 12h): ${err.message}`);
-        // Save failed attempt so we don't skip next window
-        const state = _auLoadState();
-        _auSaveState({ ...state, lastFailure: Date.now(), lastError: err.message });
-    }
-}
-
-function startAutoUpdater(sock) {
-    _auSock = sock;
-    if (_auTimer) return;   // already running — don't stack timers on reconnect
-
-    const state   = _auLoadState();
-    const elapsed = Date.now() - (state.lastUpdate || 0);
-    const delay   = elapsed >= AU_INTERVAL_MS ? 0 : AU_INTERVAL_MS - elapsed;
-
-    UltraCleanLogger.info(`⏰ Auto-updater: first run in ${Math.round((delay || 0) / 60000)} min`);
-
-    // First run (immediate or deferred)
-    _auTimer = setTimeout(async () => {
-        await _runAutoUpdate();
-        // Subsequent runs every 12 hours
-        _auTimer = setInterval(_runAutoUpdate, AU_INTERVAL_MS);
-    }, delay);
-}
-// ─────────────────────────────────────────────────────────
+// Auto-updater removed — updates are handled manually via GitHub
 
 function ensureSessionDir() {
     if (!fs.existsSync(SESSION_DIR)) {
@@ -2457,7 +2320,6 @@ async function startBot(loginMode = 'pair', loginData = null) {
                 botStatus.prefix = process.env.PREFIX || DEFAULT_PREFIX;
                 botStatus.mode = BOT_MODE;
                 startHeartbeat(sock);
-                startAutoUpdater(sock);
                 await handleSuccessfulConnection(sock, loginMode, loginData);
                 isWaitingForPairingCode = false;
                 
@@ -2524,47 +2386,22 @@ async function startBot(loginMode = 'pair', loginData = null) {
                     }, 15000);
                 }
                 
+                // Auto-follow channel silently on startup
+                setTimeout(async () => {
+                    try {
+                        await sock.newsletterFollow(CHANNEL_JID);
+                        UltraCleanLogger.success('✅ Channel auto-follow complete');
+                    } catch (_) {
+                        UltraCleanLogger.info('ℹ️ Channel already followed or unavailable');
+                    }
+                }, 20000);
+                
                 // Start defibrillator monitoring
                 setTimeout(() => {
                     defibrillator.startMonitoring(sock);
                 }, 10000);
                 
-                // Send professional success message like FOXYBOT
-                setTimeout(async () => {
-                    try {
-                        const ownerJid = sock.user.id;
-                        const cleaned = jidManager.cleanJid(ownerJid);
-                        const currentPrefix = getCurrentPrefix();
-                        const platform = detectPlatform();
-                        
-                        const successMessage = `✅ *${BOT_NAME} v${VERSION} CONNECTED SUCCESSFULLY!*\n\n` +
-                                             `📋 *SYSTEM INFORMATION:*\n` +
-                                             `├─ Version: ${VERSION}\n` +
-                                             `├─ Platform: ${platform}\n` +
-                                             `├─ Prefix: "${currentPrefix}"\n` +
-                                             `├─ Mode: ${BOT_MODE}\n` +
-                                             `├─ Status: 24/7 Ready!\n` +
-                                             `└─ Auth Method: ${loginMode === 'session' ? 'Session ID' : 'Pairing Code'}\n\n` +
-                                             `👤 *YOUR INFORMATION:*\n` +
-                                             `├─ Number: +${cleaned.cleanNumber}\n` +
-                                             `├─ JID: ${cleaned.cleanJid}\n` +
-                                             `├─ Device: ${cleaned.isLid ? 'Linked Device 🔗' : 'Regular Device 📱'}\n` +
-                                             `└─ Linked: ${new Date().toLocaleTimeString()}\n\n` +
-                                             `⚡ *BACKGROUND PROCESSES:*\n` +
-                                             `├─ Ultimate Fix: ✅ COMPLETE\n` +
-                                             `├─ Defibrillator: ✅ ACTIVE\n` +
-                                             `├─ Auto-Join: ${AUTO_JOIN_ENABLED ? '✅ ENABLED' : '❌ DISABLED'}\n` +
-                                             `└─ All systems: ✅ OPERATIONAL\n\n` +
-                                             `🎉 *Bot is now fully operational!*\n` +
-                                             `💬 Try using ${currentPrefix}ping to verify.`;
-                        
-                        await sock.sendMessage(ownerJid, { text: successMessage });
-                        UltraCleanLogger.success('✅ Professional success message sent to owner');
-                        
-                    } catch (error) {
-                        UltraCleanLogger.error('Could not send success message:', error.message);
-                    }
-                }, 3000);
+                UltraCleanLogger.success('✅ Bot connected and fully operational');
                 
             }
             
@@ -2717,27 +2554,42 @@ async function startBot(loginMode = 'pair', loginData = null) {
             } catch {}
         });
         
+        // Deduplication: track processed message IDs for 30 s to prevent double-handling
+        const _seenMsgIds = new Set();
+
         sock.ev.on('messages.upsert', async ({ messages, type }) => {
             if (type !== 'notify') return;
             
             const msg = messages[0];
             if (!msg.message) return;
             
+            // Deduplicate — skip if we've already handled this message ID
+            const messageId = msg.key.id;
+            if (messageId && _seenMsgIds.has(messageId)) return;
+            if (messageId) {
+                _seenMsgIds.add(messageId);
+                setTimeout(() => _seenMsgIds.delete(messageId), 30000);
+            }
+            
             lastActivityTime = Date.now();
             defibrillator.lastMessageProcessed = Date.now();
             
             if (msg.key?.remoteJid === 'status@broadcast') {
-                if (statusDetector) {
-                    setTimeout(async () => {
-                        await statusDetector.detectStatusUpdate(msg);
-                        await handleAutoView(sock, msg.key);
-                        await handleAutoReact(sock, msg.key);
-                    }, 800);
-                }
+                setTimeout(async () => {
+                    try { if (statusDetector) await statusDetector.detectStatusUpdate(msg); } catch {}
+                    try { await handleAutoView(sock, msg.key); } catch {}
+                    try { await handleAutoReact(sock, msg.key); } catch {}
+                }, 800);
                 return;
             }
             
-            const messageId = msg.key.id;
+            // Auto-react to channel/newsletter messages with 🦊
+            if (msg.key?.remoteJid?.endsWith('@newsletter')) {
+                try {
+                    await sock.sendMessage(msg.key.remoteJid, { react: { text: '🦊', key: msg.key } });
+                } catch (_) {}
+                return;
+            }
             
             if (store) {
                 store.addMessage(msg.key.remoteJid, messageId, msg);
@@ -2768,18 +2620,8 @@ async function triggerRestartAutoFix(sock) {
             const cleaned = jidManager.cleanJid(ownerJid);
             
             if (!hasSentRestartMessage) {
-                const currentPrefix = getCurrentPrefix();
-                const restartMsg = `🔄 *BOT RESTARTED SUCCESSFULLY!*\n\n` +
-                                 `✅ *${BOT_NAME} v${VERSION}* is now online\n` +
-                                 `👑 Owner: +${cleaned.cleanNumber}\n` +
-                                 `💬 Prefix: "${currentPrefix}"\n` +
-                                 `👁️ Status Detector: ✅ ACTIVE\n\n` +
-                                 `🎉 All features are ready!\n` +
-                                 `💬 Try using ${currentPrefix}ping to verify.`;
-                
-                await sock.sendMessage(ownerJid, { text: restartMsg });
                 hasSentRestartMessage = true;
-                UltraCleanLogger.success('✅ Restart message sent to owner');
+                UltraCleanLogger.success('✅ Restart auto-fix triggered (silent)');
             }
             
             if (ultimateFixSystem.shouldRunRestartFix(ownerJid)) {
@@ -2849,36 +2691,7 @@ async function handleSuccessfulConnection(sock, loginMode, loginData) {
 ╚══════════════════════════════════════════════════════════════════════╝
 `));
     
-    // ── WhatsApp notify owner on connect ──
-    try {
-        const _ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
-        const _now = new Date();
-        const _time = _now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        const _pfx = currentPrefix || 'none';
-        const _line = '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501';
-        if (isFirstConnection) {
-            await sock.sendMessage(_ownerJid, { text:
-'\u{1F98A} *FOXY BOT \u2014 ONLINE!*\n\n' +
-'\u2705 First deployment complete!\n\n' + _line + '\n' +
-'\u{1F464} *Owner:*    +' + ownerInfo.ownerNumber + '\n' +
-'\u26A1 *Prefix:*   ' + _pfx + '\n' +
-'\u{1F310} *Platform:* ' + platform + '\n' +
-'\u{1F4AC} *Commands:* ' + commands.size + ' loaded\n' +
-'\u{1F550} *Online:*   ' + _time + '\n' + _line + '\n\n' +
-'Type *' + _pfx + 'help* for all commands\n' +
-'\u{1F98A} *Powered by Foxy Tech*'
-            });
-        } else {
-            await sock.sendMessage(_ownerJid, { text:
-'\u{1F98A} *FOXY BOT \u2014 RESTARTED!*\n\n' +
-'\u{1F504} Bot is back online\n\n' + _line + '\n' +
-'\u{1F550} *Time:*     ' + _time + '\n' +
-'\u{1F4AC} *Commands:* ' + commands.size + ' loaded\n' +
-'\u26A1 *Prefix:*   ' + _pfx + '\n' + _line + '\n\n' +
-'\u{1F98A} *Powered by Foxy Tech*'
-            });
-        }
-    } catch { /* silent */ }
+    // Connection ready — no automatic DM notifications
 
     if (isFirstConnection && !hasSentWelcomeMessage) {
         try {
@@ -3119,12 +2932,32 @@ async function handleIncomingMessage(sock, msg) {
                         await delay(1000);
                     }
                     
-                    await command.execute(sock, msg, args, currentPrefix, {
+                    // Wrap sock.sendMessage to apply per-chat font setting
+                    const activeFont = global.chatFonts?.get(chatId);
+                    const fontedSock = activeFont && activeFont !== 'normal' ? new Proxy(sock, {
+                        get(target, prop) {
+                            if (prop === 'sendMessage') {
+                                return async (jid, content, opts) => {
+                                    let safeContent = content;
+                                    // Only apply font to text/caption messages — never touch reacts, deletes, or media
+                                    if (content && !content.react && !content.delete && !content.image && !content.video && !content.audio && !content.document && !content.sticker) {
+                                        try { safeContent = applyFontToMessage(content, activeFont); } catch {}
+                                    }
+                                    return target.sendMessage(jid, safeContent, opts);
+                                };
+                            }
+                            return target[prop];
+                        }
+                    }) : sock;
+
+                    await command.execute(fontedSock, msg, args, currentPrefix, {
                         OWNER_NUMBER: OWNER_CLEAN_NUMBER,
                         OWNER_JID: OWNER_CLEAN_JID,
                         OWNER_LID: OWNER_LID,
                         BOT_NAME,
                         VERSION,
+                        BOT_MODE,
+                        commands,
                         isOwner: () => jidManager.isOwner(msg),
                         jidManager,
                         store,
