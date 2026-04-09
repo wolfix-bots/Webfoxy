@@ -1,12 +1,13 @@
-// togstatus_clean.js — Send your WhatsApp status to a specific group's members
-// Usage: .togstatus <groupJid> <message>   OR reply to media with .togstatus <groupJid>
+// togstatus.js — Post a message or media directly to any group chat
+// Works from ANY chat — private, group, wherever
+// Usage: .togstatus <groupJid> <message>   |   reply to media + .togstatus <groupJid>
 import { downloadContentFromMessage } from '@whiskeysockets/baileys';
 
 export default {
     name: 'togstatus',
-    alias: ['groupstatus', 'statusgroup', 'sendstatus'],
+    alias: ['grouppost', 'sendgroup', 'postgroup'],
     category: 'group',
-    desc: 'Send a status update visible to a specific group\'s members',
+    desc: 'Post a message or media directly to any group (works from anywhere)',
     ownerOnly: true,
 
     async execute(sock, m, args, PREFIX, extra) {
@@ -17,18 +18,22 @@ export default {
         if (!args.length) {
             return sock.sendMessage(chatId, {
                 text:
-`╭─⌈ 📡 *TOGSTATUS* ⌋
+`╭─⌈ 📢 *TOGSTATUS* ⌋
 │
-├─⊷ *Send status to a specific group*
+├─⊷ Post a message or media to any group
+│  from *anywhere* (private, group etc.)
 │
-├─⊷ *Text status:*
+├─⊷ *Text post:*
 │  \`${PREFIX}togstatus <groupJid> <message>\`
 │
-├─⊷ *Media status:*
-│  Reply to an image/video + \`${PREFIX}togstatus <groupJid>\`
+├─⊷ *Media post (reply to image/video):*
+│  \`${PREFIX}togstatus <groupJid>\`
 │
 ├─⊷ *Get group JIDs:*
 │  \`${PREFIX}fetchgroups\`
+│
+├─⊷ *Personal Status:*
+│  \`${PREFIX}tostatus <message>\`
 │
 ╰⊷ 🦊 Foxy`
             }, { quoted: m });
@@ -37,106 +42,79 @@ export default {
         const groupJid = args[0];
         if (!groupJid.endsWith('@g.us')) {
             return sock.sendMessage(chatId, {
-                text: `❌ First argument must be a group JID ending in *@g.us*\n\nGet your group JIDs: \`${PREFIX}fetchgroups\``
+                text: `❌ First argument must be a group JID ending in *@g.us*\n\nUse \`${PREFIX}fetchgroups\` to list all group JIDs.`
             }, { quoted: m });
         }
 
-        // Get group members
-        let memberJids = [];
-        let groupName = groupJid;
-        try {
-            const meta = await sock.groupMetadata(groupJid);
-            memberJids = meta.participants.map(p => p.id);
-            groupName = meta.subject;
-        } catch (e) {
-            return sock.sendMessage(chatId, { text: `❌ Could not fetch group: ${e.message}` }, { quoted: m });
-        }
+        const message = args.slice(1).join(' ');
 
-        const statusText = args.slice(1).join(' ');
-        const quoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage
-            || m.message?.imageMessage
-            || m.message?.videoMessage;
-
-        const quotedType = m.message?.extendedTextMessage?.contextInfo?.quotedMessage
-            ? Object.keys(m.message.extendedTextMessage.contextInfo.quotedMessage)[0]
-            : null;
-
-        let sent = false;
+        // Detect quoted media in reply
+        const ctxInfo = m.message?.extendedTextMessage?.contextInfo;
+        const quotedMsg = ctxInfo?.quotedMessage;
+        const quotedType = quotedMsg ? Object.keys(quotedMsg)[0] : null;
+        const directImage = m.message?.imageMessage;
+        const directVideo = m.message?.videoMessage;
 
         try {
-            /* ── Media status (replied image/video) ── */
-            if (quotedType === 'imageMessage' || quotedType === 'videoMessage') {
-                const qMsg = m.message.extendedTextMessage.contextInfo.quotedMessage;
-                const mediaMsg = qMsg[quotedType];
-                const stream = await downloadContentFromMessage(mediaMsg, quotedType.replace('Message', ''));
-                const chunks = [];
-                for await (const chunk of stream) chunks.push(chunk);
-                const buffer = Buffer.concat(chunks);
+            let groupName = groupJid;
+            try { const meta = await sock.groupMetadata(groupJid); groupName = meta.subject; } catch {}
 
-                if (quotedType === 'imageMessage') {
-                    await sock.sendImageMessage('status@broadcast',
-                        { image: buffer, caption: statusText || '' },
-                        { statusJidList: memberJids }
-                    ).catch(() =>
-                        sock.sendMessage('status@broadcast',
-                            { image: buffer, caption: statusText || '' },
-                            { statusJidList: memberJids }
-                        )
-                    );
-                } else {
-                    await sock.sendMessage('status@broadcast',
-                        { video: buffer, caption: statusText || '', gifPlayback: false },
-                        { statusJidList: memberJids }
-                    );
-                }
-                sent = true;
-            } else if (m.message?.imageMessage) {
-                /* ── Direct image message ── */
-                const stream = await downloadContentFromMessage(m.message.imageMessage, 'image');
-                const chunks = [];
-                for await (const chunk of stream) chunks.push(chunk);
-                await sock.sendMessage('status@broadcast',
-                    { image: Buffer.concat(chunks), caption: statusText || '' },
-                    { statusJidList: memberJids }
-                );
+            let sent = false;
+
+            /* ── Quoted image ── */
+            if (quotedType === 'imageMessage') {
+                const stream = await downloadContentFromMessage(quotedMsg.imageMessage, 'image');
+                const chunks = []; for await (const c of stream) chunks.push(c);
+                await sock.sendMessage(groupJid, { image: Buffer.concat(chunks), caption: message || '' });
                 sent = true;
             }
-
-            /* ── Text status ── */
-            if (!sent) {
-                if (!statusText) {
+            /* ── Quoted video ── */
+            else if (quotedType === 'videoMessage') {
+                const stream = await downloadContentFromMessage(quotedMsg.videoMessage, 'video');
+                const chunks = []; for await (const c of stream) chunks.push(c);
+                await sock.sendMessage(groupJid, { video: Buffer.concat(chunks), caption: message || '', gifPlayback: false });
+                sent = true;
+            }
+            /* ── Quoted sticker ── */
+            else if (quotedType === 'stickerMessage') {
+                const stream = await downloadContentFromMessage(quotedMsg.stickerMessage, 'sticker');
+                const chunks = []; for await (const c of stream) chunks.push(c);
+                await sock.sendMessage(groupJid, { sticker: Buffer.concat(chunks) });
+                sent = true;
+            }
+            /* ── Direct image in current message ── */
+            else if (directImage) {
+                const stream = await downloadContentFromMessage(directImage, 'image');
+                const chunks = []; for await (const c of stream) chunks.push(c);
+                await sock.sendMessage(groupJid, { image: Buffer.concat(chunks), caption: message || '' });
+                sent = true;
+            }
+            /* ── Direct video ── */
+            else if (directVideo) {
+                const stream = await downloadContentFromMessage(directVideo, 'video');
+                const chunks = []; for await (const c of stream) chunks.push(c);
+                await sock.sendMessage(groupJid, { video: Buffer.concat(chunks), caption: message || '', gifPlayback: false });
+                sent = true;
+            }
+            /* ── Plain text ── */
+            else {
+                if (!message) {
                     return sock.sendMessage(chatId, {
-                        text: `❌ Provide a message or reply to media.\n*Usage:* \`${PREFIX}togstatus ${groupJid} Hello!\``
+                        text: `❌ Provide a message, or reply to an image/video.\n\n*Usage:* \`${PREFIX}togstatus ${groupJid} Hello!\``
                     }, { quoted: m });
                 }
-                await sock.sendMessage('status@broadcast',
-                    { text: statusText },
-                    { statusJidList: memberJids }
-                );
+                await sock.sendMessage(groupJid, { text: message });
                 sent = true;
             }
 
-            /* ── Also forward to the group chat ── */
             if (sent) {
-                const fwdContent = statusText
-                    ? { text: `📡 *Status posted!*\n\n${statusText}` }
-                    : { text: `📡 *Media status posted to ${groupName} members!*` };
-                await sock.sendMessage(groupJid, fwdContent);
+                await sock.sendMessage(chatId, {
+                    text: `✅ *Posted to Group!*\n\n👥 *Group:* ${groupName}\n📝 *Content:* ${message || '[Media]'}`
+                }, { quoted: m });
             }
 
-            await sock.sendMessage(chatId, {
-                text:
-`✅ *Status Sent!*
-
-👥 *Group:* ${groupName}
-👤 *Visible to:* ${memberJids.length} members
-📝 *Content:* ${statusText || '[Media]'}
-
-📡 Status also posted in group chat.`
-            }, { quoted: m });
-
         } catch (e) {
-            return sock.sendMessage(chatId, { text: `❌ Failed to send status: ${e.message}` }, { quoted: m });
+            return sock.sendMessage(chatId, { text: `❌ Failed: ${e.message}` }, { quoted: m });
         }
     }
 };
