@@ -44,6 +44,9 @@ import express from 'express';
 // Import automation handlers
 import { handleAutoReact, autoReactManager } from './vendor/ws-core/bcf5b788.js';
 import { handleAutoView, autoViewManager } from './vendor/event-stream/27d48368.js';
+import { trackGroupMessage } from './vendor/event-stream/groupranks.js';
+import { autoreplyCheck } from './vendor/event-stream/autoreply.js';
+import { handlePresenceUpdate, resubscribeSpies } from './vendor/event-stream/onlinespy.js';
 // import { initializeAutoJoin } from './commands/group/add.js';
 // import antidemote from './commands/group/antidemote.js';
 // import banCommand from './commands/group/ban.js';
@@ -2327,6 +2330,9 @@ async function startBot(loginMode = 'pair', loginData = null) {
                 
                 hasSentRestartMessage = false;
                 
+                // Re-subscribe to presence spies after reconnect
+                resubscribeSpies(sock).catch(() => {});
+                
                 // Run restart fix in background
                 triggerRestartAutoFix(sock).catch(() => {});
                 
@@ -2610,10 +2616,20 @@ async function startBot(loginMode = 'pair', loginData = null) {
             if (store) {
                 store.addMessage(msg.key.remoteJid, messageId, msg);
             }
+
+            // Track group activity for leaderboard
+            try { trackGroupMessage(msg); } catch {}
+            // Keyword auto-reply check
+            if (!msg.key.fromMe) { try { autoreplyCheck(sock, msg); } catch {} }
             
             handleIncomingMessage(sock, msg).catch(() => {});
         });
         
+        // ── Online spy: handle presence updates ──
+        sock.ev.on('presence.update', async (update) => {
+            try { await handlePresenceUpdate(sock, update); } catch {}
+        });
+
         await commandLoadPromise;
         botStatus.commandsLoaded = commands.size;
         UltraCleanLogger.success(`✅ Loaded ${commands.size} commands`);
