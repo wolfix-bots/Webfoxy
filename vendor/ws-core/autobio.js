@@ -1,5 +1,5 @@
 // autobio.js — Auto Bio Command
-// Formats: default, detailed, realtime, live-clock, minimal, wolf-style, professional, always-on
+// Formats: default, detailed, realtime, live-clock, minimal, foxy-style, professional, always-on
 import fs from 'fs';
 import path from 'path';
 
@@ -14,7 +14,7 @@ const FORMATS = {
     'realtime':     (n,t,d) => `⚡ ${n} | 🟢 Active Now | 🕒 ${t} | 📅 ${d}`,
     'live-clock':   (n,t,d) => `🕒 ${t} | 📅 ${d} | 🦊 ${n}`,
     'minimal':      (n,t,d) => `${n} • ${t}`,
-    'wolf-style':   (n,t,d) => `🐺 ${n} is online | ⌚ ${t} | 📅 ${d}`,
+    'foxy-style':   (n,t,d) => `🦊 ${n} is online~ | ⌚ ${t} | 📅 ${d}`,
     'professional': (n,t,d) => `${n} | 🟢 Available | ${t} · ${d}`,
     'always-on':    (n,t,d) => `🟢 Always Online | 🦊 ${n} | ⌚ ${t}`,
 };
@@ -130,7 +130,7 @@ export default {
 │  └⊷ Toggle auto bio
 ├─⊷ *${PREFIX}autobio format <name>*
 │  └⊷ default, detailed, realtime, live-clock
-│     minimal, wolf-style, professional, always-on
+│     minimal, foxy-style, professional, always-on
 ├─⊷ *${PREFIX}autobio interval <min>*
 │  └⊷ Set update interval (minutes)
 ├─⊷ *${PREFIX}autobio test*
