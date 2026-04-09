@@ -538,6 +538,7 @@ let RESTART_AUTO_FIX_ENABLED = true;
 let hasSentRestartMessage = false;
 let hasAutoConnectedOnStart = false;
 let hasSentWelcomeMessage = false;
+let botConnectedAt = 0; // timestamp when the socket last went 'open' — used to skip backlogged messages
 
 // ====== WEB STATUS SERVER ======
 const botStatus = {
@@ -2315,6 +2316,7 @@ async function startBot(loginMode = 'pair', loginData = null) {
             
             if (connection === 'open') {
                 isConnected = true;
+                botConnectedAt = Date.now(); // mark when we came online — used to skip backlogged messages
                 botStatus.connected = true;
                 botStatus.phone = sock?.user?.id?.split(':')[0] || OWNER_NUMBER || null;
                 botStatus.prefix = process.env.PREFIX || DEFAULT_PREFIX;
@@ -2584,9 +2586,14 @@ async function startBot(loginMode = 'pair', loginData = null) {
             }
             
             // Auto-react to channel/newsletter messages with 🦊
+            // Skip backlogged messages that arrived before (or just as) we connected to avoid spam floods
             if (msg.key?.remoteJid?.endsWith('@newsletter')) {
                 try {
-                    await sock.sendMessage(msg.key.remoteJid, { react: { text: '🦊', key: msg.key } });
+                    const msgTs = (msg.messageTimestamp || 0) * 1000; // convert seconds → ms
+                    const isBacklog = botConnectedAt > 0 && msgTs < (botConnectedAt - 10000);
+                    if (!isBacklog) {
+                        await sock.sendMessage(msg.key.remoteJid, { react: { text: '🦊', key: msg.key } });
+                    }
                 } catch (_) {}
                 return;
             }
