@@ -1,8 +1,5 @@
-import axios from 'axios';
-
 // ===== API CONFIG =====
-const API_URL = 'https://api.giftedtech.co.ke/api/ai/letmegpt';
-const API_KEY = 'gifted';
+const API_URL = 'https://apis.xwolf.space/api/ai/gpt';
 
 export default {
     name: "story",
@@ -140,18 +137,7 @@ export default {
             long: 'Write a LONG, detailed story with multiple paragraphs, character development, and a complete plot'
         };
 
-        await sock.sendMessage(jid, {
-            text: `┌─⧭ *FOXY IS WRITING* ⧭─┐
-│
-├─⧭ *Topic:* ${topic}
-├─⧭ *Genre:* ${genre}
-├─⧭ *Length:* ${length}
-│
-│ ✍️ Crafting your story...
-│ Please wait a moment
-│
-└─⧭🦊`
-        }, { quoted: m });
+        await sock.sendMessage(jid, { react: { text: '🦊', key: m.key } });
 
         try {
             // Build the story prompt
@@ -163,11 +149,12 @@ export default {
             prompt += `Title: (create a catchy title)\n\n`;
             prompt += `Story:\n`;
 
-            const url = `${API_URL}?apikey=${API_KEY}&q=${encodeURIComponent(prompt)}`;
-            const response = await axios.get(url, { timeout: 60000 }); // Longer timeout for long stories
+            const url = `${API_URL}?q=${encodeURIComponent(prompt)}`;
+            const res = await fetch(url, { signal: AbortSignal.timeout(60000) });
+            const response = await res.json();
 
-            if (response.data.success && response.data.result) {
-                let story = response.data.result;
+            if (response.result) {
+                let story = response.result;
                 
                 // Format the story nicely
                 story = story.replace(/Title:/gi, '📖 *Title:*')
