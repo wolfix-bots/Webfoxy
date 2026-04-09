@@ -191,8 +191,14 @@ class AutoViewManager {
                 return false;
             }
             
-            // Mark status as read
-            await sock.readMessages([statusKey]);
+            // Mark status as read — build proper key with participant
+            const readKey = {
+                remoteJid: 'status@broadcast',
+                id: statusKey.id,
+                participant: statusKey.participant || statusKey.remoteJid,
+                fromMe: false
+            };
+            await sock.readMessages([readKey]);
             
             // Update view time
             this.lastViewTime = Date.now();
@@ -570,6 +576,40 @@ export default {
                     );
                     break;
                     
+                case 'stealth':
+                case 'ghost':
+                case 'hideonline':
+                case 'privacy': {
+                    const privacyOpt = (args[1] || 'on').toLowerCase();
+                    try {
+                        if (privacyOpt === 'on' || privacyOpt === 'enable') {
+                            // Hide last seen and online status from everyone
+                            await sock.updateLastSeenPrivacy('none');
+                            await sock.updateOnlinePrivacy('match_last_seen');
+                            await sendMessage(
+                                `🫥 *STEALTH MODE ENABLED* 🦊\n\n` +
+                                `✅ Last seen: *hidden*\n` +
+                                `✅ Online status: *hidden*\n\n` +
+                                `Nobody can see when you're online or view statuses! 🕵️\n\n` +
+                                `Use \`${PREFIX}autoviewstatus stealth off\` to disable.`
+                            );
+                        } else {
+                            // Restore last seen and online to contacts
+                            await sock.updateLastSeenPrivacy('contacts');
+                            await sock.updateOnlinePrivacy('everyone');
+                            await sendMessage(
+                                `👁️ *STEALTH MODE DISABLED* 🦊\n\n` +
+                                `✅ Last seen: *visible to contacts*\n` +
+                                `✅ Online status: *visible to everyone*\n\n` +
+                                `Your online status is now visible again.`
+                            );
+                        }
+                    } catch (e) {
+                        await sendMessage(`❌ Privacy update failed: ${e.message}`);
+                    }
+                    break;
+                }
+
                 case 'help':
                 case 'cmd':
                 case 'guide':
@@ -579,6 +619,9 @@ export default {
                         `• \`${PREFIX}autoviewstatus\` - Show status\n` +
                         `• \`${PREFIX}autoviewstatus on\` - Enable\n` +
                         `• \`${PREFIX}autoviewstatus off\` - Disable\n\n` +
+                        `*Stealth Mode (hide green circle):*\n` +
+                        `• \`${PREFIX}autoviewstatus stealth\` - Hide online & last seen\n` +
+                        `• \`${PREFIX}autoviewstatus stealth off\` - Restore visibility\n\n` +
                         `*Info & Stats:*\n` +
                         `• \`${PREFIX}autoviewstatus stats\` - Detailed stats\n` +
                         `• \`${PREFIX}autoviewstatus logs\` - View logs\n` +
@@ -587,6 +630,7 @@ export default {
                         `• \`${PREFIX}autoviewstatus settings\` - Configure options\n\n` +
                         `*Examples:*\n` +
                         `\`${PREFIX}autoviewstatus on\`\n` +
+                        `\`${PREFIX}autoviewstatus stealth\`\n` +
                         `\`${PREFIX}autoviewstatus stats\`\n` +
                         `\`${PREFIX}autoviewstatus settings seen on\`\n` +
                         `\`${PREFIX}autoviewstatus settings delay 2000\``
