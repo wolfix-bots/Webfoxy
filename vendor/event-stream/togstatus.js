@@ -57,7 +57,13 @@ export default {
 
         try {
             let groupName = groupJid;
-            try { const meta = await sock.groupMetadata(groupJid); groupName = meta.subject; } catch {}
+            try {
+                const meta = await sock.groupMetadata(groupJid);
+                groupName = meta.subject;
+            } catch (_) {
+                // groupMetadata may fail if bot doesn't have the group cached yet — use JID as name
+                groupName = groupJid.split('@')[0];
+            }
 
             let sent = false;
 
@@ -114,7 +120,13 @@ export default {
             }
 
         } catch (e) {
-            return sock.sendMessage(chatId, { text: `❌ Failed: ${e.message}` }, { quoted: m });
+            let errMsg = e.message || String(e);
+            // "No sessions" means Baileys hasn't cached this group's encryption keys yet.
+            // The bot must receive at least one message from the group first.
+            if (errMsg.toLowerCase().includes('no sessions') || errMsg.toLowerCase().includes('nosessions')) {
+                errMsg = 'No sessions — the bot has not received any messages from this group yet.\n\nSend any message inside the group first, then try again.';
+            }
+            return sock.sendMessage(chatId, { text: `❌ Failed: ${errMsg}` }, { quoted: m });
         }
     }
 };

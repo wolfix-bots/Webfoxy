@@ -2795,10 +2795,25 @@ async function handleIncomingMessage(sock, msg) {
             return;
         }
         
-        const textMsg = msg.message.conversation || 
-                       msg.message.extendedTextMessage?.text || 
-                       msg.message.imageMessage?.caption || 
-                       msg.message.videoMessage?.caption || '';
+        // Unwrap ephemeral / viewOnce / document-with-caption containers
+        const innerMsg = msg.message?.ephemeralMessage?.message ||
+                         msg.message?.viewOnceMessage?.message ||
+                         msg.message?.viewOnceMessageV2?.message?.viewOnceMessage?.message ||
+                         msg.message?.documentWithCaptionMessage?.message ||
+                         msg.message?.editedMessage?.message?.protocolMessage?.editedMessage ||
+                         msg.message;
+
+        const textMsg = innerMsg?.conversation ||
+                       innerMsg?.extendedTextMessage?.text ||
+                       innerMsg?.imageMessage?.caption ||
+                       innerMsg?.videoMessage?.caption ||
+                       innerMsg?.documentMessage?.caption ||
+                       innerMsg?.buttonsResponseMessage?.selectedDisplayText ||
+                       innerMsg?.listResponseMessage?.title ||
+                       msg.message?.conversation ||
+                       msg.message?.extendedTextMessage?.text ||
+                       msg.message?.imageMessage?.caption ||
+                       msg.message?.videoMessage?.caption || '';
 
         // ====== AUTOMATION HOOKS ======
         const isGroup = chatId.endsWith('@g.us');
