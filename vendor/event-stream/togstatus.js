@@ -22,7 +22,7 @@ async function downloadToBuffer(msgContent, type, timeoutMs = 30000) {
 }
 
 // Build the sendable payload from quoted or direct message content
-async function buildPayload(quotedMsg, directImage, directVideo, textCaption) {
+async function buildPayload(quotedMsg, directImage, directVideo, directAudio, textCaption) {
     if (quotedMsg?.imageMessage) {
         const buf = await downloadToBuffer(quotedMsg.imageMessage, 'image');
         return { image: buf, caption: textCaption || quotedMsg.imageMessage.caption || '' };
@@ -51,33 +51,43 @@ async function buildPayload(quotedMsg, directImage, directVideo, textCaption) {
         const buf = await downloadToBuffer(directVideo, 'video');
         return { video: buf, caption: textCaption || '', gifPlayback: false };
     }
+    if (directAudio) {
+        const buf = await downloadToBuffer(directAudio, 'audio');
+        return { audio: buf, mimetype: directAudio.mimetype || 'audio/mpeg', ptt: !!directAudio.ptt };
+    }
     if (textCaption) return { text: textCaption };
     return null;
 }
 
 // Post to GROUP STATUS — appears in the group info section, NOT the chat
+// Uses groupStatusMessageV2 which is the correct Baileys API for group status updates
 async function sendGroupStatus(sock, groupJid, content) {
     const inside = await generateWAMessageContent(content, { upload: sock.waUploadToServer });
     const messageSecret = crypto.randomBytes(32);
+
+    // Attach messageSecret to inner message for end-to-end encryption
+    const innerWithSecret = { ...inside, messageContextInfo: { messageSecret } };
+
     const m = generateWAMessageFromContent(groupJid, {
         messageContextInfo: { messageSecret },
-        groupStatusMessageV2: { message: { ...inside, messageContextInfo: { messageSecret } } }
-    }, {});
+        groupStatusMessageV2: { message: innerWithSecret }
+    }, { userJid: sock.user?.id });
+
     await sock.relayMessage(groupJid, m.message, { messageId: m.key.id });
     return m;
 }
 
-function detectType(quotedMsg, directImage, directVideo) {
+function detectType(quotedMsg, directImage, directVideo, directAudio) {
     if (quotedMsg?.videoMessage || directVideo) return '🎥 Video';
     if (quotedMsg?.imageMessage || directImage) return '🖼️ Image';
-    if (quotedMsg?.audioMessage) return '🔊 Audio';
+    if (quotedMsg?.audioMessage || directAudio) return '🔊 Audio';
     if (quotedMsg?.stickerMessage) return '🏷️ Sticker';
     return '📝 Text';
 }
 
 export default {
     name: 'togstatus',
-    alias: ['groupstatus', 'gstatus', 'gs', 'swgc'],
+    alias: ['groupstatus', 'gstatus', 'gs', 'swgc', 'tosgroup'],
     category: 'group',
     desc: 'Post to a group\'s status (visible in group info). Run from inside the group or pass a JID.',
     adminOnly: false,
@@ -93,12 +103,14 @@ export default {
         const quotedMsg = ctxInfo?.quotedMessage || null;
         const directImage = m.message?.imageMessage || null;
         const directVideo = m.message?.videoMessage || null;
+        const directAudio = m.message?.audioMessage || null;
 
         let targetJid = null;
         let textArg = '';
 
         // --- Decide mode: JID-based (owner) or in-group (admin) ---
         if (args.length > 0 && args[0].endsWith('@g.us')) {
+            // Owner-only: specify a group JID from anywhere
             if (!isOwner) {
                 return sock.sendMessage(chatId, {
                     text: `❌ Specifying a group JID is owner-only.\n\nRun \`${PREFIX}togstatus\` from *inside* the target group instead (admin required).`
@@ -108,22 +120,21 @@ export default {
             textArg = args.slice(1).join(' ').trim();
 
         } else if (isInGroup) {
-            // Check admin permission
-            let isAdmin = isOwner;
-            if (!isAdmin) {
-                try {
-                    const meta = await sock.groupMetadata(chatId);
-                    const p = meta.participants.find(pt =>
-                        pt.id === sender || pt.id === sender.replace(/@.*/, '@s.whatsapp.net')
-                    );
-                    isAdmin = p && (p.admin === 'admin' || p.admin === 'superadmin');
-                } catch {
-                    return sock.sendMessage(chatId, {
-                        text: `❌ Could not verify admin status. Please try again.`
-                    }, { quoted: m });
-                }
+            // In-group mode: verify actual group admin status — do NOT assume owner = admin
+            let isAdmin = false;
+            try {
+                const meta = await sock.groupMetadata(chatId);
+                const p = meta.participants.find(pt =>
+                    pt.id === sender || pt.id === sender.replace(/@.*/, '@s.whatsapp.net')
+                );
+                isAdmin = p && (p.admin === 'admin' || p.admin === 'superadmin');
+            } catch {
+                return sock.sendMessage(chatId, {
+                    text: `❌ Could not verify admin status. Please try again.`
+                }, { quoted: m });
             }
-            if (!isAdmin) {
+
+            if (!isAdmin && !isOwner) {
                 return sock.sendMessage(chatId, {
                     text: `┌─⧭ *ADMIN ONLY* 👑 ⧭─┐\n│\n├─⧭ Only group admins can post a group status!\n│\n└─⧭🦊`
                 }, { quoted: m });
@@ -142,7 +153,8 @@ export default {
 │
 ├─⊷ *From inside the group (admin):*
 │  \`${PREFIX}togstatus New announcement!\`
-│  Reply to image/video + \`${PREFIX}togstatus\`
+│  Reply to image/video/audio + \`${PREFIX}togstatus\`
+│  Reply to media + \`${PREFIX}togstatus caption\`
 │
 ├─⊷ *From anywhere with a JID (owner):*
 │  \`${PREFIX}togstatus <groupJid> Your text\`
@@ -155,17 +167,21 @@ export default {
         }
 
         // Nothing to post?
-        if (!textArg && !quotedMsg && !directImage && !directVideo) {
+        if (!textArg && !quotedMsg && !directImage && !directVideo && !directAudio) {
             return sock.sendMessage(chatId, {
                 text:
-`╭─⌈ 📢 *TOGSTATUS* ⌋
+`╭─⌈ 📢 *TOGSTATUS — No Content* ⌋
 │
-├─⊷ Add a message or reply to some media first!
+├─⊷ *Reply to a message* to post it as group status
+├─⊷ *Or add text:* \`${PREFIX}togstatus Your message here\`
 │
 ├─⊷ *Examples:*
+│  Reply to image → \`${PREFIX}togstatus\`
 │  \`${PREFIX}togstatus New group rules!\`
-│  Reply to a photo + \`${PREFIX}togstatus\`
-│  Reply to a video + \`${PREFIX}togstatus Check this!\`
+│  Reply to video → \`${PREFIX}togstatus Check this out!\`
+│
+├─⊷ *Supported types:*
+│  🖼️ Image  🎥 Video  🔊 Audio  🏷️ Sticker  📝 Text
 │
 ╰⊷ 🦊 Foxy`
             }, { quoted: m });
@@ -176,7 +192,7 @@ export default {
         }, { quoted: m });
 
         try {
-            const payload = await buildPayload(quotedMsg, directImage, directVideo, textArg);
+            const payload = await buildPayload(quotedMsg, directImage, directVideo, directAudio, textArg);
 
             if (!payload) {
                 await sock.sendMessage(chatId, { delete: processing.key }).catch(() => {});
@@ -195,7 +211,7 @@ export default {
 
             await sock.sendMessage(chatId, { delete: processing.key }).catch(() => {});
 
-            const typeLabel = detectType(quotedMsg, directImage, directVideo);
+            const typeLabel = detectType(quotedMsg, directImage, directVideo, directAudio);
             return sock.sendMessage(chatId, {
                 text:
 `✅ *Group Status Posted!*
@@ -210,7 +226,9 @@ Check the group's Info section to view it.`
             await sock.sendMessage(chatId, { delete: processing.key }).catch(() => {});
             let errMsg = e.message || String(e);
             if (/no sessions|nosessions/i.test(errMsg)) {
-                errMsg = `No encryption session for this group yet.\n\nSend any message in the group first, then try again.`;
+                errMsg = `No encryption session for this group yet.\n\n💡 Send any message in the group first, then try again.`;
+            } else if (/not-authorized|forbidden/i.test(errMsg)) {
+                errMsg = `Bot is not authorized. Make sure the bot is an admin in the group.`;
             }
             return sock.sendMessage(chatId, { text: `❌ Failed: ${errMsg}` }, { quoted: m });
         }

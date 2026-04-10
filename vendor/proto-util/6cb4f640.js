@@ -3,7 +3,7 @@ import axios from 'axios';
 export default {
     name: 'quran',
     alias: ['quranverse', 'koran', 'islam', '🕋'],
-    category: 'general',
+    category: 'scripture',
     description: 'Get Quran verses and scripture 🕋',
     
     async execute(sock, msg, args, PREFIX) {

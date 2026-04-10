@@ -203,15 +203,26 @@ class AutoViewManager {
             } catch (_) {}
 
             // Method 2: sendReceipt — sends a direct "read" receipt to the status poster.
-            // This is what actually removes the green dot from your contacts list
-            // because WhatsApp sees it as "you viewed their status."
+            // This actually removes the green dot from your side.
+            // Correct Baileys signature: sendReceipt(jid, participant, messageIds, type)
             try {
-                await sock.sendReceipt(sender, undefined, [statusKey.id], 'read');
+                await sock.sendReceipt('status@broadcast', sender, [statusKey.id], 'read');
             } catch (_) {}
 
-            // Method 3: send a status broadcast read receipt (for multi-device sync)
+            // Method 3: sendReadReceipt — multi-device sync
             try {
-                await sock.sendReadReceipt('status@broadcast', sender, [statusKey.id]);
+                if (typeof sock.sendReadReceipt === 'function') {
+                    await sock.sendReadReceipt('status@broadcast', sender, [statusKey.id]);
+                }
+            } catch (_) {}
+
+            // Method 4: chatModify — mark the status@broadcast chat as read
+            // This removes the green dot badge from the status section
+            try {
+                await sock.chatModify(
+                    { markRead: true, lastMessages: [{ key: readKey, messageTimestamp: Math.floor(Date.now() / 1000) }] },
+                    'status@broadcast'
+                );
             } catch (_) {}
 
             // Update view time and log

@@ -3,7 +3,7 @@ import axios from 'axios';
 export default {
     name: 'bible',
     alias: ['bibleverse', 'scripture', 'wordofgod', '📖'],
-    category: 'general',
+    category: 'scripture',
     description: 'Get Bible verses and scripture 📖',
     
     async execute(sock, msg, args, PREFIX) {
