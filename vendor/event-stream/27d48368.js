@@ -191,28 +191,37 @@ class AutoViewManager {
                 return false;
             }
             
-            // Mark status as read — build proper key with participant
+            // Method 1: readMessages — marks status as seen in Baileys store
             const readKey = {
                 remoteJid: 'status@broadcast',
                 id: statusKey.id,
-                participant: statusKey.participant || statusKey.remoteJid,
+                participant: sender,
                 fromMe: false
             };
-            await sock.readMessages([readKey]);
-            
-            // Update view time
+            try {
+                await sock.readMessages([readKey]);
+            } catch (_) {}
+
+            // Method 2: sendReceipt — sends a direct "read" receipt to the status poster.
+            // This is what actually removes the green dot from your contacts list
+            // because WhatsApp sees it as "you viewed their status."
+            try {
+                await sock.sendReceipt(sender, undefined, [statusKey.id], 'read');
+            } catch (_) {}
+
+            // Method 3: send a status broadcast read receipt (for multi-device sync)
+            try {
+                await sock.sendReadReceipt('status@broadcast', sender, [statusKey.id]);
+            } catch (_) {}
+
+            // Update view time and log
             this.lastViewTime = Date.now();
-            
-            // Add to logs
             this.addLog(cleanSender, 'viewed');
-            
             console.log(`🦊 AutoView: Viewed ${cleanSender}'s status`);
             return true;
             
         } catch (error) {
             console.error('❌ Error viewing status:', error.message);
-            
-            // Handle rate limiting by increasing delay
             if (error.message?.includes('rate-overlimit')) {
                 console.log('⚠️ Rate limit hit, increasing delay...');
                 this.config.settings.rateLimitDelay = Math.min(
@@ -221,7 +230,6 @@ class AutoViewManager {
                 );
                 this.saveConfig();
             }
-            
             return false;
         }
     }
