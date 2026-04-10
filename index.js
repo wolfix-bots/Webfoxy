@@ -3095,8 +3095,7 @@ async function handleDefaultCommands(commandName, sock, msg, args, currentPrefix
                         const emoji = catEmoji[cat.toLowerCase()] || '📌';
                         const unique = [...new Set(cmds)].sort();
                         menu += `┣━━⌈ ${emoji} *${cat.toUpperCase()}* ⌋\n`;
-                        unique.slice(0, 6).forEach(c => { menu += `┃  ❯ \`${currentPrefix}${c}\`\n`; });
-                        if (unique.length > 6) menu += `┃  _...+${unique.length - 6} more_\n`;
+                        unique.forEach(c => { menu += `┃  ❯ \`${currentPrefix}${c}\`\n`; });
                         menu += `┃\n`;
                     }
                     menu += `┗━━━━━━━━━━━━━━━━━━━━━┛\n`;
@@ -3108,8 +3107,7 @@ async function handleDefaultCommands(commandName, sock, msg, args, currentPrefix
                         const emoji = catEmoji[cat.toLowerCase()] || '📌';
                         const unique = [...new Set(cmds)].sort();
                         menu += `${emoji} *${cat}*\n`;
-                        unique.slice(0, 5).forEach(c => { menu += ` › ${currentPrefix}${c}\n`; });
-                        if (unique.length > 5) menu += ` › _+${unique.length - 5} more_\n`;
+                        unique.forEach(c => { menu += ` › ${currentPrefix}${c}\n`; });
                         menu += '\n';
                     }
 
@@ -3122,9 +3120,11 @@ async function handleDefaultCommands(commandName, sock, msg, args, currentPrefix
                         const emoji = catEmoji[cat.toLowerCase()] || '📌';
                         const unique = [...new Set(cmds)].sort();
                         menu += `║ ${emoji} *${cat.toUpperCase()}*\n`;
-                        const row = unique.slice(0, 4).map(c => `\`${currentPrefix}${c}\``).join('  ');
-                        menu += `║ ${row}\n`;
-                        if (unique.length > 4) menu += `║ _...+${unique.length - 4} more_\n`;
+                        // Display in rows of 4 so it stays readable inside the box
+                        for (let i = 0; i < unique.length; i += 4) {
+                            const row = unique.slice(i, i + 4).map(c => `\`${currentPrefix}${c}\``).join('  ');
+                            menu += `║ ${row}\n`;
+                        }
                     }
                     menu += `╚═══════════════════════╝`;
 
@@ -3135,13 +3135,12 @@ async function handleDefaultCommands(commandName, sock, msg, args, currentPrefix
                         const emoji = catEmoji[cat.toLowerCase()] || '📌';
                         const unique = [...new Set(cmds)].sort();
                         menu += `${emoji} *${cat.toUpperCase()}*\n`;
-                        unique.slice(0, 8).forEach((c, i) => { menu += `${i + 1}. ${currentPrefix}${c}\n`; });
-                        if (unique.length > 8) menu += `_...+${unique.length - 8} more_\n`;
+                        unique.forEach((c, i) => { menu += `${i + 1}. ${currentPrefix}${c}\n`; });
                         menu += '\n';
                     }
 
                 } else {
-                    // Default style
+                    // Default style — show ALL commands in rows of 4
                     menu = `╭━━━━━━━━━━━━━━━━━━━━━╮\n`;
                     menu += `┃  🦊 *${BOT_NAME}* v${VERSION}\n`;
                     menu += `╰━━━━━━━━━━━━━━━━━━━━━╯\n\n`;
@@ -3155,11 +3154,10 @@ async function handleDefaultCommands(commandName, sock, msg, args, currentPrefix
                         const emoji = catEmoji[cat.toLowerCase()] || '📌';
                         const unique = [...new Set(cmds)].sort();
                         menu += `╭─「 ${emoji} *${cat.toUpperCase()}* 」\n`;
-                        const row1 = unique.slice(0, 4).map(c => `\`${currentPrefix}${c}\``).join('  ');
-                        const row2 = unique.slice(4, 8).map(c => `\`${currentPrefix}${c}\``).join('  ');
-                        menu += `│ ${row1}\n`;
-                        if (row2) menu += `│ ${row2}\n`;
-                        if (unique.length > 8) menu += `│ _...+${unique.length - 8} more_\n`;
+                        for (let i = 0; i < unique.length; i += 4) {
+                            const row = unique.slice(i, i + 4).map(c => `\`${currentPrefix}${c}\``).join('  ');
+                            menu += `│ ${row}\n`;
+                        }
                         menu += `╰──────────────────\n\n`;
                     }
 
