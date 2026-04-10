@@ -102,84 +102,50 @@ function getBotName() {
     return 'Foxy Bot';
 }
 
-// ===== ALL COMMANDS BY CATEGORY =====
-const COMMANDS = {
-    // AI Commands
-    ai: [
-        'ascii', 'claude', 'cohere', 'deepseek', 'flux', 'foxy',
-        'gemini', 'gpt', 'instagram', 'llama', 'mistral', 'perplexity',
-        'sticker', 'teacher', 'topdf'
-    ],
-
-    // Downloader Commands
-    downloaders: [
-        '7c', 'mp4', 'play', 'playdoc', 'removebg', 'shazam', 'trailer'
-    ],
-
-    // Automation Commands
-    automation: [
-        'autoreact', 'autoread', 'autorecording',
-        'autostatus', 'autotyping', 'autorecordtype',
-        'autoviewstatus', 'autoreactstatus'
-    ],
-
-    // Games Commands
-    games: [
-        '8ball', 'fact', 'flip', 'hangman', 'hug', 'joke',
-        'quote', 'roll', 'slap', 'tictactoe', 'tod', 'trivia'
-    ],
-
-    // Fun Commands
-    fun: [
-        'attp', 'compliment', 'meme', 'take', 'truthdetect'
-    ],
-
-    // Group Commands
-    group: [
-        'add', 'antilink', 'antibadword', 'antispam', 'demote', 'gcs',
-        'groupinfo', 'hidetag', 'kick', 'listadmins', 'mute', 'promote',
-        'resetwarn', 'setdesc', 'setgname', 'setgpp', 'setwarn',
-        'tagall', 'togstatus', 'unmute', 'warn', 'warnings'
-    ],
-
-    // Tools Commands
-    tools: [
-        'antidelete', 'calc', 'define', 'getpp', 'imgbb', 'logo',
-        'lyrics', 'qr', 'room', 'setpp', 'story', 'time',
-        'timer', 'toimg', 'tosticker', 'translate', 'tts',
-        'vv', 'vv2', 'weather'
-    ],
-
-    // Text Effect Commands
-    text: [
-        'comictext', 'cyberpunk', 'glasstext', 'glitchtext',
-        'gradienttext', 'metallictext', 'stonetext', 'vintagetext'
-    ],
-
-    // General Commands
-    general: [
-        'alive', 'bible', 'goodmorning', 'goodnight', 'ping', 'quran', 'uptime'
-    ],
-
-    // Owner Commands
-    owner: [
-        'addsudo', 'clean', 'mode', 'ownerreact', 'setbotname',
-        'setmenuimage', 'setprefix', 'ultimatefix'
-    ]
+// Category emoji map for dynamic menu
+const CAT_EMOJI = {
+    ai: '🤖', sticker: '🎨', media: '🎵', group: '👥', owner: '👑',
+    fun: '🎮', tool: '🔧', tools: '🔧', general: '📋', economy: '💰',
+    game: '🎲', games: '🎲', search: '🔍', utility: '⚙️', utilities: '⚙️',
+    downloader: '⬇️', download: '⬇️', downloaders: '⬇️', info: 'ℹ️',
+    anime: '🌸', social: '📱', misc: '✨', image: '🖼️', video: '📹',
+    music: '🎶', nsfw: '🔞', converter: '🔄', weather: '🌤️',
+    automation: '⚡', status: '📡', stalk: '🔎', system: '🛠️',
+    creative: '🎨', settings: '⚙️', moderation: '🛡️', admin: '🔐',
+    text: '✍️', translate: '🌐', security: '🔒',
 };
 
 const READMORE = '\u200E'.repeat(4001);
 
-function buildMenuCaption(prefix, version, context, timeInfo, sysInfo, isOwner, ownerNumber, mode) {
+function buildMenuCaption(prefix, version, context, timeInfo, sysInfo, isOwner, ownerNumber, mode, commandCategories) {
     const ownerDisplay = ownerNumber ? `+${ownerNumber}` : 'Not Set!';
     const botName = getBotName();
-    
-    // Count total commands (remove duplicates)
-    const allCommands = new Set();
-    for (const cat in COMMANDS) {
-        COMMANDS[cat].forEach(cmd => allCommands.add(cmd));
+
+    // Build dynamic category map from live commandCategories
+    let sortedCats = [];
+    let totalCommands = 0;
+    if (commandCategories && commandCategories.size > 0) {
+        for (const [cat, cmds] of commandCategories.entries()) {
+            const uniqueCmds = [...new Set(cmds)].sort();
+            sortedCats.push([cat, uniqueCmds]);
+            totalCommands += uniqueCmds.length;
+        }
+        sortedCats.sort(([a], [b]) => a.localeCompare(b));
     }
-    const totalCommands = allCommands.size;
+
+    let categoryBlocks = '';
+    for (const [cat, cmds] of sortedCats) {
+        if (!cmds.length) continue;
+        // Hide owner commands from non-owners
+        if (cat === 'owner' && !isOwner) {
+            categoryBlocks += `\n╭━━━〔👑 *OWNER COMMANDS* 〕━━━╮\n┃\n┃ • [Owner Only]\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━╯\n`;
+            continue;
+        }
+        const emoji = CAT_EMOJI[cat.toLowerCase()] || '📌';
+        const label = cat.toUpperCase();
+        const lines = cmds.map(cmd => `┃ • ${prefix}${cmd}`).join('\n');
+        categoryBlocks += `\n╭━━━〔${emoji} *${label}* 〕━━━╮\n┃\n${lines}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━╯\n`;
+    }
 
     return `╭━━━〔🦊 *${botName.toUpperCase()}* 〕━━━╮
 ┃
@@ -195,67 +161,7 @@ function buildMenuCaption(prefix, version, context, timeInfo, sysInfo, isOwner, 
 ┃ *Total Commands:* ${totalCommands}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━╯
-${READMORE}
-╭━━━〔🤖 *AI COMMANDS* 〕━━━╮
-┃
-${COMMANDS.ai.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔📥 *DOWNLOADERS* 〕━━━╮
-┃
-${COMMANDS.downloaders.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔⚡ *AUTOMATION* 〕━━━╮
-┃
-${COMMANDS.automation.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔🎲 *GAMES* 〕━━━╮
-┃
-${COMMANDS.games.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔🎮 *FUN COMMANDS* 〕━━━╮
-┃
-${COMMANDS.fun.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔👥 *GROUP COMMANDS* 〕━━━╮
-┃
-${COMMANDS.group.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔🛠️ *TOOLS* 〕━━━╮
-┃
-${COMMANDS.tools.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔✍️ *TEXT EFFECTS* 〕━━━╮
-┃
-${COMMANDS.text.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔📊 *GENERAL* 〕━━━╮
-┃
-${COMMANDS.general.map(cmd => `┃ • ${prefix}${cmd}`).join('\n')}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-╭━━━〔👑 *OWNER COMMANDS* 〕━━━╮
-┃
-${isOwner ? COMMANDS.owner.map(cmd => `┃ • ${prefix}${cmd}`).join('\n') : '┃ • [Owner Only]'}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
+${READMORE}${categoryBlocks}
 ╭━━━〔💡 *INFO* 〕━━━╮
 ┃
 ┃ • Type ${prefix}help <command>
@@ -301,10 +207,10 @@ export default {
 
     async execute(sock, msg, args, prefix, context) {
         const chatId = msg.key.remoteJid;
-        const isOwner = context?.isOwner || false;
-        const version = '2.0.0';
+        const isOwner = typeof context?.isOwner === 'function' ? context.isOwner() : (context?.isOwner || false);
+        const version = context?.VERSION || '2.0.0';
         const timeInfo = getCurrentDateTime();
-        const botName = getBotName();
+        const botName = context?.BOT_NAME || getBotName();
 
         // Load config
         const CONFIG_FILE = path.join(process.cwd(), 'server', 'bot', 'bot_config.json');
@@ -328,10 +234,13 @@ export default {
         const speedEnd = Date.now();
         sysInfo.speed = speedEnd - speedStart;
 
-        // Build caption
+        // Build caption using live commandCategories if available
+        const dynamicCategories = context?.commandCategories || null;
+        const ownerNumber = context?.OWNER_NUMBER || config.ownerNumber || '';
+        const botMode = context?.BOT_MODE || config.mode || 'public';
         const caption = buildMenuCaption(
-            prefix, version, context, timeInfo, sysInfo, 
-            isOwner, config.ownerNumber, config.mode
+            prefix, version, context, timeInfo, sysInfo,
+            isOwner, ownerNumber, botMode, dynamicCategories
         );
 
         try {

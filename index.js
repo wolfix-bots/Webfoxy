@@ -1965,14 +1965,33 @@ async function loadCommandsFromFolder(folderPath, category = 'general') {
                     const command = commandModule.default || commandModule;
                     
                     if (command && command.name) {
-                        const effectiveCategory = command.category || category;
+                        // Normalize category: lowercase + unify aliases + strip internal folder names
+                        const rawCategory = (command.category || category).toLowerCase().trim();
+                        const categoryAliases = {
+                            'tools': 'tool', 'utilities': 'utility', 'download': 'downloader',
+                            'games': 'game', 'stickers': 'sticker', 'medias': 'media',
+                            'images': 'image', 'videos': 'video', 'musics': 'music',
+                            'searches': 'search', 'settings': 'owner', 'system': 'tool',
+                            'creative': 'fun', 'ws-core': 'general', 'event-stream': 'general',
+                            'proto-util': 'general', 'vendor': 'general',
+                        };
+                        const effectiveCategory = categoryAliases[rawCategory] || rawCategory;
                         command.category = effectiveCategory;
-                        commands.set(command.name.toLowerCase(), command);
+                        // Prevent duplicate entries in the same category
+                        const cmdNameLower = command.name.toLowerCase();
+                        const existingCmd = commands.get(cmdNameLower);
+                        if (existingCmd && existingCmd.category === effectiveCategory) {
+                            // Skip duplicate in same category
+                        }
+                        commands.set(cmdNameLower, command);
                         
                         if (!commandCategories.has(effectiveCategory)) {
                             commandCategories.set(effectiveCategory, []);
                         }
-                        commandCategories.get(effectiveCategory).push(command.name);
+                        const catList = commandCategories.get(effectiveCategory);
+                        if (!catList.includes(command.name)) {
+                            catList.push(command.name);
+                        }
                         
                         UltraCleanLogger.info(`[${effectiveCategory}] Loaded: ${command.name}`);
                         categoryCount++;
@@ -3005,6 +3024,7 @@ async function handleIncomingMessage(sock, msg) {
                         VERSION,
                         BOT_MODE,
                         commands,
+                        commandCategories,
                         isOwner: () => jidManager.isOwner(msg),
                         jidManager,
                         store,
@@ -3053,11 +3073,13 @@ async function handleDefaultCommands(commandName, sock, msg, args, currentPrefix
             case 'help': {
                 const catEmoji = {
                     ai: '🤖', sticker: '🎨', media: '🎵', group: '👥', owner: '👑',
-                    fun: '🎮', tool: '🔧', general: '📋', economy: '💰', game: '🎲',
-                    search: '🔍', utility: '⚙️', downloader: '⬇️', info: 'ℹ️',
-                    anime: '🌸', social: '📱', misc: '✨', image: '🖼️', video: '📹',
-                    music: '🎶', nsfw: '🔞', converter: '🔄', weather: '🌤️',
-                    automation: '⚡', status: '📡',
+                    fun: '🎮', tool: '🔧', tools: '🔧', general: '📋', economy: '💰',
+                    game: '🎲', games: '🎲', search: '🔍', utility: '⚙️', utilities: '⚙️',
+                    downloader: '⬇️', download: '⬇️', info: 'ℹ️', anime: '🌸',
+                    social: '📱', misc: '✨', image: '🖼️', video: '📹', music: '🎶',
+                    nsfw: '🔞', converter: '🔄', weather: '🌤️', automation: '⚡',
+                    status: '📡', stalk: '🔎', system: '🛠️', creative: '🎨',
+                    settings: '⚙️', moderation: '🛡️', admin: '🔐', security: '🔒',
                 };
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
