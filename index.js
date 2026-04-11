@@ -36,7 +36,6 @@ import readline from 'readline';
 import zlib from 'zlib';
 import { loadCommandsRemotely } from './utils/remoteLoader.js';
 import { applyFontToMessage } from './utils/fontConverter.js';
-import express from 'express';
 // import { File } from 'megajs';
 // //import mega from 'megajs';
 // import * as mega from 'megajs';
@@ -549,31 +548,6 @@ const botStatus = {
     name: BOT_NAME, prefix: DEFAULT_PREFIX,
     mode: 'public', startedAt: Date.now(), commandsLoaded: 0
 };
-(function startStatusServer() {
-    const _app = express();
-    // SERVER_PORT = Pterodactyl/XCASPER assigned port
-    // WEB_PORT    = manual override
-    // PORT        = generic hosting env
-    // 8080        = safe fallback (avoids the commonly conflicted 3000)
-    const WEB_PORT = parseInt(process.env.SERVER_PORT || process.env.WEB_PORT || process.env.PORT || 8080);
-    _app.get('/', (_req, res) => {
-        const up = Math.floor((Date.now() - botStatus.startedAt) / 1000);
-        const uptimeStr = `${Math.floor(up/3600)}h ${Math.floor((up%3600)/60)}m ${up%60}s`;
-        const sc = botStatus.connected ? '#22c55e' : '#ef4444';
-        const sl = botStatus.connected ? 'CONNECTED' : 'DISCONNECTED';
-        res.send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta http-equiv="refresh" content="10"/><title>${botStatus.name} Status</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0a0a0a;color:#e5e5e5;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.card{background:#111;border:1px solid #222;border-radius:20px;padding:40px;max-width:440px;width:100%}.header{text-align:center;margin-bottom:32px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:${sc};margin-right:6px;${botStatus.connected?'animation:pulse 2s infinite':''}}.badge{display:inline-flex;align-items:center;background:${sc}18;border:1px solid ${sc}44;color:${sc};border-radius:20px;padding:5px 14px;font-size:.8rem;font-weight:700;letter-spacing:.5px}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}h1{font-size:1.7rem;font-weight:700;margin:16px 0 4px}.sub{color:#666;font-size:.85rem}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}.stat{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:16px}.lbl{color:#555;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}.val{font-size:1rem;font-weight:600;word-break:break-all}.full{grid-column:1/-1}.foot{text-align:center;margin-top:24px;color:#333;font-size:.75rem}</style></head><body><div class="card"><div class="header"><div class="badge"><span class="dot"></span>${sl}</div><h1>🦊 ${botStatus.name}</h1><p class="sub">WhatsApp Bot Status</p></div><div class="grid"><div class="stat"><div class="lbl">Phone</div><div class="val">${botStatus.phone||'—'}</div></div><div class="stat"><div class="lbl">Prefix</div><div class="val">${botStatus.prefix}</div></div><div class="stat"><div class="lbl">Mode</div><div class="val">${botStatus.mode}</div></div><div class="stat"><div class="lbl">Commands</div><div class="val">${botStatus.commandsLoaded}</div></div><div class="stat full"><div class="lbl">Uptime</div><div class="val">${uptimeStr}</div></div></div><p class="foot">Auto-refreshes every 10s</p></div></body></html>`);
-    });
-    const server = _app.listen(WEB_PORT, () => UltraCleanLogger.info(`🌐 Status page → http://localhost:${WEB_PORT}`));
-    server.on('error', (err) => {
-        if (err.code === 'EADDRINUSE') {
-            // Primary port taken — try a random high port instead
-            const fallback = 10000 + Math.floor(Math.random() * 50000);
-            UltraCleanLogger.warning(`⚠️  Port ${WEB_PORT} in use, status page falling back to :${fallback}`);
-            _app.listen(fallback, () => UltraCleanLogger.info(`🌐 Status page → http://localhost:${fallback}`))
-                .on('error', () => UltraCleanLogger.warning('Status page disabled (port unavailable)'));
-        }
-    });
-})();
 
 // ====== UTILITY FUNCTIONS ======
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
